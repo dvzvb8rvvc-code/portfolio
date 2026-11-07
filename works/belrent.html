@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>РентТул — прокат строительного инструмента в Минске</title>
+<meta name="description" content="Прокат строительного оборудования в Минске без залога для физлиц. Доставка на объект по Минску и области за 1 час. Бетономешалки, виброплиты, перфораторы, садовая техника.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --asphalt:#1d2023;
+  --asphalt-2:#26292d;
+  --asphalt-3:#30343a;
+  --steel:#41464d;
+  --concrete:#f2f1ee;
+  --white:#ffffff;
+  --yellow:#ffc21a;
+  --orange:#ff7a00;
+  --ink:#16181a;
+  --muted:#8b9096;
+  --muted-d:#5c6168;
+  --line-d:rgba(255,255,255,.09);
+  --line-l:#dcdad5;
+  --head:'Oswald',Impact,'Arial Narrow',sans-serif;
+  --body:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);color:var(--ink);background:var(--concrete);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+img,svg{display:block;max-width:100%}
+.container{width:min(1240px,100% - 40px);margin-inline:auto}
+.h-display,h1,h2,h3{font-family:var(--head);text-transform:uppercase;letter-spacing:.01em;line-height:1.02;font-weight:700}
+h2{font-size:clamp(36px,5vw,64px)}
+.label{display:inline-flex;align-items:center;gap:10px;font-family:var(--head);font-size:15px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--orange)}
+.label::before{content:"";width:28px;height:4px;background:var(--yellow)}
+.hazard{height:14px;background:repeating-linear-gradient(-45deg,var(--yellow) 0 18px,var(--asphalt) 18px 36px)}
+section{padding:110px 0}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;height:58px;padding:0 30px;font-family:var(--head);font-size:18px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:background .2s,color .2s,transform .2s,box-shadow .2s;white-space:nowrap}
+.btn svg{width:20px;height:20px;transition:transform .2s}
+.btn:hover svg{transform:translateX(4px)}
+.btn-y{background:var(--yellow);color:var(--ink);box-shadow:6px 6px 0 var(--orange)}
+.btn-y:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--orange)}
+.btn-y:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--orange)}
+.btn-o{color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.btn-o:hover{box-shadow:inset 0 0 0 2px var(--yellow);color:var(--yellow)}
+.btn-dark{background:var(--asphalt);color:#fff}
+.btn-dark:hover{background:var(--yellow);color:var(--ink)}
+
+/* top bar */
+.topbar{background:#141618;color:#b9bdc2;font-size:13.5px}
+.topbar .container{display:flex;justify-content:space-between;align-items:center;height:42px;gap:20px}
+.topbar .tb-l{display:flex;gap:28px}
+.topbar span{display:inline-flex;align-items:center;gap:8px}
+.topbar svg{width:15px;height:15px;color:var(--yellow)}
+.topbar b{color:var(--yellow);font-weight:600}
+
+/* header */
+header{position:sticky;top:0;z-index:50;background:var(--asphalt);border-bottom:1px solid var(--line-d)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:84px;gap:24px}
+.logo{display:flex;align-items:center;gap:14px;color:#fff}
+.logo-mark{width:52px;height:52px;background:var(--yellow);color:var(--ink);display:grid;place-items:center;font-family:var(--head);font-weight:700;font-size:24px;position:relative;clip-path:polygon(0 0,100% 0,100% 74%,74% 100%,0 100%)}
+.logo-t{font-family:var(--head);font-size:26px;font-weight:700;text-transform:uppercase;line-height:1}
+.logo-t small{display:block;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--muted);margin-top:5px}
+.menu{display:flex;gap:34px;font-family:var(--head);font-size:17px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#d5d8db}
+.menu a{position:relative;padding:6px 0}
+.menu a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:3px;background:var(--yellow);transition:width .25s}
+.menu a:hover{color:#fff}.menu a:hover::after{width:100%}
+.nav-r{display:flex;align-items:center;gap:26px}
+.nav-phone{color:#fff;font-family:var(--head);font-size:23px;font-weight:600;letter-spacing:.02em;line-height:1.1;text-align:right}
+.nav-phone small{display:block;font-family:var(--body);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:0}
+.nav .btn{height:52px;padding:0 24px;font-size:16px;box-shadow:none}
+
+/* hero */
+.hero{background:var(--asphalt);color:#fff;padding:90px 0 0;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line-d) 1px,transparent 1px),linear-gradient(90deg,var(--line-d) 1px,transparent 1px);background-size:62px 62px;mask-image:linear-gradient(180deg,#000 30%,transparent 95%);-webkit-mask-image:linear-gradient(180deg,#000 30%,transparent 95%)}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.25fr .75fr;gap:50px;align-items:end;padding-bottom:80px}
+.hero h1{font-size:clamp(48px,7.6vw,112px);line-height:.95;margin:22px 0 30px}
+.hero h1 em{font-style:normal;color:var(--yellow)}
+.hero h1 .stroke{color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.55)}
+.hero p.lead{font-size:19px;color:#c4c8cc;max-width:600px;margin-bottom:40px}
+.hero-actions{display:flex;gap:18px;flex-wrap:wrap}
+.hero-side{display:grid;gap:16px}
+.usp{background:var(--asphalt-2);border:1px solid var(--line-d);border-left:6px solid var(--yellow);padding:26px 28px;display:flex;gap:20px;align-items:flex-start}
+.usp:nth-child(2){border-left-color:var(--orange)}
+.usp-ic{flex:none;width:54px;height:54px;background:var(--yellow);color:var(--ink);display:grid;place-items:center}
+.usp:nth-child(2) .usp-ic{background:var(--orange);color:#fff}
+.usp-ic svg{width:30px;height:30px}
+.usp b{display:block;font-family:var(--head);text-transform:uppercase;font-size:26px;line-height:1.05;margin-bottom:6px}
+.usp span{color:#aeb3b8;font-size:14.5px}
+.stats{position:relative;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line-d)}
+.stat{padding:34px 0 38px;border-right:1px solid var(--line-d);padding-left:28px}
+.stat:first-child{padding-left:0}
+.stat:last-child{border-right:none}
+.stat b{display:block;font-family:var(--head);font-size:54px;font-weight:700;line-height:1;color:#fff}
+.stat b i{font-style:normal;color:var(--yellow)}
+.stat span{color:var(--muted);font-size:14px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+
+/* catalog */
+.cat-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:46px;flex-wrap:wrap}
+.cat-head h2{margin-top:14px}
+.cat-head p{max-width:420px;color:var(--muted-d)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--asphalt);margin-bottom:34px;background:#fff}
+.tab{display:flex;align-items:center;gap:18px;padding:22px 26px;text-align:left;border-right:2px solid var(--asphalt);transition:background .2s,color .2s;position:relative}
+.tab:last-child{border-right:none}
+.tab:hover{background:#f7f5ef}
+.tab-ic{width:52px;height:52px;flex:none;display:grid;place-items:center;background:var(--concrete);transition:background .2s}
+.tab-ic svg{width:30px;height:30px}
+.tab b{display:block;font-family:var(--head);font-size:24px;text-transform:uppercase;line-height:1.05;font-weight:600}
+.tab small{font-size:13px;color:var(--muted-d);font-weight:500}
+.tab[aria-selected=true]{background:var(--asphalt);color:#fff}
+.tab[aria-selected=true] small{color:var(--muted)}
+.tab[aria-selected=true] .tab-ic{background:var(--yellow);color:var(--ink)}
+.tab[aria-selected=true]::after{content:"";position:absolute;left:50%;bottom:-13px;margin-left:-12px;border:12px solid transparent;border-top-color:var(--asphalt);border-bottom:none}
+.tab:focus-visible{outline:3px solid var(--orange);outline-offset:-3px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.grid.swap .card{animation:cardIn .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px)}}
+.card{background:#fff;border:1px solid var(--line-l);display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s,border-color .25s}
+.card:hover{transform:translateY(-6px);box-shadow:0 22px 40px -22px rgba(0,0,0,.35);border-color:var(--asphalt)}
+.card-img{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--asphalt-2)}
+.card-img .fb{position:absolute;inset:0;display:grid;place-items:center;background:
+  linear-gradient(var(--line-d) 1px,transparent 1px) 0 0/24px 24px,
+  linear-gradient(90deg,var(--line-d) 1px,transparent 1px) 0 0/24px 24px,
+  radial-gradient(circle at 50% 60%,#3a3f46,var(--asphalt-2) 70%)}
+.card-img .fb svg{width:52%;height:auto;color:var(--yellow);filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))}
+.card-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.card:hover .card-img img{transform:scale(1.06)}
+.badges{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
+.bdg{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:5px 9px;background:var(--yellow);color:var(--ink)}
+.bdg.d{background:var(--asphalt);color:#fff}
+.stock{position:absolute;bottom:12px;left:12px;z-index:2;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:5px 10px;display:flex;align-items:center;gap:7px;backdrop-filter:blur(4px)}
+.stock i{width:8px;height:8px;border-radius:50%;background:#3fd17a;box-shadow:0 0 0 3px rgba(63,209,122,.25)}
+.stock.low i{background:var(--orange);box-shadow:0 0 0 3px rgba(255,122,0,.25)}
+.card-body{padding:22px 22px 0;flex:1;display:flex;flex-direction:column}
+.card h3{font-size:23px;font-weight:600;margin-bottom:12px}
+.specs{list-style:none;font-size:13.5px;color:var(--muted-d);display:grid;gap:5px;margin-bottom:18px}
+.specs li{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line-l);padding-bottom:5px}
+.specs li b{color:var(--ink);font-weight:600}
+.price{margin-top:auto;display:flex;align-items:baseline;gap:8px;padding-bottom:18px}
+.price small{font-size:13px;color:var(--muted-d);font-weight:600}
+.price b{font-family:var(--head);font-size:40px;font-weight:700;line-height:1}
+.price span{font-family:var(--head);font-size:18px;font-weight:600;color:var(--muted-d)}
+.card .btn{height:56px;width:100%;box-shadow:none;font-size:17px}
+.cat-note{margin-top:28px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:var(--muted-d);font-size:14.5px}
+.cat-note b{color:var(--ink)}
+.tariff{display:inline-flex;font-weight:700;font-size:13px;background:#fff;border:1px solid var(--line-l);padding:7px 12px;gap:6px}
+.tariff i{font-style:normal;color:var(--orange)}
+
+/* why */
+.why{background:var(--asphalt);color:#fff}
+.why-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line-d);margin-top:54px}
+.why-c{padding:40px 32px;border-right:1px solid var(--line-d);position:relative;transition:background .25s}
+.why-c:last-child{border-right:none}
+.why-c:hover{background:var(--asphalt-2)}
+.why-c .n{font-family:var(--head);font-size:80px;font-weight:700;line-height:1;color:transparent;-webkit-text-stroke:1.5px var(--steel);position:absolute;right:22px;top:18px}
+.why-c:hover .n{-webkit-text-stroke-color:var(--yellow)}
+.why-ic{width:60px;height:60px;background:var(--yellow);color:var(--ink);display:grid;place-items:center;margin-bottom:30px}
+.why-ic svg{width:32px;height:32px}
+.why-c h3{font-size:26px;margin-bottom:12px;font-weight:600}
+.why-c p{color:#aeb3b8;font-size:15px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:54px;counter-reset:st}
+.step{padding:0 30px 0 0;position:relative}
+.step-top{display:flex;align-items:center;margin-bottom:24px}
+.step-num{width:64px;height:64px;background:var(--asphalt);color:var(--yellow);display:grid;place-items:center;font-family:var(--head);font-size:28px;font-weight:700;flex:none}
+.step-line{flex:1;height:4px;background:repeating-linear-gradient(90deg,var(--asphalt) 0 10px,transparent 10px 18px)}
+.step:last-child .step-line{display:none}
+.step h3{font-size:24px;margin-bottom:10px;font-weight:600}
+.step p{color:var(--muted-d);font-size:15px}
+
+/* order */
+.order{background:#fff;border-top:1px solid var(--line-l)}
+.order-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:0;border:2px solid var(--asphalt);margin-top:50px}
+.form-box{padding:44px}
+.form-box h3{font-size:34px;margin-bottom:6px}
+.form-box .sub{color:var(--muted-d);margin-bottom:30px}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;color:var(--muted-d)}
+.field input,.field select{width:100%;height:56px;padding:0 18px;border:2px solid var(--line-l);background:var(--concrete);font:inherit;font-size:16px;color:var(--ink);outline:none;border-radius:0;transition:border-color .2s,background .2s;-webkit-appearance:none;appearance:none}
+.field select{background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 22px) 25px,calc(100% - 16px) 25px;background-size:6px 6px;background-repeat:no-repeat;padding-right:44px}
+.field input:focus,.field select:focus{border-color:var(--asphalt);background:#fff}
+.field.err input{border-color:#e0452b;background:#fff4f1}
+.field .msg{display:none;color:#e0452b;font-size:12.5px;font-weight:600;margin-top:6px}
+.field.err .msg{display:block}
+.field.flash select{animation:flash 1.2s}
+@keyframes flash{0%,60%{border-color:var(--orange);background:#fff3d6}}
+.days{display:flex;height:56px;border:2px solid var(--line-l)}
+.days button{width:56px;background:var(--concrete);font-size:24px;font-weight:700;transition:background .2s}
+.days button:hover{background:var(--yellow)}
+.days input{flex:1;border:none!important;height:100%!important;text-align:center;font-family:var(--head)!important;font-size:22px!important;font-weight:600;background:#fff!important;padding:0!important}
+.toggle{display:flex;gap:14px;align-items:center;padding:16px 18px;border:2px solid var(--line-l);cursor:pointer;margin-bottom:18px;user-select:none;transition:border-color .2s,background .2s}
+.toggle input{display:none}
+.toggle .sw{width:46px;height:26px;background:var(--line-l);position:relative;flex:none;transition:background .2s}
+.toggle .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;transition:transform .2s}
+.toggle:has(input:checked){border-color:var(--asphalt);background:#fffaea}
+.toggle:has(input:checked) .sw{background:var(--asphalt)}
+.toggle:has(input:checked) .sw::after{transform:translateX(20px);background:var(--yellow)}
+.toggle b{display:block;font-size:15px}
+.toggle span{font-size:13px;color:var(--muted-d)}
+.estimate{background:var(--asphalt);color:#fff;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.estimate small{display:block;color:var(--muted);font-size:13px}
+.estimate .disc{color:var(--yellow);font-weight:700;font-size:13px}
+.estimate b{font-family:var(--head);font-size:44px;font-weight:700;line-height:1;color:var(--yellow)}
+.estimate b span{font-size:20px;color:#fff;margin-left:6px}
+.form-box .btn{width:100%}
+.agree{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+.success{display:none;text-align:center;padding:40px 0}
+.success .ok{width:96px;height:96px;background:var(--yellow);display:grid;place-items:center;margin:0 auto 26px;box-shadow:8px 8px 0 var(--orange)}
+.success h3{font-size:38px;margin-bottom:10px}
+.success p{color:var(--muted-d);margin-bottom:26px}
+
+/* map */
+.map-box{background:var(--asphalt);color:#fff;position:relative;display:flex;flex-direction:column;min-height:100%}
+.map{position:relative;flex:1;min-height:340px;overflow:hidden;background:#24272b}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;left:54%;top:46%;transform:translate(-50%,-100%);z-index:2;display:flex;flex-direction:column;align-items:center}
+.pin-tag{background:var(--yellow);color:var(--ink);font-family:var(--head);font-weight:700;font-size:17px;text-transform:uppercase;padding:8px 14px;white-space:nowrap;box-shadow:5px 5px 0 var(--orange)}
+.pin-stem{width:4px;height:30px;background:var(--yellow)}
+.pin-dot{width:18px;height:18px;border-radius:50%;background:var(--yellow);position:relative}
+.pin-dot::before,.pin-dot::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--yellow);animation:ping 2.2s infinite;opacity:0}
+.pin-dot::after{animation-delay:1.1s}
+@keyframes ping{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.8);opacity:0}}
+.zone{position:absolute;left:54%;top:46%;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;border:2px dashed rgba(255,194,26,.35);background:radial-gradient(circle,rgba(255,194,26,.08),transparent 70%)}
+.zone-l{position:absolute;right:16px;top:16px;z-index:2;background:rgba(20,22,24,.8);border:1px solid var(--line-d);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:8px 12px;display:flex;align-items:center;gap:8px}
+.zone-l i{width:14px;height:14px;border-radius:50%;border:2px dashed var(--yellow)}
+.contacts{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line-d)}
+.ci{padding:24px 26px;border-right:1px solid var(--line-d);border-bottom:1px solid var(--line-d)}
+.ci:nth-child(2n){border-right:none}
+.ci small{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.ci small svg{width:15px;height:15px;color:var(--yellow)}
+.ci b{font-family:var(--head);font-size:21px;font-weight:600;line-height:1.2;display:block}
+.ci span{color:#aeb3b8;font-size:14px}
+.ci.wide{grid-column:1/-1;border-right:none;border-bottom:none;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.open-now{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;padding:7px 12px;background:rgba(63,209,122,.12);color:#5fe196}
+.open-now i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.open-now.closed{background:rgba(255,122,0,.12);color:var(--orange)}
+
+/* footer */
+footer{background:#141618;color:#9aa0a6;padding:60px 0 40px}
+.foot{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px}
+footer h4{font-family:var(--head);text-transform:uppercase;color:#fff;font-size:18px;letter-spacing:.06em;margin-bottom:16px;font-weight:600}
+footer ul{list-style:none;display:grid;gap:9px;font-size:14.5px}
+footer a:hover{color:var(--yellow)}
+.foot-b{margin-top:50px;padding-top:24px;border-top:1px solid var(--line-d);display:flex;justify-content:space-between;gap:20px;font-size:13px;flex-wrap:wrap}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,140%);z-index:90;background:var(--asphalt);color:#fff;padding:16px 22px;display:flex;align-items:center;gap:14px;font-weight:600;font-size:15px;border-left:6px solid var(--yellow);box-shadow:0 20px 40px -10px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s;max-width:calc(100% - 30px);opacity:0;pointer-events:none}
+.toast.show{transform:translate(-50%,0);opacity:1}
+.toast svg{width:22px;height:22px;color:var(--yellow);flex:none}
+
+/* mobile cta */
+.m-bar{display:none}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:1140px){
+  .menu{display:none}
+  .grid{grid-template-columns:repeat(3,1fr)}
+  .why-grid{grid-template-columns:repeat(2,1fr)}
+  .why-c:nth-child(2){border-right:none}
+  .why-c:nth-child(-n+2){border-bottom:1px solid var(--line-d)}
+}
+@media (max-width:920px){
+  section{padding:80px 0}
+  .hero-grid{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat{padding-left:0!important;border-right:none;border-bottom:1px solid var(--line-d)}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .tab{padding:18px;gap:12px}
+  .tab-ic{display:none}
+  .steps{grid-template-columns:repeat(2,1fr);row-gap:40px}
+  .order-grid{grid-template-columns:1fr}
+  .foot{grid-template-columns:1fr 1fr}
+  .topbar .tb-l span:nth-child(2){display:none}
+  .nav-phone{display:none}
+}
+@media (max-width:600px){
+  .topbar{display:none}
+  .nav{height:70px}
+  .nav .btn{display:none}
+  .logo-mark{width:44px;height:44px;font-size:20px}
+  .logo-t{font-size:22px}
+  .hero{padding-top:56px}
+  .hero-actions .btn{width:100%}
+  .tabs{grid-template-columns:1fr}
+  .tab{border-right:none;border-bottom:2px solid var(--asphalt)}
+  .tab:last-child{border-bottom:none}
+  .tab[aria-selected=true]::after{display:none}
+  .grid{grid-template-columns:1fr}
+  .why-grid{grid-template-columns:1fr}
+  .why-c{border-right:none!important;border-bottom:1px solid var(--line-d)}
+  .steps{grid-template-columns:1fr}
+  .form-box{padding:26px 20px}
+  .f-row{grid-template-columns:1fr;gap:0}
+  .contacts{grid-template-columns:1fr}
+  .ci{border-right:none}
+  .zone{width:300px;height:300px;margin:-150px 0 0 -150px}
+  .foot{grid-template-columns:1fr}
+  .m-bar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--asphalt);border-top:3px solid var(--yellow)}
+  .m-bar a{flex:1;height:60px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--head);text-transform:uppercase;font-size:17px;letter-spacing:.05em;color:#fff}
+  .m-bar a:last-child{background:var(--yellow);color:var(--ink)}
+  footer{padding-bottom:100px}
+  .toast{bottom:80px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="container">
+    <div class="tb-l">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>г. Минск, пр-т Партизанский, 14</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Пн–Пт 8:00–20:00 · Сб–Вс 9:00–18:00</span>
+    </div>
+    <span><b>Без залога</b> для физлиц · Доставка за <b>1 час</b></span>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <div class="container nav">
+    <a href="#top" class="logo" aria-label="РентТул — на главную">
+      <div class="logo-mark">РТ</div>
+      <div class="logo-t">РентТул<small>ПРОКАТ ИНСТРУМЕНТА</small></div>
+    </a>
+    <nav class="menu">
+      <a href="#catalog">Каталог</a>
+      <a href="#why">Условия</a>
+      <a href="#how">Как арендовать</a>
+      <a href="#order">Контакты</a>
+    </nav>
+    <div class="nav-r">
+      <a href="tel:+375336667788" class="nav-phone">+375 (33) 666-77-88<small>Звонок · Viber · Telegram</small></a>
+      <a href="#order" class="btn btn-y">Заказать</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="rv">
+        <span class="label">Прокат строительного оборудования · Минск</span>
+        <h1>Инструмент<br><em>в аренду</em><br><span class="stroke">от 8 BYN/сут</span></h1>
+        <p class="lead">Бетономешалки, виброплиты, перфораторы, отбойники и садовая техника. Всё исправно, обслужено и готово к работе — привезём прямо на объект.</p>
+        <div class="hero-actions">
+          <a href="#catalog" class="btn btn-y">Смотреть каталог <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M4 12h15M13 6l6 6-6 6"/></svg></a>
+          <a href="tel:+375336667788" class="btn btn-o">+375 (33) 666-77-88</a>
+        </div>
+      </div>
+      <div class="hero-side rv">
+        <div class="usp">
+          <div class="usp-ic"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><rect x="6" y="14" width="20" height="14"/><path d="M10 14V9a6 6 0 0 1 11.5-2.4"/><path d="M16 19v4"/></svg></div>
+          <div><b>Без залога</b><span>Для физических лиц — только паспорт. Никаких замороженных денег на карте.</span></div>
+        </div>
+        <div class="usp">
+          <div class="usp-ic"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M3 8h16v14H3zM19 13h6l4 5v4h-10"/><circle cx="9" cy="24" r="2.5"/><circle cx="23" cy="24" r="2.5"/></svg></div>
+          <div><b>Доставка за 1 час</b><span>На объект по Минску и Минской области. Заберём оборудование сами.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b data-count="320">0</b><span>Единиц техники</span></div>
+      <div class="stat"><b><span data-count="12">0</span><i>+</i></b><span>Лет на рынке</span></div>
+      <div class="stat"><b><span data-count="60">0</span><i>′</i></b><span>Доставка по Минску</span></div>
+      <div class="stat"><b><i>0</i> BYN</b><span>Залог для физлиц</span></div>
+    </div>
+  </div>
+</section>
+<div class="hazard"></div>
+
+<!-- ============ CATALOG ============ -->
+<section id="catalog">
+  <div class="container">
+    <div class="cat-head rv">
+      <div><span class="label">Каталог</span><h2>Выберите<br>оборудование</h2></div>
+      <p>Цены указаны за сутки аренды. При аренде от 3 суток — скидка 10%, от 7 суток — 20%. Расходники и оснастка — в наличии.</p>
+    </div>
+
+    <div class="tabs rv" role="tablist" aria-label="Категории оборудования" id="tabs"></div>
+    <div class="grid" id="grid" role="tabpanel" aria-labelledby=""></div>
+
+    <div class="cat-note">
+      <b>Тарифы:</b>
+      <span class="tariff">1–2 сут — <i>базовая цена</i></span>
+      <span class="tariff">3–6 сут — <i>−10%</i></span>
+      <span class="tariff">7+ сут — <i>−20%</i></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section class="why" id="why">
+  <div class="container">
+    <span class="label rv">Условия аренды</span>
+    <h2 class="rv" style="margin-top:14px">Работаем честно<br>и без лишних бумаг</h2>
+    <div class="why-grid">
+      <div class="why-c rv"><span class="n">01</span><div class="why-ic"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><rect x="5" y="7" width="22" height="18"/><circle cx="12" cy="15" r="3"/><path d="M8 22c1-2.5 2.5-3.5 4-3.5s3 1 4 3.5M19 13h5M19 17h5"/></svg></div><h3>Только паспорт</h3><p>Физлицам — без залога. Юрлицам — договор, безнал и закрывающие документы с НДС.</p></div>
+      <div class="why-c rv"><span class="n">02</span><div class="why-ic"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M16 3v4M16 25v4M3 16h4M25 16h4M6.8 6.8l2.8 2.8M22.4 22.4l2.8 2.8M6.8 25.2l2.8-2.8M22.4 9.6l2.8-2.8"/><circle cx="16" cy="16" r="5"/></svg></div><h3>ТО после каждой выдачи</h3><p>Каждый инструмент проходит проверку и чистку. Сломался на объекте — заменим бесплатно.</p></div>
+      <div class="why-c rv"><span class="n">03</span><div class="why-ic"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><circle cx="16" cy="16" r="12"/><path d="M16 9v7l5 3"/></svg></div><h3>Доставка за 60 минут</h3><p>Свой автопарк. Привезём по Минску за час, по области — в день заказа.</p></div>
+      <div class="why-c rv"><span class="n">04</span><div class="why-ic"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M5 9h22v16H5zM5 14h22"/><path d="M9 20h5"/></svg></div><h3>Любая оплата</h3><p>Наличные, карта, ЕРИП или безналичный расчёт. Посуточная оплата без переплат.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW ============ -->
+<section id="how">
+  <div class="container">
+    <span class="label rv">Как арендовать</span>
+    <h2 class="rv" style="margin-top:14px">4 шага до работы</h2>
+    <div class="steps">
+      <div class="step rv"><div class="step-top"><div class="step-num">1</div><div class="step-line"></div></div><h3>Заявка</h3><p>Выберите инструмент на сайте или позвоните — подскажем, что подойдёт под задачу.</p></div>
+      <div class="step rv"><div class="step-top"><div class="step-num">2</div><div class="step-line"></div></div><h3>Доставка</h3><p>Привезём на объект за 1 час или заберите сами с пункта проката на Партизанском.</p></div>
+      <div class="step rv"><div class="step-top"><div class="step-num">3</div><div class="step-line"></div></div><h3>Договор</h3><p>Оформление за 5 минут по паспорту. Покажем, как работать с оборудованием.</p></div>
+      <div class="step rv"><div class="step-top"><div class="step-num">4</div><div class="step-line"></div></div><h3>Возврат</h3><p>Продлите аренду по телефону или вернём инструмент сами, когда работа закончена.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ORDER + MAP ============ -->
+<section class="order" id="order">
+  <div class="container">
+    <span class="label rv">Быстрый заказ</span>
+    <h2 class="rv" style="margin-top:14px">Оформить аренду</h2>
+    <div class="order-grid rv">
+      <div class="form-box">
+        <form id="form" novalidate>
+          <h3>Заявка за 1 минуту</h3>
+          <p class="sub">Перезвоним в течение 10 минут и подтвердим бронь.</p>
+          <div class="field" id="fEquip">
+            <label for="equip">Оборудование</label>
+            <select id="equip" name="equip"></select>
+          </div>
+          <div class="f-row">
+            <div class="field">
+              <label for="days">Срок аренды, сут</label>
+              <div class="days">
+                <button type="button" id="dMinus" aria-label="Меньше">−</button>
+                <input id="days" name="days" type="number" min="1" max="60" value="1" inputmode="numeric">
+                <button type="button" id="dPlus" aria-label="Больше">+</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="date">Дата начала</label>
+              <input id="date" name="date" type="date">
+            </div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="delivery" checked>
+            <span class="sw"></span>
+            <div><b>Доставка на объект за 1 час</b><span>По Минску — 20 BYN, по области — по договорённости</span></div>
+          </label>
+          <div class="f-row">
+            <div class="field" id="fName">
+              <label for="name">Имя</label>
+              <input id="name" name="name" placeholder="Иван" autocomplete="name">
+              <div class="msg">Укажите имя</div>
+            </div>
+            <div class="field" id="fPhone">
+              <label for="phone">Телефон</label>
+              <input id="phone" name="phone" type="tel" placeholder="+375 (__) ___-__-__" autocomplete="tel" inputmode="tel">
+              <div class="msg">Введите номер полностью</div>
+            </div>
+          </div>
+          <div class="estimate" aria-live="polite">
+            <div><small>Предварительная стоимость</small><span class="disc" id="estDisc"></span><div style="font-size:13px;color:#aeb3b8" id="estLine"></div></div>
+            <b id="estTotal">0<span>BYN</span></b>
+          </div>
+          <button class="btn btn-y" type="submit">Арендовать <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+          <p class="agree">Без залога для физлиц. Оплата — при получении оборудования.</p>
+        </form>
+        <div class="success" id="success">
+          <div class="ok"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#16181a" stroke-width="3" stroke-linecap="square"><path d="M4 12l5 5L20 6"/></svg></div>
+          <h3>Заявка принята</h3>
+          <p id="sText"></p>
+          <button class="btn btn-dark" id="again">Новая заявка</button>
+        </div>
+      </div>
+
+      <div class="map-box">
+        <div class="map" aria-label="Схема проезда: пр-т Партизанский, 14">
+          <svg viewBox="0 0 600 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <defs>
+              <pattern id="blocks" width="60" height="60" patternUnits="userSpaceOnUse"><rect width="60" height="60" fill="#24272b"/><rect x="6" y="6" width="48" height="48" fill="#2b2f34"/></pattern>
+            </defs>
+            <rect width="600" height="420" fill="url(#blocks)"/>
+            <!-- река Свислочь -->
+            <path d="M-20 90C80 60 140 130 220 110S360 30 440 70 560 150 640 120" stroke="#2d4350" stroke-width="22" fill="none"/>
+            <!-- парк -->
+            <rect x="60" y="260" width="130" height="90" fill="#2c3a30"/>
+            <!-- второстепенные улицы -->
+            <g stroke="#3a3f45" stroke-width="7" fill="none">
+              <path d="M0 180H600M0 300H600M120 0V420M240 0V420M420 0V420M520 0V420"/>
+            </g>
+            <!-- главные проспекты -->
+            <path d="M-20 400L620 40" stroke="#4a4f56" stroke-width="18"/>
+            <path d="M-20 400L620 40" stroke="#ffc21a" stroke-width="3" stroke-dasharray="14 12" opacity=".7"/>
+            <path d="M0 240H600" stroke="#4a4f56" stroke-width="12"/>
+            <!-- метро -->
+            <g font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#8b9096">
+              <circle cx="410" cy="128" r="11" fill="#1d2023" stroke="#2e7dd6" stroke-width="3"/><text x="404" y="132" fill="#2e7dd6">М</text>
+              <text x="394" y="118" text-anchor="end">Пролетарская</text>
+              <text x="250" y="230">ул. Ванеева</text>
+              <text x="150" y="292" transform="rotate(-29.4 150 292)" fill="#c9cdd1">пр-т Партизанский</text>
+              <text x="80" y="310" fill="#5b7a62">сквер</text>
+            </g>
+          </svg>
+          <div class="zone"></div>
+          <div class="zone-l"><i></i>Зона доставки за 60 мин</div>
+          <div class="pin"><div class="pin-tag">РентТул</div><div class="pin-stem"></div><div class="pin-dot"></div></div>
+        </div>
+        <div class="contacts">
+          <div class="ci"><small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Адрес</small><b>пр-т Партизанский, 14</b><span>г. Минск · парковка у входа</span></div>
+          <div class="ci"><small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>Телефон</small><b><a href="tel:+375336667788">+375 (33) 666-77-88</a></b><span>Звонок · Viber · Telegram</span></div>
+          <div class="ci wide"><div><small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Время работы</small><b>Пн–Пт 8:00–20:00</b><span>Сб–Вс 9:00–18:00 · заявки на сайте — круглосуточно</span></div><span class="open-now" id="openNow"><i></i><em style="font-style:normal"></em></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<div class="hazard"></div>
+<footer>
+  <div class="container">
+    <div class="foot">
+      <div>
+        <a href="#top" class="logo"><div class="logo-mark">РТ</div><div class="logo-t">РентТул<small>ПРОКАТ ИНСТРУМЕНТА</small></div></a>
+        <p style="margin-top:18px;font-size:14.5px;max-width:300px">Прокат строительного оборудования и садовой техники в Минске и Минской области.</p>
+      </div>
+      <div><h4>Каталог</h4><ul><li><a href="#catalog" data-go="concrete">Для бетона</a></li><li><a href="#catalog" data-go="tools">Инструмент</a></li><li><a href="#catalog" data-go="garden">Сад</a></li></ul></div>
+      <div><h4>Клиентам</h4><ul><li><a href="#why">Условия аренды</a></li><li><a href="#how">Как арендовать</a></li><li><a href="#order">Доставка</a></li></ul></div>
+      <div><h4>Контакты</h4><ul><li><a href="tel:+375336667788">+375 (33) 666-77-88</a></li><li>г. Минск, пр-т Партизанский, 14</li><li>Пн–Пт 8–20 · Сб–Вс 9–18</li></ul></div>
+    </div>
+    <div class="foot-b"><span>© <span id="year"></span> РентТул. Прокат инструмента в Минске.</span><span>Цены на сайте не являются публичной офертой</span></div>
+  </div>
+</footer>
+
+<div class="m-bar">
+  <a href="tel:+375336667788">☎ Позвонить</a>
+  <a href="#order">Заказать</a>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M4 12l5 5L20 6"/></svg><span id="toastText"></span></div>
+
+<script>
+/* ===================== ИЛЛЮСТРАЦИИ-ЗАГЛУШКИ (если фото не загрузилось) ===================== */
+const G = {
+  mixer:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M30 22l46-8 18 32-30 26-34-14z" fill="rgba(255,194,26,.12)"/><path d="M76 14l10-6M42 40l40-12"/><path d="M48 66l-10 22M70 62l12 26M26 88h68"/><circle cx="30" cy="88" r="6"/><path d="M96 46l14 4"/></svg>`,
+  plate:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="16" y="70" width="80" height="12" fill="rgba(255,194,26,.12)"/><rect x="34" y="48" width="44" height="22" rx="3"/><circle cx="56" cy="59" r="5"/><path d="M78 56L106 18M98 14l14 10"/><path d="M8 90h104" stroke-dasharray="6 6"/></svg>`,
+  rod:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="12" y="20" width="34" height="26" rx="3" fill="rgba(255,194,26,.12)"/><path d="M46 33c20 0 24 20 44 30s14 18 22 22"/><rect x="96" y="76" width="16" height="10" transform="rotate(30 104 81)"/><path d="M18 46v8M40 46v8"/></svg>`,
+  drill:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M22 28h56l8 8v10l-8 6H22z" fill="rgba(255,194,26,.12)"/><path d="M86 41h26M104 38v6"/><path d="M40 52l-6 30h22l6-30"/><path d="M30 28V20h30v8"/></svg>`,
+  hammer:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M30 10h60M38 10v12M82 10v12"/><rect x="44" y="22" width="32" height="40" rx="4" fill="rgba(255,194,26,.12)"/><path d="M54 62v20h12V62M60 82v12"/></svg>`,
+  screw:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M20 26h52a10 10 0 0 1 0 20H20z" fill="rgba(255,194,26,.12)"/><path d="M82 36h28"/><path d="M36 46l-4 30M54 46l4 30"/><rect x="26" y="76" width="40" height="12" rx="2"/></svg>`,
+  saw:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><circle cx="70" cy="56" r="28" fill="rgba(255,194,26,.12)"/><circle cx="70" cy="56" r="6"/><path d="M70 28v-6M98 56h6M70 84v6M42 56h-6M90 36l4-4M90 76l4 4M50 76l-4 4M50 36l-4-4"/><path d="M14 30h40M14 30v14h24"/></svg>`,
+  mower:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M18 64h64l8-18H30z" fill="rgba(255,194,26,.12)"/><path d="M84 48L104 10M98 8l14 6"/><circle cx="30" cy="74" r="10"/><circle cx="74" cy="74" r="10"/><path d="M40 46v-8h18v8"/></svg>`,
+  chainsaw:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="12" y="34" width="40" height="32" rx="4" fill="rgba(255,194,26,.12)"/><path d="M52 40h50a8 8 0 0 1 0 20H52" /><path d="M58 40v-4M68 40v-4M78 40v-4M88 40v-4M98 40v-4M58 64v-4M68 64v-4M78 64v-4M88 64v-4M98 64v-4"/><path d="M22 34c0-12 22-12 22 0"/></svg>`,
+  trimmer:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M14 14l78 64"/><rect x="8" y="6" width="22" height="16" rx="3" transform="rotate(40 19 14)" fill="rgba(255,194,26,.12)"/><path d="M40 28l-10 12"/><path d="M80 80a14 6 0 1 0 28 0a14 6 0 1 0-28 0z"/><path d="M78 86l-12 6M110 86l10 4"/></svg>`,
+  cult:`<svg viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="40" y="36" width="34" height="24" rx="3" fill="rgba(255,194,26,.12)"/><path d="M74 42l30-28M98 10l14 8"/><circle cx="46" cy="76" r="14"/><circle cx="74" cy="76" r="14"/><path d="M46 62v28M32 76h28M74 62v28M60 76h28"/></svg>`
+};
+
+/* ===================== КАТАЛОГ ===================== */
+// Фото: заглушки с images.unsplash.com. Замените ссылки (img) на фото своего парка техники.
+const U = id => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=640&q=70`;
+const CATS = [
+  {id:'concrete', name:'Для бетона', sub:'Бетономешалки, виброплиты', icon:G.mixer, items:[
+    {n:'Бетономешалка 160 л', p:15, g:G.mixer, img:U('photo-1504307651254-35680f356dfd'), specs:[['Объём барабана','160 л'],['Двигатель','700 Вт · 220 В'],['Вес','58 кг']], hit:true, stock:6},
+    {n:'Бетономешалка 250 л', p:22, g:G.mixer, img:U('photo-1541888946425-d81bb19240f5'), specs:[['Объём барабана','250 л'],['Двигатель','1100 Вт · 220 В'],['Вес','92 кг']], stock:3},
+    {n:'Виброплита 90 кг', p:35, g:G.plate, img:U('photo-1589939705384-5185137a7f0f'), specs:[['Уплотнение','до 30 см'],['Двигатель','Honda GX160'],['Площадь плиты','50×58 см']], hit:true, stock:4},
+    {n:'Глубинный вибратор', p:18, g:G.rod, img:U('photo-1590644365607-1c5a519a7a37'), specs:[['Булава','Ø 38 мм'],['Вал','4 м'],['Мощность','1500 Вт']], stock:2},
+  ]},
+  {id:'tools', name:'Инструмент', sub:'Перфораторы, шуруповёрты', icon:G.drill, items:[
+    {n:'Перфоратор SDS-Plus', p:12, g:G.drill, img:U('photo-1572981779307-38b8cabb2407'), specs:[['Мощность','800 Вт'],['Энергия удара','3,2 Дж'],['Сверление бетона','до 28 мм']], hit:true, stock:9},
+    {n:'Отбойный молоток 15 кг', p:25, g:G.hammer, img:U('photo-1581094794329-c8112a89af12'), specs:[['Мощность','1600 Вт'],['Энергия удара','45 Дж'],['Патрон','SDS-Max / HEX']], stock:3},
+    {n:'Шуруповёрт аккумуляторный', p:8, g:G.screw, img:U('photo-1581147036324-c17ac41dfa6c'), specs:[['Напряжение','18 В'],['Крутящий момент','60 Н·м'],['АКБ в комплекте','2 × 4 А·ч']], stock:12},
+    {n:'Штроборез', p:20, g:G.saw, img:U('photo-1530124566582-a618bc2615dc'), specs:[['Глубина штробы','до 45 мм'],['Диски','2 × 150 мм'],['Мощность','1700 Вт']], stock:1},
+  ]},
+  {id:'garden', name:'Сад', sub:'Газонокосилки, бензопилы', icon:G.mower, items:[
+    {n:'Газонокосилка бензиновая', p:20, g:G.mower, img:U('photo-1558904541-efa843a96f01'), specs:[['Ширина кошения','46 см'],['Травосборник','60 л'],['Двигатель','4-тактный']], hit:true, stock:5},
+    {n:'Бензопила', p:18, g:G.chainsaw, img:U('photo-1590005354167-6da97870c757'), specs:[['Шина','40 см'],['Мощность','2,2 л.с.'],['Цепь','заточена']], stock:4},
+    {n:'Триммер бензиновый', p:12, g:G.trimmer, img:U('photo-1599629954294-14df9ec8bc05'), specs:[['Мощность','1,6 л.с.'],['Леска / нож','в комплекте'],['Ремень','разгрузочный']], stock:7},
+    {n:'Мотокультиватор', p:30, g:G.cult, img:U('photo-1416879595882-3373a0480b5b'), specs:[['Ширина обработки','до 85 см'],['Глубина','до 30 см'],['Двигатель','6,5 л.с.']], stock:2},
+  ]},
+];
+const ALL = CATS.flatMap(c=>c.items.map(i=>({...i, cat:c.name})));
+
+const tabsEl = document.getElementById('tabs'), grid = document.getElementById('grid');
+tabsEl.innerHTML = CATS.map((c,i)=>`
+  <button class="tab" role="tab" id="tab-${c.id}" data-cat="${c.id}" aria-selected="${i===0}" aria-controls="grid" tabindex="${i===0?0:-1}">
+    <span class="tab-ic">${c.icon}</span>
+    <span><b>${c.name}</b><small>${c.sub} · ${c.items.length} позиции</small></span>
+  </button>`).join('');
+
+const ARROW = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M4 12h15M13 6l6 6-6 6"/></svg>`;
+function renderCat(id){
+  const c = CATS.find(x=>x.id===id);
+  tabsEl.querySelectorAll('.tab').forEach(t=>{const on=t.dataset.cat===id; t.setAttribute('aria-selected',on); t.tabIndex=on?0:-1;});
+  grid.setAttribute('aria-labelledby','tab-'+id);
+  grid.classList.remove('swap'); void grid.offsetWidth; grid.classList.add('swap');
+  grid.innerHTML = c.items.map((it,k)=>`
+    <article class="card" style="animation-delay:${k*60}ms">
+      <div class="card-img">
+        <div class="fb">${it.g}</div>
+        <img src="${it.img}" alt="${it.n} — аренда в Минске" loading="lazy" onerror="this.remove()">
+        <div class="badges"><span class="bdg">Без залога</span>${it.hit?'<span class="bdg d">Хит</span>':''}</div>
+        <div class="stock ${it.stock<3?'low':''}"><i></i>${it.stock<3?'Осталось '+it.stock+' шт.':'В наличии'}</div>
+      </div>
+      <div class="card-body">
+        <h3>${it.n}</h3>
+        <ul class="specs">${it.specs.map(s=>`<li>${s[0]}<b>${s[1]}</b></li>`).join('')}</ul>
+        <div class="price"><small>от</small><b>${it.p}</b><span>BYN/сут</span></div>
+      </div>
+      <button class="btn btn-y" data-rent="${it.n}">Арендовать ${ARROW}</button>
+    </article>`).join('');
+}
+tabsEl.addEventListener('click', e=>{ const t=e.target.closest('.tab'); if(t) renderCat(t.dataset.cat); });
+tabsEl.addEventListener('keydown', e=>{
+  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) return;
+  e.preventDefault();
+  const list=[...tabsEl.children], i=list.indexOf(document.activeElement), d=(e.key==='ArrowRight'||e.key==='ArrowDown')?1:-1;
+  const n=list[(i+d+list.length)%list.length]; n.focus(); renderCat(n.dataset.cat);
+});
+document.querySelectorAll('[data-go]').forEach(a=>a.addEventListener('click',()=>renderCat(a.dataset.go)));
+renderCat('concrete');
+
+/* ===================== ФОРМА ЗАКАЗА ===================== */
+const equip = document.getElementById('equip'), days = document.getElementById('days'), delivery = document.getElementById('delivery');
+equip.innerHTML = CATS.map(c=>`<optgroup label="${c.name}">${c.items.map(i=>`<option value="${i.n}">${i.n} — ${i.p} BYN/сут</option>`).join('')}</optgroup>`).join('');
+const DELIVERY = 20;
+function estimate(){
+  const it = ALL.find(i=>i.n===equip.value);
+  let d = Math.max(1, Math.min(60, parseInt(days.value)||1));
+  const disc = d>=7 ? .2 : d>=3 ? .1 : 0;
+  const rent = Math.round(it.p*d*(1-disc));
+  const total = rent + (delivery.checked?DELIVERY:0);
+  document.getElementById('estTotal').innerHTML = `${total}<span>BYN</span>`;
+  document.getElementById('estLine').textContent = `${it.p} BYN × ${d} сут${disc?` − ${disc*100}%`:''}${delivery.checked?' + доставка '+DELIVERY+' BYN':''}`;
+  document.getElementById('estDisc').textContent = disc ? `Скидка ${disc*100}% за срок аренды` : (d<3?`Ещё ${3-d} сут — и скидка 10%`:'');
+  return {it,d,total};
+}
+[equip,days,delivery].forEach(el=>el.addEventListener('input',estimate));
+document.getElementById('dMinus').onclick=()=>{days.value=Math.max(1,(+days.value||1)-1);estimate();};
+document.getElementById('dPlus').onclick=()=>{days.value=Math.min(60,(+days.value||1)+1);estimate();};
+days.addEventListener('blur',()=>{days.value=Math.max(1,Math.min(60,parseInt(days.value)||1));estimate();});
+estimate();
+
+// "Арендовать" в карточке → подставляем товар в форму
+const toast = document.getElementById('toast'); let tt;
+function showToast(t){ document.getElementById('toastText').textContent=t; toast.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove('show'),2800); }
+grid.addEventListener('click', e=>{
+  const b = e.target.closest('[data-rent]'); if(!b) return;
+  equip.value = b.dataset.rent; estimate();
+  const f=document.getElementById('fEquip'); f.classList.remove('flash'); void f.offsetWidth; f.classList.add('flash');
+  document.getElementById('order').scrollIntoView({behavior:'smooth'});
+  showToast(`«${b.dataset.rent}» добавлен в заявку`);
+});
+
+// дата
+const date = document.getElementById('date'), today = new Date();
+const iso = d=>new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+date.min = iso(today); date.value = iso(today);
+
+// маска телефона
+const phone = document.getElementById('phone');
+phone.addEventListener('focus',()=>{ if(!phone.value) phone.value='+375 ('; });
+phone.addEventListener('input',()=>{
+  let d=phone.value.replace(/\D/g,''); if(d.startsWith('375')) d=d.slice(3); d=d.slice(0,9);
+  let v='+375 ('+d.slice(0,2);
+  if(d.length>=2) v+=') '+d.slice(2,5);
+  if(d.length>=5) v+='-'+d.slice(5,7);
+  if(d.length>=7) v+='-'+d.slice(7,9);
+  phone.value=v;
+});
+
+const form = document.getElementById('form'), success = document.getElementById('success');
+form.addEventListener('submit', e=>{
+  e.preventDefault();
+  const name=document.getElementById('name'), okN=name.value.trim().length>=2, okP=phone.value.replace(/\D/g,'').length===12;
+  document.getElementById('fName').classList.toggle('err',!okN);
+  document.getElementById('fPhone').classList.toggle('err',!okP);
+  if(!okN||!okP) return;
+  // Демо: здесь подключается отправка заявки (Telegram-бот, CRM, почта)
+  const r = estimate();
+  document.getElementById('sText').textContent = `${name.value.trim()}, мы перезвоним на ${phone.value} в течение 10 минут. ${r.it.n}, ${r.d} сут — ориентировочно ${r.total} BYN.`;
+  form.style.display='none'; success.style.display='block';
+});
+document.getElementById('again').onclick=()=>{ form.reset(); date.value=iso(today); days.value=1; estimate(); success.style.display='none'; form.style.display=''; };
+
+/* ===================== ОТКРЫТО СЕЙЧАС ===================== */
+(function(){
+  // время Минска (UTC+3)
+  const now = new Date(Date.now() + (new Date().getTimezoneOffset()+180)*6e4);
+  const day = now.getDay(), h = now.getHours()+now.getMinutes()/60;
+  const weekend = day===0||day===6, open = weekend ? (h>=9&&h<18) : (h>=8&&h<20);
+  const el = document.getElementById('openNow');
+  el.classList.toggle('closed',!open);
+  el.querySelector('em').textContent = open ? 'Сейчас открыто' : 'Сейчас закрыто · заявки принимаем';
+})();
+
+/* ===================== АНИМАЦИИ ===================== */
+const io = new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target);} }),{threshold:.12});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+const cio = new IntersectionObserver(es=>es.forEach(en=>{
+  if(!en.isIntersecting) return; cio.unobserve(en.target);
+  const el=en.target, to=+el.dataset.count, t0=performance.now();
+  (function f(t){ const k=Math.min(1,(t-t0)/1200); el.textContent=Math.round(to*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(f); })(t0);
+}),{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
+
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+<a href="../index.html#works" id="backToPortfolio" style="position:fixed;left:16px;bottom:16px;z-index:9999;display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:100px;background:#0b0c0f;color:#c6f432;font:600 14px/1 Inter,system-ui,sans-serif;text-decoration:none;box-shadow:0 10px 30px -8px rgba(0,0,0,.6);border:1px solid rgba(198,244,50,.4)">← Все работы</a>
+<style>@media(max-width:600px){#backToPortfolio{bottom:90px!important}}</style>
+<script>try{history.scrollRestoration="manual"}catch(e){};addEventListener("load",()=>{if(!location.hash){document.documentElement.style.scrollBehavior="auto";scrollTo(0,0);document.documentElement.style.scrollBehavior=""}});</script>
+</body>
+</html>
