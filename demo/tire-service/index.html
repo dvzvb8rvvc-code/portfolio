@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Шиномонтажный центр — демо-сайт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fb;--s:#ffffff;--t:#0f1b2d;--m:#5b6b82;--a:#2563eb;--at:#ffffff;--line:rgba(0,0,0,.08);--grad:linear-gradient(120deg,#2563eb,#2563eb);--hf:'Montserrat',sans-serif;--e:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--t);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}button,input,select{font:inherit;color:inherit}
+.w{max-width:1180px;margin:0 auto;padding:0 22px}
+h1,h2,h3,.logo{font-family:var(--hf)}
+.demo{background:var(--a);color:var(--at);text-align:center;font-size:13px;font-weight:600;padding:8px 14px}
+.demo a{text-decoration:underline}
+header{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+header .w{display:flex;align-items:center;justify-content:space-between;height:70px;gap:18px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:.01em}
+.logo i{font-style:normal;min-width:40px;height:40px;padding:0 8px;border-radius:12px;background:var(--grad);color:var(--at);display:grid;place-items:center;font-size:13px;letter-spacing:.04em}
+nav{display:flex;gap:26px;font-size:14.5px;color:var(--m)}nav a:hover{color:var(--t)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;height:52px;padding:0 26px;border-radius:14px;border:0;cursor:pointer;font-weight:700;font-size:15px;transition:transform .35s var(--e),box-shadow .35s,opacity .2s;white-space:nowrap}
+.btn svg{width:18px;height:18px}
+.btn-a{background:var(--grad);color:var(--at);box-shadow:0 10px 28px color-mix(in srgb,var(--a) 35%,transparent)}
+.btn-a:hover{transform:translateY(-2px)}
+.btn-o{border:1.5px solid var(--line);background:transparent}.btn-o:hover{border-color:var(--t)}
+.btn-sm{height:42px;padding:0 18px;font-size:14px;border-radius:12px}
+.hero{position:relative;padding:80px 0 90px;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;width:640px;height:640px;border-radius:50%;background:var(--a);opacity:0.12;filter:blur(110px);right:-160px;top:-200px;z-index:-1}
+.hg{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
+.kick{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;color:var(--m);padding:7px 14px;border:1px solid var(--line);border-radius:100px;margin-bottom:22px}
+.kick b{width:7px;height:7px;border-radius:50%;background:var(--a)}
+h1{font-size:clamp(36px,5.6vw,66px);line-height:1.04;letter-spacing:-.025em;font-weight:800;margin-bottom:20px}
+h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(16px,1.5vw,18.5px);color:var(--m);max-width:520px;margin-bottom:32px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:34px}
+.rating{display:inline-flex;align-items:center;gap:12px;padding:12px 18px;border-radius:14px;background:var(--s);border:1px solid var(--line);font-size:14px;color:var(--m)}
+.rating b{color:var(--t);font-size:18px;font-family:var(--hf)}.rating .st{color:var(--a);letter-spacing:2px}
+.art{position:relative;aspect-ratio:1;border-radius:32px;background:var(--s);border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.art::before{content:"";position:absolute;inset:14%;border-radius:50%;background:var(--grad);opacity:.18;filter:blur(30px);animation:pul 6s ease-in-out infinite}
+@keyframes pul{50%{transform:scale(1.12);opacity:.28}}
+.art svg{width:62%;color:var(--a);position:relative;animation:fl 7s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-10px) rotate(-2deg)}}
+.art .big{position:absolute;bottom:18px;left:22px;font-family:var(--hf);font-weight:800;font-size:clamp(40px,6vw,80px);color:var(--t);opacity:.06;letter-spacing:-.03em;white-space:nowrap}
+section.s{padding:clamp(64px,8vw,104px) 0}
+.sh{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:38px}
+.sk{font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--a);display:block;margin-bottom:10px}
+h2{font-size:clamp(28px,3.6vw,44px);line-height:1.1;letter-spacing:-.02em;font-weight:800}
+.sh p{color:var(--m);max-width:400px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.svc{background:var(--s);border:1px solid var(--line);border-radius:22px;padding:28px;display:flex;flex-direction:column;transition:transform .45s var(--e),border-color .3s}
+.svc:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--a) 55%,transparent)}
+.svc-ic{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;background:color-mix(in srgb,var(--a) 14%,transparent);color:var(--a);margin-bottom:20px;transition:.35s}
+.svc:hover .svc-ic{background:var(--grad);color:var(--at);transform:rotate(-6deg)}
+.ic{width:24px;height:24px}
+.svc h3{font-size:20px;font-weight:700;margin-bottom:6px}.svc p{color:var(--m);font-size:14.5px;margin-bottom:18px}
+.svc-go{margin-top:auto;font-weight:600;font-size:14.5px;color:var(--a)}.svc-go span{display:inline-block;transition:transform .3s}.svc:hover .svc-go span{transform:translateX(5px)}
+.why{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.wi{padding:26px;border-radius:22px;border:1px solid var(--line)}
+.wi b{display:block;font-family:var(--hf);font-size:34px;font-weight:800;line-height:1.1;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}
+.wi span{color:var(--m);font-size:14.5px}
+.book{display:grid;grid-template-columns:1fr 1fr;border-radius:28px;overflow:hidden;border:1px solid var(--line);background:var(--s)}
+.bl{padding:clamp(28px,4vw,52px);background:var(--grad);color:var(--at);position:relative;overflow:hidden}
+.bl::after{content:"";position:absolute;right:-70px;bottom:-70px;width:240px;height:240px;border-radius:50%;border:36px solid rgba(255,255,255,.14)}
+.bl h2{margin-bottom:12px}.bl p{opacity:.85;margin-bottom:24px;max-width:360px}
+.bl a.ph{display:block;font-family:var(--hf);font-weight:800;font-size:24px;margin-bottom:4px}
+.br{padding:clamp(28px,4vw,52px);position:relative}
+form{display:grid;gap:12px}
+.f input,.f select{width:100%;height:56px;border-radius:14px;border:1.5px solid var(--line);background:var(--bg);padding:0 16px;font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s}
+.f input:focus,.f select:focus{border-color:var(--a);box-shadow:0 0 0 4px color-mix(in srgb,var(--a) 18%,transparent)}
+.f.err input{border-color:#ef4444;animation:sh .4s}@keyframes sh{25%,75%{transform:translateX(-5px)}50%{transform:translateX(5px)}}
+.note{font-size:12.5px;color:var(--m)}
+.ok{display:none;text-align:center;padding:30px 0}.ok svg{width:76px;height:76px;color:var(--a);margin:0 auto 14px}
+.ok circle,.ok path{stroke-dasharray:200;stroke-dashoffset:200;animation:dr .9s var(--e) forwards}.ok path{animation-delay:.4s}
+@keyframes dr{to{stroke-dashoffset:0}}
+.ok h3{font-size:24px;margin-bottom:6px}.ok p{color:var(--m);font-size:14.5px}
+.sent form{display:none}.sent .ok{display:block}
+.spin{display:none;width:20px;height:20px;border:3px solid rgba(0,0,0,.2);border-top-color:currentColor;border-radius:50%;animation:rot .8s linear infinite}
+.loading .spin{display:block}.loading .lb{display:none}@keyframes rot{to{transform:rotate(360deg)}}
+.ct{display:grid;grid-template-columns:1fr 1.2fr;gap:16px}
+.cl{display:grid;gap:12px;align-content:start}
+.ci{display:flex;gap:16px;padding:22px;border-radius:20px;background:var(--s);border:1px solid var(--line)}
+.ci .ci-i{flex:none;width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--a) 14%,transparent);color:var(--a)}
+.ci small{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--m);font-weight:600}
+.ci b,.ci a{display:block;font-weight:600;font-size:16px}.ci a:hover{color:var(--a)}
+.mb{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.mbtn{display:inline-flex !important;padding:8px 14px;border-radius:100px;border:1px solid var(--line);font-size:13.5px !important;font-weight:600}.mbtn:hover{background:var(--a);color:var(--at) !important;border-color:var(--a)}
+.map{border-radius:20px;overflow:hidden;border:1px solid var(--line);min-height:380px;background:var(--s)}
+.map iframe{width:100%;height:100%;min-height:380px;border:0;display:block;}
+footer{border-top:1px solid var(--line);padding:30px 0 calc(30px + env(safe-area-inset-bottom));color:var(--m);font-size:13.5px}
+footer .w{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.cb{display:none}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s var(--e),transform .8s var(--e);transition-delay:calc(var(--d,0)*70ms)}.rv.in{opacity:1;transform:none}
+@media(max-width:960px){nav{display:none}.hg,.book,.ct{grid-template-columns:1fr}.art{max-width:420px;margin:0 auto;width:100%}.grid{grid-template-columns:1fr 1fr}.why{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.w{padding:0 16px}header .btn{display:none}.hero{padding:48px 0 60px}.cta .btn{flex:1}.grid,.why{grid-template-columns:1fr}.art{display:none}
+footer{padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+.cb{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px);border-top:1px solid var(--line)}.cb .btn{height:48px;font-size:14.5px;padding:0 10px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+</style></head><body>
+<div class="demo">Демо-версия сайта для «Шиномонтажный центр». Тексты и фото заменим на ваши · <a href="https://dvzvb8rvvc-code.github.io/portfolio/" target="_blank" rel="noopener">кто сделал</a></div>
+<header><div class="w">
+  <a href="#top" class="logo"><i>TIRE</i>Шиномонтажный центр</a>
+  <nav><a href="#services">Услуги</a><a href="#why">Почему мы</a><a href="#book">Запись</a><a href="#contacts">Контакты</a></nav>
+  <a href="#book" class="btn btn-a btn-sm">Записаться</a>
+</div></header>
+<section class="hero" id="top"><div class="w hg">
+  <div>
+    <div class="kick rv"><b></b>Шиномонтаж · автокондиционеры</div>
+    <h1 class="rv" style="--d:1">Шины и кондиционер — <em>в одном месте</em></h1>
+    <p class="lead rv" style="--d:2">Два адреса в Минске: шиномонтаж, балансировка и заправка автокондиционеров. Быстро и аккуратно.</p>
+    <div class="cta rv" style="--d:3">
+      <a href="#book" class="btn btn-a">Записаться онлайн</a>
+      <a href="tel:+375296433378" class="btn btn-o"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>+375 29 643-33-78</a>
+    </div>
+    <div class="rating rv" style="--d:4"><span class="st">★</span><span><b>553</b> оценок на Яндекс.Картах</span></div>
+  </div>
+  <div class="art rv" style="--d:2"><svg viewBox="0 0 240 240" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="120" cy="120" r="86"/><circle cx="120" cy="120" r="62" opacity=".5"/><circle cx="120" cy="120" r="34"/><circle cx="120" cy="120" r="8"/><path d="M120 86v-24M120 154v24M86 120H62M154 120h24M96 96 79 79M144 144l17 17M144 96l17-17M96 144l-17 17"/><path d="M48 92c-6-4-10 4-6 10M192 148c6 4 10-4 6-10" opacity=".5"/></svg><span class="big">Шиномонтажный центр</span></div>
+</div></section>
+
+<section class="s" id="services" style="padding-top:20px"><div class="w">
+  <div class="sh"><div><span class="sk">Услуги</span><h2>Что мы делаем</h2></div><p>Выберите услугу и запишитесь онлайн — мы перезвоним и подтвердим время.</p></div>
+  <div class="grid"><article class="svc rv" style="--d:0"><div class="svc-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg></div><h3>Шиномонтаж</h3><p>Легковые авто, кроссоверы и внедорожники.</p><a href="#book" class="svc-go" data-svc="Шиномонтаж">Записаться <span>→</span></a></article><article class="svc rv" style="--d:1"><div class="svc-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 7h14M5 7l-3 7a4 4 0 0 0 6 0zM19 7l-3 7a4 4 0 0 0 6 0z"/></svg></div><h3>Балансировка</h3><p>Современные стенды и точная настройка.</p><a href="#book" class="svc-go" data-svc="Балансировка">Записаться <span>→</span></a></article><article class="svc rv" style="--d:2"><div class="svc-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12h6M12 9v6"/></svg></div><h3>Ремонт шин</h3><p>Проколы, порезы, восстановление герметичности.</p><a href="#book" class="svc-go" data-svc="Ремонт шин">Записаться <span>→</span></a></article><article class="svc rv" style="--d:3"><div class="svc-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M4.9 4.9l14.2 14.2M2 12h20M4.9 19.1 19.1 4.9"/></svg></div><h3>Заправка кондиционера</h3><p>Проверка системы и заправка фреоном.</p><a href="#book" class="svc-go" data-svc="Заправка кондиционера">Записаться <span>→</span></a></article><article class="svc rv" style="--d:4"><div class="svc-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></div><h3>Ремонт кондиционера</h3><p>Поиск утечек и замена деталей.</p><a href="#book" class="svc-go" data-svc="Ремонт кондиционера">Записаться <span>→</span></a></article><article class="svc rv" style="--d:5"><div class="svc-ic"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l4-4"/><path d="M3.3 17a10 10 0 1 1 17.4 0"/></svg></div><h3>Сезонная переобувка</h3><p>Запишитесь заранее — без очередей в сезон.</p><a href="#book" class="svc-go" data-svc="Сезонная переобувка">Записаться <span>→</span></a></article></div>
+</div></section>
+
+<section class="s" id="why" style="padding-top:0"><div class="w">
+  <div class="sh"><div><span class="sk">Почему мы</span><h2>Нам доверяют</h2></div></div>
+  <div class="why">
+    <div class="wi rv"><b>553+</b><span>оценок гостей на Яндекс.Картах</span></div>
+    <div class="wi rv" style="--d:1"><b>24/7</b><span>онлайн-запись с сайта в любое время</span></div>
+    <div class="wi rv" style="--d:2"><b>1 мин</b><span>чтобы записаться: имя, телефон — и готово</span></div>
+    <div class="wi rv" style="--d:3"><b>2 адреса</b><span>ул. Чкалова, 14 · ул. Рыбалко, 17, корп. 6</span></div>
+  </div>
+</div></section>
+
+<section class="s" id="book" style="padding-top:0"><div class="w">
+  <div class="book rv">
+    <div class="bl"><h2>Запишитесь сейчас</h2><p>Оставьте заявку — перезвоним и подберём удобное время. Или позвоните сами:</p><a class="ph" href="tel:+375296433378">+375 29 643-33-78</a><a class="ph" href="tel:+375339944176">+375 33 994-41-76</a></div>
+    <div class="br" id="fb">
+      <form id="form" novalidate>
+        <div class="f"><input name="name" placeholder="Ваше имя" autocomplete="name"></div>
+        <div class="f" id="fp"><input name="phone" type="tel" inputmode="tel" placeholder="Телефон *" autocomplete="tel"></div>
+        <div class="f"><select name="svc" id="svc"><option value="">Выберите услугу</option><option>Шиномонтаж</option><option>Балансировка</option><option>Ремонт шин</option><option>Заправка кондиционера</option><option>Ремонт кондиционера</option><option>Сезонная переобувка</option></select></div>
+        <button class="btn btn-a" type="submit"><span class="lb">Записаться</span><span class="spin"></span></button>
+        <p class="note">В готовом сайте заявки будут приходить вам в Telegram.</p>
+      </form>
+      <div class="ok"><svg viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg><h3>Заявка отправлена!</h3><p>Демо: так клиент увидит подтверждение записи.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s" id="contacts" style="padding-top:0"><div class="w">
+  <div class="sh"><div><span class="sk">Контакты</span><h2>Как нас найти</h2></div></div>
+  <div class="ct">
+    <div class="cl">
+      <div class="ci"><span class="ci-i"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span><div><small>Адрес</small><b>ул. Чкалова, 14 · ул. Рыбалко, 17, корп. 6</b></div></div>
+      <div class="ci"><span class="ci-i"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg></span><div><small>Телефон</small><a href="tel:+375296433378">+375 29 643-33-78</a><a href="tel:+375339944176">+375 33 994-41-76</a></div></div>
+      <div class="ci"><span class="ci-i"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg></span><div><small>Написать нам</small><div class="mb"><a class="mbtn" href="https://t.me/tireserviceby" target="_blank" rel="noopener">Telegram</a><a class="mbtn" href="https://www.instagram.com/tire.service.by/" target="_blank" rel="noopener">Instagram</a></div></div></div>
+    </div>
+    <div class="map"><iframe src="https://yandex.ru/map-widget/v1/?oid=63037209076&z=16" title="Карта" loading="lazy" allowfullscreen></iframe></div>
+  </div>
+</div></section>
+
+<footer><div class="w"><span>© 2026 Шиномонтажный центр · ул. Чкалова, 14 · ул. Рыбалко, 17, корп. 6</span><span>Демо-сайт · разработка: <a href="https://dvzvb8rvvc-code.github.io/portfolio/" target="_blank" rel="noopener">Артём</a></span></div></footer>
+<div class="cb"><a class="btn btn-a" href="tel:+375296433378">Позвонить</a><a class="btn btn-o" href="#book">Записаться</a></div>
+<script>
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+document.querySelectorAll('[data-svc]').forEach(a=>a.addEventListener('click',()=>{document.getElementById('svc').value=a.dataset.svc}));
+const f=document.getElementById('form'),ph=f.phone;
+ph.addEventListener('focus',()=>{if(!ph.value)ph.value='+375 '});
+ph.addEventListener('input',()=>document.getElementById('fp').classList.remove('err'));
+f.addEventListener('submit',e=>{e.preventDefault();
+ if(ph.value.replace(/\D/g,'').length<12){const x=document.getElementById('fp');x.classList.remove('err');void x.offsetWidth;x.classList.add('err');return}
+ const b=f.querySelector('button');b.classList.add('loading');
+ setTimeout(()=>document.getElementById('fb').classList.add('sent'),1100)});
+</script>
+</body></html>
