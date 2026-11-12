@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Презентации под ключ — портфолио</title>
+<meta name="description" content="Дизайн презентаций: питч-деки для стартапов, защита диплома, коммерческие предложения. PowerPoint, Google Slides, PDF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@500;700;800;900&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090d;--bg2:#101016;--card:#14141c;--line:rgba(255,255,255,.08);--text:#f4f4f7;--muted:#9a9aab;--acc:#8b5cff;--acc2:#22d3ee;--grad:linear-gradient(120deg,#8b5cff,#22d3ee);--ease:cubic-bezier(.22,1,.36,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+.u{font-family:Unbounded,sans-serif}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* nav */
+.nav{position:fixed;top:0;left:0;right:0;z-index:40;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+.nav.s{background:rgba(9,9,13,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-color:var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px;gap:20px}
+.logo{display:flex;align-items:center;gap:10px;font:800 17px Unbounded;letter-spacing:-.01em}
+.logo i{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;box-shadow:0 8px 24px rgba(139,92,255,.4)}
+.logo i::before{content:"";width:14px;height:10px;border:2.5px solid #fff;border-radius:3px}
+.links{display:flex;gap:30px;font-size:14.5px;color:#c9c9d6}
+.links a:hover{color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:52px;padding:0 26px;border-radius:14px;font-weight:700;font-size:15px;transition:transform .3s var(--ease),box-shadow .3s,background .3s;white-space:nowrap}
+.btn svg{width:18px;height:18px}
+.btn-g{background:var(--grad);color:#fff;box-shadow:0 10px 30px rgba(139,92,255,.35)}
+.btn-g:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(139,92,255,.5)}
+.btn-o{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.03)}
+.btn-o:hover{border-color:#fff;transform:translateY(-2px)}
+.btn-sm{height:42px;padding:0 18px;font-size:14px;border-radius:12px}
+
+/* hero */
+.hero{position:relative;padding:150px 0 90px;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:radial-gradient(700px 420px at 75% 20%,rgba(139,92,255,.28),transparent 65%),radial-gradient(600px 380px at 10% 90%,rgba(34,211,238,.14),transparent 65%)}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(ellipse at 60% 30%,#000,transparent 70%);-webkit-mask-image:radial-gradient(ellipse at 60% 30%,#000,transparent 70%)}
+.hero-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:50px;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:9px;padding:7px 15px 7px 10px;border-radius:100px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:13px;color:#cfcfdc;margin-bottom:24px}
+.tag b{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.18)}
+.hero h1{font:800 clamp(34px,5vw,62px)/1.05 Unbounded;letter-spacing:-.035em;margin-bottom:22px}
+.hero p.lead{font-size:clamp(16px,1.5vw,19px);color:#b4b4c4;max-width:520px;margin-bottom:34px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px}
+.stack{position:relative;aspect-ratio:16/11}
+.stack .frame{position:absolute;width:78%;border-radius:14px;box-shadow:0 40px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);transition:transform .8s var(--ease)}
+.stack .f1{left:0;top:0;transform:rotate(-6deg);z-index:1;animation:fl1 9s ease-in-out infinite}
+.stack .f2{left:11%;top:14%;transform:rotate(2deg);z-index:2;animation:fl2 8s ease-in-out infinite}
+.stack .f3{right:0;bottom:0;transform:rotate(7deg);z-index:3;animation:fl3 10s ease-in-out infinite}
+@keyframes fl1{50%{transform:rotate(-7deg) translateY(-12px)}}
+@keyframes fl2{50%{transform:rotate(1deg) translateY(10px)}}
+@keyframes fl3{50%{transform:rotate(6deg) translateY(-8px)}}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:20px;overflow:hidden;margin-top:70px}
+.stat{background:var(--bg2);padding:26px 24px}
+.stat b{display:block;font:800 clamp(26px,3vw,38px) Unbounded;letter-spacing:-.03em}
+.stat span{color:var(--muted);font-size:14px}
+
+/* sections */
+.sec{padding:clamp(70px,9vw,120px) 0}
+.kick{display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:14px}
+.h2{font:800 clamp(28px,3.8vw,48px)/1.08 Unbounded;letter-spacing:-.03em}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:46px}
+.sec-head p{color:var(--muted);max-width:430px}
+
+/* deck blocks */
+.deck{display:grid;grid-template-columns:.9fr 1.4fr;gap:44px;align-items:center;padding:40px 0;border-top:1px solid var(--line)}
+.deck:nth-of-type(even) .deck-media{order:-1}
+.deck-info .n{font:800 15px Unbounded;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:12px}
+.deck-info .n::after{content:"";height:1px;width:50px;background:var(--line)}
+.deck-info h3{font:800 clamp(24px,2.6vw,34px)/1.12 Unbounded;letter-spacing:-.02em;margin-bottom:14px}
+.deck-info p{color:#b4b4c4;margin-bottom:20px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+.chips span{font-size:13px;padding:6px 12px;border-radius:100px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:#d6d6e2}
+.deck-media .cover{position:relative;border-radius:16px;cursor:zoom-in;box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);transition:transform .6s var(--ease),box-shadow .6s;overflow:hidden}
+.deck-media .cover:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.18)}
+.cover .play{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,0);transition:background .4s;z-index:5}
+.cover .play span{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:100px;background:rgba(255,255,255,.95);color:#111;font-weight:700;font-size:15px;transform:scale(.85);opacity:0;transition:.4s var(--ease);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.cover:hover .play{background:rgba(0,0,0,.25)}
+.cover:hover .play span{transform:none;opacity:1}
+.thumbs{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:12px}
+.thumbs button{border-radius:7px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08);transition:transform .3s var(--ease),box-shadow .3s}
+.thumbs button:hover{transform:translateY(-3px);box-shadow:0 0 0 2px var(--acc)}
+
+/* slide frame (container) */
+.frame{aspect-ratio:16/9;container-type:inline-size;position:relative;overflow:hidden;background:#fff;width:100%}
+.sl{position:absolute;inset:0;font-size:1cqw;overflow:hidden}
+
+/* pricing */
+.prices{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.pr{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;display:flex;flex-direction:column;position:relative;transition:transform .5s var(--ease),border-color .3s}
+.pr:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.2)}
+.pr.hot{border-color:rgba(139,92,255,.6);background:linear-gradient(170deg,#1c1530,var(--card) 60%)}
+.pr .hit{position:absolute;top:24px;right:24px;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:100px;background:var(--grad)}
+.pr h4{font:800 19px Unbounded;margin-bottom:6px}
+.pr .for{color:var(--muted);font-size:14px;margin-bottom:22px}
+.pr .p{font:800 44px Unbounded;letter-spacing:-.03em;margin-bottom:4px}
+.pr .p small{font-size:16px;color:var(--muted);font-weight:600;margin-left:4px}
+.pr .t{font-size:13.5px;color:var(--muted);margin-bottom:22px}
+.pr ul{list-style:none;display:grid;gap:10px;margin-bottom:28px;font-size:14.5px}
+.pr li{display:flex;gap:10px;align-items:flex-start;color:#d9d9e4}
+.pr li::before{content:"";flex:none;width:18px;height:18px;margin-top:2px;border-radius:50%;background:rgba(139,92,255,.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center/11px no-repeat}
+.pr .btn{margin-top:auto}
+
+/* process */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:s}
+.st{border:1px solid var(--line);border-radius:20px;padding:26px;background:var(--bg2)}
+.st::before{counter-increment:s;content:"0" counter(s);font:800 13px Unbounded;display:inline-grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--grad);margin-bottom:18px}
+.st h4{font:700 17px Inter;margin-bottom:6px}
+.st p{color:var(--muted);font-size:14.5px}
+
+/* faq */
+.faq{display:grid;gap:10px;max-width:860px}
+details{border:1px solid var(--line);border-radius:16px;background:var(--bg2);padding:20px 24px;transition:border-color .3s}
+details[open]{border-color:rgba(139,92,255,.45)}
+summary{cursor:pointer;font-weight:700;font-size:16px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:400 24px/1 Inter;color:var(--acc2);transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--muted);margin-top:12px}
+
+/* cta */
+.cta{position:relative;border-radius:30px;padding:clamp(36px,6vw,80px);overflow:hidden;background:linear-gradient(120deg,#2a1a5e,#0e3b4a);text-align:center;isolation:isolate}
+.cta::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(500px 300px at 20% 0%,rgba(139,92,255,.5),transparent 70%),radial-gradient(500px 300px at 90% 100%,rgba(34,211,238,.35),transparent 70%)}
+.cta h2{font:800 clamp(28px,4.4vw,56px)/1.05 Unbounded;letter-spacing:-.03em;margin-bottom:16px}
+.cta p{color:#d0d0e0;max-width:560px;margin:0 auto 32px}
+.cta .row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.cta .contact-note{margin-top:20px;font-size:14px;color:#c0c0d4}
+footer{padding:40px 0 50px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+/* viewer */
+.viewer{position:fixed;inset:0;z-index:100;background:rgba(5,5,8,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+.viewer.on{opacity:1;visibility:visible}
+.v-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 22px;color:#d4d4e0;font-size:14px}
+.v-top b{font:700 15px Unbounded;color:#fff}
+.v-top .r{display:flex;gap:8px;align-items:center}
+.ib{width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;transition:background .2s}
+.ib:hover{background:rgba(255,255,255,.1)}
+.ib svg{width:20px;height:20px}
+.v-stage{flex:1;display:flex;align-items:center;justify-content:center;gap:16px;padding:0 16px;min-height:0}
+.v-slide{width:min(100%,calc((100vh - 230px)*16/9));border-radius:12px;box-shadow:0 40px 100px rgba(0,0,0,.6)}
+.v-slide .sl{animation:sIn .55s var(--ease)}
+@keyframes sIn{from{opacity:0;transform:scale(.985)}}
+.v-rail{display:flex;gap:8px;padding:16px 22px 22px;overflow-x:auto;justify-content:center}
+.v-rail button{flex:none;width:118px;border-radius:7px;overflow:hidden;opacity:.5;box-shadow:0 0 0 1px rgba(255,255,255,.1);transition:opacity .2s,box-shadow .2s}
+.v-rail button.on,.v-rail button:hover{opacity:1}
+.v-rail button.on{box-shadow:0 0 0 2px var(--acc2)}
+
+/* animation of slide elements in viewer */
+.v-slide .a{animation:aUp .8s var(--ease) both;animation-delay:calc(var(--d,0)*90ms + 150ms)}
+@keyframes aUp{from{opacity:0;transform:translateY(1.6em)}}
+.v-slide .grow{animation:grow 1s var(--ease) both;animation-delay:calc(var(--d,0)*90ms + 300ms);transform-origin:bottom}
+@keyframes grow{from{transform:scaleY(0)}}
+.v-slide .growx{animation:growx 1s var(--ease) both;animation-delay:calc(var(--d,0)*90ms + 300ms);transform-origin:left}
+@keyframes growx{from{transform:scaleX(0)}}
+
+.rv{opacity:0;transform:translateY(30px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:980px){
+  .links{display:none}
+  .hero-grid,.deck{grid-template-columns:1fr}
+  .deck:nth-of-type(even) .deck-media{order:0}
+  .stack{max-width:560px;margin:10px auto 0;width:100%}
+  .prices,.steps{grid-template-columns:1fr 1fr}
+  .stats{grid-template-columns:1fr 1fr}
+}
+@media (max-width:620px){
+  .wrap{padding:0 18px}
+  .hero{padding:120px 0 60px}
+  .hero-cta .btn{width:100%}
+  .nav .btn{display:none}
+  .prices,.steps{grid-template-columns:1fr}
+  .thumbs{grid-template-columns:repeat(4,1fr)}
+  .thumbs button:nth-child(n+5){display:none}
+  .v-stage .ib{display:none}
+  .v-slide{width:100%}
+  .v-rail button{width:84px}
+  .v-rail{justify-content:flex-start}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+
+/* ======================= DECK 1: PITCH (VOLTA) ======================= */
+.t-p{background:#08080f;color:#fff;font-family:Inter,sans-serif}
+.t-p .u{font-family:Unbounded,sans-serif}
+.t-p .glow{position:absolute;border-radius:50%;filter:blur(6em)}
+.t-p .lab{font-size:1.05em;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#a78bfa}
+.t-p .h{font:800 4.3em/1.05 Unbounded;letter-spacing:-.03em}
+.t-p .pg{position:absolute;right:4em;bottom:3em;font:600 1em Unbounded;color:#4b4b63}
+.t-p .logo-s{position:absolute;left:5em;bottom:3em;font:800 1.1em Unbounded;letter-spacing:.1em;color:#6b6b85}
+.t-p .card{background:rgba(255,255,255,.04);border:.08em solid rgba(255,255,255,.1);border-radius:1.4em;padding:2.4em}
+.t-p .big{font:800 5em/1 Unbounded;letter-spacing:-.04em}
+.t-p .gtx{background:linear-gradient(120deg,#a78bfa,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+.t-p p{color:#a9a9bd;font-size:1.45em;line-height:1.5}
+
+/* ======================= DECK 2: DIPLOMA ======================= */
+.t-d{background:#fff;color:#0f1d3a;font-family:Montserrat,sans-serif}
+.t-d .bar{position:absolute;left:0;top:0;bottom:0;width:1.1em;background:linear-gradient(#1f4fd8,#0f2a5f)}
+.t-d .hd{position:absolute;left:5em;right:5em;top:3.6em;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.12em solid #e3e8f2;padding-bottom:1.4em}
+.t-d .hd h2{font:800 3em/1.1 Montserrat;letter-spacing:-.02em;color:#0f2a5f}
+.t-d .hd span{font:700 1.1em Montserrat;color:#1f4fd8}
+.t-d .ft{position:absolute;left:5em;right:5em;bottom:2.6em;display:flex;justify-content:space-between;font-size:1em;color:#8a94ab;font-weight:500}
+.t-d .body{position:absolute;left:5em;right:5em;top:13em;bottom:6.5em}
+.t-d p,.t-d li{font-size:1.5em;line-height:1.5;color:#33415e}
+.t-d .acc{color:#1f4fd8}
+.t-d .box{background:#f3f6fc;border-radius:1.2em;padding:2.2em}
+
+/* ======================= DECK 3: KP (СЕВЕРНЫЙ ДОМ) ======================= */
+.t-k{background:#f3ede2;color:#1d2f26;font-family:Inter,sans-serif}
+.t-k .serif{font-family:'Playfair Display',serif}
+.t-k .h{font:800 4.4em/1.04 'Playfair Display',serif;letter-spacing:-.02em;color:#1d3a2c}
+.t-k .lab{font-size:1.05em;letter-spacing:.24em;text-transform:uppercase;color:#a8834b;font-weight:700}
+.t-k .gold{color:#b48a4c}
+.t-k p{font-size:1.45em;line-height:1.55;color:#4c5a51}
+.t-k .pg{position:absolute;right:5em;bottom:3em;font:600 1.1em 'Playfair Display',serif;color:#b9a888}
+.t-k .brand{position:absolute;left:5em;bottom:3em;font:800 1.1em Inter;letter-spacing:.2em;text-transform:uppercase;color:#8d8a7a}
+.t-k .line{height:.1em;background:#d8ccb6}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav"><div class="wrap">
+  <a href="#top" class="logo"><i></i>Slide Studio</a>
+  <nav class="links"><a href="../">Сайты</a><a href="#work">Работы</a><a href="#price">Цены</a><a href="#process">Как работаю</a><a href="#faq">Вопросы</a></nav>
+  <a href="#contact" class="btn btn-g btn-sm">Заказать презентацию</a>
+</div></header>
+
+<section class="hero" id="top"><div class="wrap">
+  <div class="hero-grid">
+    <div>
+      <div class="tag rv"><b></b>Принимаю заказы · срок от 24 часов</div>
+      <h1 class="rv">Презентации, после которых говорят <span class="grad">«да»</span></h1>
+      <p class="lead rv">Делаю презентации, которые выглядят дорого и легко читаются: питч-деки для инвесторов, защиты дипломов и коммерческие предложения. PowerPoint, Google Slides или PDF.</p>
+      <div class="hero-cta rv">
+        <a href="#work" class="btn btn-g">Смотреть работы <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a href="#price" class="btn btn-o">Цены от $30</a>
+      </div>
+    </div>
+    <div class="stack rv" id="stack"></div>
+  </div>
+  <div class="stats rv">
+    <div class="stat"><b class="grad">3</b><span>ниши в портфолио</span></div>
+    <div class="stat"><b>21</b><span>слайд в демо-работах</span></div>
+    <div class="stat"><b>24 ч</b><span>срок срочного заказа</span></div>
+    <div class="stat"><b>2</b><span>правки включены в цену</span></div>
+  </div>
+</div></section>
+
+<section class="sec" id="work" style="padding-top:40px"><div class="wrap">
+  <div class="sec-head">
+    <div><span class="kick grad">Портфолио</span><h2 class="h2">Три стиля под три задачи</h2></div>
+    <p>Нажмите на обложку, чтобы пролистать презентацию целиком. Работают стрелки на клавиатуре и свайпы на телефоне.</p>
+  </div>
+  <div id="decks"></div>
+</div></section>
+
+<section class="sec" id="price" style="padding-top:40px"><div class="wrap">
+  <div class="sec-head">
+    <div><span class="kick grad">Цены</span><h2 class="h2">Понятные пакеты</h2></div>
+    <p>Цена фиксируется до начала работы. Исходники в PowerPoint или Google Slides остаются у вас.</p>
+  </div>
+  <div class="prices">
+    <div class="pr rv"><h4>Старт</h4><div class="for">Учёба, доклад, защита диплома</div><div class="p">$30</div><div class="t">до 10 слайдов · 2 дня</div>
+      <ul><li>Структура по вашему тексту</li><li>Единый стиль и шрифты</li><li>Графики и таблицы</li><li>PPTX + PDF</li><li>1 правка</li></ul>
+      <a href="#contact" class="btn btn-o">Выбрать</a></div>
+    <div class="pr hot rv"><span class="hit">Чаще выбирают</span><h4>Бизнес</h4><div class="for">Коммерческое предложение, презентация компании</div><div class="p">$45</div><div class="t">до 15 слайдов · 2–3 дня</div>
+      <ul><li>Всё из пакета «Старт»</li><li>Редактура текста: коротко и по делу</li><li>Инфографика и иконки</li><li>Фирменные цвета и логотип</li><li>2 правки</li></ul>
+      <a href="#contact" class="btn btn-g">Выбрать</a></div>
+    <div class="pr rv"><h4>Премиум</h4><div class="for">Питч-дек для инвесторов, выступление</div><div class="p">$60</div><div class="t">до 20 слайдов · 3–4 дня</div>
+      <ul><li>Всё из пакета «Бизнес»</li><li>Помощь со сторителлингом</li><li>Анимации и переходы</li><li>Версия для печати и для экрана</li><li>Приоритетная поддержка</li></ul>
+      <a href="#contact" class="btn btn-o">Выбрать</a></div>
+  </div>
+</div></section>
+
+<section class="sec" id="process" style="padding-top:40px"><div class="wrap">
+  <div class="sec-head"><div><span class="kick grad">Как работаю</span><h2 class="h2">Четыре шага до готовой презентации</h2></div></div>
+  <div class="steps">
+    <div class="st rv"><h4>Бриф за 10 минут</h4><p>Присылаете текст, черновик или просто идею. Задаю пару вопросов про цель и аудиторию.</p></div>
+    <div class="st rv"><h4>Структура и стиль</h4><p>Предлагаю план слайдов и визуальное направление, согласуем до начала дизайна.</p></div>
+    <div class="st rv"><h4>Дизайн</h4><p>Собираю презентацию: сетка, графики, инфографика, акценты на главном.</p></div>
+    <div class="st rv"><h4>Правки и сдача</h4><p>Вносим правки, отдаю PPTX, PDF или Google Slides — всё редактируется.</p></div>
+  </div>
+</div></section>
+
+<section class="sec" id="faq" style="padding-top:40px"><div class="wrap">
+  <div class="sec-head"><div><span class="kick grad">Вопросы</span><h2 class="h2">Частые вопросы</h2></div></div>
+  <div class="faq">
+    <details class="rv"><summary>У меня есть только текст в Word. Этого достаточно?</summary><p>Да. Сокращу текст, разобью по слайдам и превращу цифры в графики. Если текста нет, помогу со структурой.</p></details>
+    <details class="rv"><summary>В какой программе будет презентация?</summary><p>PowerPoint, Google Slides или Keynote — на ваш выбор. Плюс PDF для отправки и печати.</p></details>
+    <details class="rv"><summary>Как происходит оплата?</summary><p>50% предоплата, 50% после сдачи. Можно картой или переводом.</p></details>
+    <details class="rv"><summary>Можно срочно, к завтрашнему дню?</summary><p>Да, если до 10 слайдов. Срочный заказ за 24 часа — +50% к цене.</p></details>
+  </div>
+</div></section>
+
+<section class="sec" id="contact" style="padding-top:20px"><div class="wrap">
+  <div class="cta rv">
+    <h2>Нужна презентация?</h2>
+    <p>Напишите, что за выступление и к какому сроку. Отвечу в течение часа и назову точную цену.</p>
+    <div class="row">
+      <a class="btn btn-g" href="https://t.me/bezumniypasha8" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.7.8l-4.8-3.6-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.5 13.2 1.8 11.7c-1-.3-1-1 .2-1.5L20.6 3c.9-.3 1.6.2 1.3 1.3Z"/></svg>Написать в Telegram</a>
+      <a class="btn btn-o" href="tel:+375444658978">Позвонить +375 (44) 465-89-78</a>
+    </div>
+    <div class="contact-note">Telegram: @bezumniypasha8 · Телефон: +375 (44) 465-89-78</div>
+  </div>
+</div></section>
+
+<footer><div class="wrap"><span>© 2026 Slide Studio · Дизайн презентаций</span><span>Демо-работы: бренды и цифры вымышлены</span></div></footer>
+
+<div class="viewer" id="viewer" aria-hidden="true">
+  <div class="v-top">
+    <div><b id="vTitle"></b> &nbsp;<span id="vCount"></span></div>
+    <div class="r">
+      <button class="ib" id="vFs" aria-label="Во весь экран"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="ib" id="vClose" aria-label="Закрыть"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+  </div>
+  <div class="v-stage">
+    <button class="ib" id="vPrev" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+    <div class="frame v-slide" id="vSlide"></div>
+    <button class="ib" id="vNext" aria-label="Вперёд"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="v-rail" id="vRail"></div>
+</div>
+
+<script>
+/* ============================ SLIDES ============================ */
+const BIKE = `<svg viewBox="0 0 400 240" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:auto">
+  <defs><linearGradient id="bg1" x1="0" x2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+  <circle cx="90" cy="160" r="62" stroke="url(#bg1)" stroke-width="7"/><circle cx="310" cy="160" r="62" stroke="url(#bg1)" stroke-width="7"/>
+  <circle cx="90" cy="160" r="8" fill="#fff"/><circle cx="310" cy="160" r="8" fill="#fff"/>
+  <path d="M90 160 160 80h110l40 80M160 80l45 80h-115M205 160l65-80M150 58h40M270 80l-10-34h30" stroke="#fff" stroke-width="7"/>
+  <rect x="168" y="96" width="70" height="26" rx="8" fill="url(#bg1)" stroke="none" transform="rotate(-38 203 109)"/>
+</svg>`;
+
+const P_LOGO = '<div class="logo-s">VOLTA</div>';
+const pPg = n => `<div class="pg">0${n} / 07</div>`;
+
+const DECKS = [
+{
+  id: 'pitch', name: 'VOLTA — питч-дек', niche: 'Стартап · инвесторы',
+  title: 'Питч-дек для стартапа',
+  desc: 'Презентация для инвесторов: проблема, решение, рынок, рост и запрос на инвестиции. Тёмный технологичный стиль, крупные цифры, графики и понятная история.',
+  chips: ['7 слайдов', 'Инфографика', 'Графики роста', 'Тёмная тема'],
+  slides: [
+`<div class="sl t-p">
+  <div class="glow" style="width:40em;height:40em;background:rgba(139,92,255,.35);right:-8em;top:-10em"></div>
+  <div class="glow" style="width:30em;height:30em;background:rgba(34,211,238,.18);left:-8em;bottom:-14em"></div>
+  <div style="position:absolute;left:5em;top:5em" class="lab a">Seed-раунд · 2026</div>
+  <div style="position:absolute;left:5em;top:13em;width:52em">
+    <div class="u a" style="--d:1;font-size:11em;font-weight:800;letter-spacing:-.05em;line-height:.9">VOLTA</div>
+    <div class="a" style="--d:2;font:600 2.6em/1.25 Unbounded;margin-top:.6em;letter-spacing:-.02em">Электровелосипеды<br><span class="gtx">по подписке</span> для городов</div>
+    <p class="a" style="--d:3;margin-top:1.4em;max-width:30em">Без покупки, ремонта и хранения. Сервис, ТО и замена — за нас.</p>
+  </div>
+  <div class="a" style="--d:2;position:absolute;right:5em;top:16em;width:40em">${BIKE}</div>
+  ${pPg(1)}
+</div>`,
+`<div class="sl t-p">
+  <div class="glow" style="width:30em;height:30em;background:rgba(239,68,68,.16);right:-6em;top:-8em"></div>
+  <div style="position:absolute;left:5em;top:5em;right:5em">
+    <div class="lab a">Проблема</div>
+    <div class="h a" style="--d:1;margin-top:.5em;max-width:16em">Дорога на работу съедает время и деньги</div>
+  </div>
+  <div style="position:absolute;left:5em;right:5em;bottom:8em;display:grid;grid-template-columns:repeat(3,1fr);gap:2em">
+    <div class="card a" style="--d:2"><div class="big" style="color:#f87171">52<span style="font-size:.45em"> мин</span></div><p style="margin-top:.8em">в среднем горожанин тратит на дорогу каждый день</p></div>
+    <div class="card a" style="--d:3"><div class="big" style="color:#fb923c">x3</div><p style="margin-top:.8em">выросла стоимость такси на короткие поездки за 3 года</p></div>
+    <div class="card a" style="--d:4"><div class="big" style="color:#facc15">68%</div><p style="margin-top:.8em">хотят ездить на электровелосипеде, но не готовы его покупать</p></div>
+  </div>
+  ${P_LOGO}${pPg(2)}
+</div>`,
+`<div class="sl t-p">
+  <div class="glow" style="width:36em;height:36em;background:rgba(139,92,255,.3);right:4em;top:4em"></div>
+  <div style="position:absolute;left:5em;top:5em;width:44em">
+    <div class="lab a">Решение</div>
+    <div class="h a" style="--d:1;margin-top:.5em">Подписка<br>в одно касание</div>
+    <div style="margin-top:3em;display:grid;gap:1.6em">
+      ${[['01','Выбираете тариф в приложении','от 79 BYN в месяц, без залога'],['02','Курьер привозит велосипед','в течение 24 часов'],['03','Мы обслуживаем и меняем','поломка — замена за 2 часа']].map((r,i)=>`<div class="a" style="--d:${i+2};display:flex;gap:1.6em;align-items:center"><div class="u gtx" style="font-size:2.4em;font-weight:800;width:2em">${r[0]}</div><div><div style="font:600 1.7em Inter">${r[1]}</div><div style="color:#8f8fa6;font-size:1.3em">${r[2]}</div></div></div>`).join('')}
+    </div>
+  </div>
+  <div class="a" style="--d:2;position:absolute;right:12em;top:7em;width:24em;height:46em;border-radius:3.4em;background:#12121c;border:.5em solid #22222f;box-shadow:0 3em 6em rgba(0,0,0,.6);padding:2.6em 2em;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;font-size:1.1em;color:#8f8fa6"><span>Мой велосипед</span><span>●●●</span></div>
+    <div style="margin:2em 0 1.4em;padding:2em;border-radius:1.6em;background:linear-gradient(140deg,#7c3aed,#0891b2)">
+      <div style="font-size:1.1em;opacity:.8">Заряд</div><div class="u" style="font-size:3.6em;font-weight:800">86%</div>
+      <div style="height:.6em;border-radius:1em;background:rgba(255,255,255,.25);margin-top:1em"><div style="width:86%;height:100%;border-radius:1em;background:#fff"></div></div>
+      <div style="font-size:1.1em;margin-top:1em;opacity:.85">≈ 64 км запаса хода</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1em">
+      <div style="background:#1b1b28;border-radius:1.2em;padding:1.4em"><div style="color:#8f8fa6;font-size:1em">Сегодня</div><div class="u" style="font-size:1.8em;font-weight:700">12,4 км</div></div>
+      <div style="background:#1b1b28;border-radius:1.2em;padding:1.4em"><div style="color:#8f8fa6;font-size:1em">Сэкономлено</div><div class="u" style="font-size:1.8em;font-weight:700">23 BYN</div></div>
+    </div>
+    <div style="margin-top:1.4em;background:#1b1b28;border-radius:1.2em;padding:1.4em;display:flex;justify-content:space-between;align-items:center"><span style="font-size:1.2em">Вызвать мастера</span><span style="width:2.6em;height:2.6em;border-radius:50%;background:#22d3ee;display:inline-block"></span></div>
+  </div>
+  ${P_LOGO}${pPg(3)}
+</div>`,
+`<div class="sl t-p">
+  <div style="position:absolute;left:5em;top:5em;width:40em">
+    <div class="lab a">Рынок</div>
+    <div class="h a" style="--d:1;margin-top:.5em;font-size:3.6em">Большой рынок,<br>который только растёт</div>
+    <p class="a" style="--d:2;margin-top:1.4em">Начинаем с Минска, затем — областные центры и города-спутники. Сегмент микромобильности растёт на 18% в год.</p>
+    <div class="a" style="--d:3;margin-top:3em;display:grid;gap:1.4em">
+      <div style="display:flex;align-items:center;gap:1.4em"><i style="width:1.4em;height:1.4em;border-radius:50%;background:#3b2a6b"></i><span style="font-size:1.5em"><b>TAM</b> — городская мобильность РБ</span><b class="u" style="margin-left:auto;font-size:1.8em;white-space:nowrap;padding-left:1em">$410 млн</b></div>
+      <div style="display:flex;align-items:center;gap:1.4em"><i style="width:1.4em;height:1.4em;border-radius:50%;background:#6d4bd8"></i><span style="font-size:1.5em"><b>SAM</b> — поездки до 10 км</span><b class="u" style="margin-left:auto;font-size:1.8em;white-space:nowrap;padding-left:1em">$96 млн</b></div>
+      <div style="display:flex;align-items:center;gap:1.4em"><i style="width:1.4em;height:1.4em;border-radius:50%;background:#22d3ee"></i><span style="font-size:1.5em"><b>SOM</b> — цель на 3 года</span><b class="u" style="margin-left:auto;font-size:1.8em;white-space:nowrap;padding-left:1em">$7,2 млн</b></div>
+    </div>
+  </div>
+  <div style="position:absolute;right:6em;top:50%;transform:translateY(-50%);width:42em;height:42em">
+    <div class="a" style="--d:1;position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#3b2a6b,#241a45);display:flex;justify-content:center;padding-top:3em"><span class="u" style="font-size:1.6em;color:#c4b5fd">TAM</span></div>
+    <div class="a" style="--d:2;position:absolute;left:8em;right:8em;bottom:2em;top:12em;border-radius:50%;background:radial-gradient(circle,#7c5ce8,#5b3fc4);display:flex;justify-content:center;padding-top:2.4em"><span class="u" style="font-size:1.5em">SAM</span></div>
+    <div class="a" style="--d:3;position:absolute;left:14em;right:14em;bottom:4em;top:24em;border-radius:50%;background:linear-gradient(140deg,#22d3ee,#0891b2);display:grid;place-items:center;box-shadow:0 0 4em rgba(34,211,238,.5)"><span class="u" style="font-size:1.5em;color:#04222b;font-weight:800">SOM</span></div>
+  </div>
+  ${pPg(4)}
+</div>`,
+`<div class="sl t-p">
+  <div style="position:absolute;left:5em;top:5em;right:5em;display:flex;justify-content:space-between;align-items:flex-end">
+    <div><div class="lab a">Рост</div><div class="h a" style="--d:1;margin-top:.5em">x12 подписчиков<br>за полгода</div></div>
+    <div class="a" style="--d:2;display:flex;gap:3em;text-align:right">
+      <div><div class="u gtx" style="font-size:3.4em;font-weight:800">1 450</div><div style="color:#8f8fa6;font-size:1.2em">активных подписок</div></div>
+      <div><div class="u" style="font-size:3.4em;font-weight:800">4,8★</div><div style="color:#8f8fa6;font-size:1.2em">рейтинг сервиса</div></div>
+      <div><div class="u" style="font-size:3.4em;font-weight:800">6%</div><div style="color:#8f8fa6;font-size:1.2em">отток в месяц</div></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:5em;right:5em;bottom:8em;height:24em;display:flex;align-items:flex-end;gap:2.4em;border-bottom:.1em solid rgba(255,255,255,.12)">
+    ${[['Янв',120],['Фев',260],['Мар',410],['Апр',690],['Май',980],['Июн',1450]].map((m,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.8em;height:100%;justify-content:flex-end">
+      <div class="u a" style="--d:${i+2};font-size:1.4em;font-weight:600;color:${i===5?'#22d3ee':'#c4b5fd'}">${m[1]}</div>
+      <div class="grow" style="--d:${i};width:100%;height:${m[1]/1450*82}%;border-radius:1em 1em .2em .2em;background:${i===5?'linear-gradient(#22d3ee,#0e7490)':'linear-gradient(#8b5cff,#3b2a6b)'};${i===5?'box-shadow:0 0 3em rgba(34,211,238,.45)':''}"></div>
+      <div style="position:absolute;bottom:-2.4em;font-size:1.2em;color:#8f8fa6"></div>
+    </div>`).join('')}
+  </div>
+  <div style="position:absolute;left:5em;right:5em;bottom:5.4em;display:flex;gap:2.4em">${['Янв','Фев','Мар','Апр','Май','Июн'].map(m=>`<div style="flex:1;text-align:center;font-size:1.2em;color:#8f8fa6">${m}</div>`).join('')}</div>
+  ${pPg(5)}
+</div>`,
+`<div class="sl t-p">
+  <div style="position:absolute;left:5em;top:5em"><div class="lab a">Бизнес-модель</div><div class="h a" style="--d:1;margin-top:.5em">Три тарифа — один сервис</div></div>
+  <div style="position:absolute;left:5em;right:5em;top:21em;display:grid;grid-template-columns:repeat(3,1fr);gap:2em;align-items:end">
+    ${[['City','79','Для поездок по району',['До 40 км в день','ТО раз в месяц','Замена за 24 ч'],0],['Pro','119','Для ежедневных поездок',['До 80 км в день','Второй аккумулятор','Замена за 2 ч','Страховка'],1],['Business','от 99','Для курьеров и компаний',['Парк от 10 штук','Брендирование','Личный менеджер'],0]].map((t,i)=>`<div class="a" style="--d:${i+2};border-radius:1.6em;padding:2.6em;${t[4]?'background:linear-gradient(160deg,#5b3fc4,#0e7490);transform:translateY(-1.6em);box-shadow:0 2em 5em rgba(91,63,196,.45)':'background:rgba(255,255,255,.04);border:.08em solid rgba(255,255,255,.1)'}">
+      <div class="u" style="font-size:1.8em;font-weight:700">${t[0]}</div><div style="color:${t[4]?'#e0e7ff':'#8f8fa6'};font-size:1.2em;margin:.3em 0 1.4em">${t[2]}</div>
+      <div><span class="u" style="font-size:4em;font-weight:800">${t[1]}</span><span style="font-size:1.3em;opacity:.8"> BYN/мес</span></div>
+      <div style="height:.08em;background:rgba(255,255,255,.15);margin:1.6em 0"></div>
+      ${t[3].map(f=>`<div style="font-size:1.35em;margin-bottom:.6em">✓&nbsp; ${f}</div>`).join('')}
+    </div>`).join('')}
+  </div>
+  ${pPg(6)}
+</div>`,
+`<div class="sl t-p">
+  <div class="glow" style="width:44em;height:44em;background:rgba(139,92,255,.3);left:-12em;bottom:-20em"></div>
+  <div style="position:absolute;left:5em;top:5em;width:46em">
+    <div class="lab a">Инвестиции</div>
+    <div class="a" style="--d:1;margin-top:1em;color:#a9a9bd;font-size:1.6em">Привлекаем</div>
+    <div class="u gtx a" style="--d:2;font-size:9em;font-weight:800;letter-spacing:-.05em;line-height:1">$250K</div>
+    <p class="a" style="--d:3;margin-top:.8em">за 15% компании. Цель — 6 000 подписчиков и выход на окупаемость за 18 месяцев.</p>
+    <div class="a" style="--d:4;margin-top:3em;display:flex;gap:1.2em;flex-wrap:wrap">
+      ${[['Q1','Парк 1 000 шт.'],['Q2','Гомель и Брест'],['Q4','B2B для курьеров'],['2028','Безубыточность']].map(r=>`<div style="padding:1em 1.6em;border-radius:1em;border:.08em solid rgba(255,255,255,.14);font-size:1.3em"><b class="gtx u">${r[0]}</b>&nbsp; ${r[1]}</div>`).join('')}
+    </div>
+  </div>
+  <div style="position:absolute;right:7em;top:9em;width:30em">
+    <div class="a" style="--d:2;width:30em;height:30em;border-radius:50%;background:conic-gradient(#8b5cff 0 40%,#22d3ee 40% 75%,#f472b6 75% 90%,#facc15 90% 100%);display:grid;place-items:center">
+      <div style="width:18em;height:18em;border-radius:50%;background:#08080f;display:grid;place-items:center;text-align:center"><div><div class="u" style="font-size:2.6em;font-weight:800">100%</div><div style="color:#8f8fa6;font-size:1.2em">использование</div></div></div>
+    </div>
+    <div class="a" style="--d:3;display:grid;grid-template-columns:1fr 1fr;gap:1em 2em;margin-top:2.6em;font-size:1.3em">
+      ${[['#8b5cff','Парк велосипедов','40%'],['#22d3ee','Маркетинг','35%'],['#f472b6','Команда','15%'],['#facc15','Резерв','10%']].map(r=>`<div style="display:flex;gap:.7em;align-items:center"><i style="width:.9em;height:.9em;border-radius:.3em;background:${r[0]}"></i>${r[1]} <b style="margin-left:auto">${r[2]}</b></div>`).join('')}
+    </div>
+  </div>
+  ${P_LOGO}${pPg(7)}
+</div>`
+  ]
+},
+{
+  id: 'diploma', name: 'Защита дипломной работы', niche: 'Студенты · защита',
+  title: 'Защита диплома',
+  desc: 'Строгая академическая презентация, к которой не придерётся комиссия: актуальность, цели и задачи, анализ, результаты исследования и экономический эффект. Чистая сетка, понятные графики.',
+  chips: ['7 слайдов', 'Академический стиль', 'SWOT и диаграммы', 'Таблица эффекта'],
+  slides: [
+`<div class="sl t-d">
+  <div style="position:absolute;inset:0;background:linear-gradient(120deg,#0f2a5f 0%,#1f4fd8 100%)"></div>
+  <svg style="position:absolute;right:-6em;top:-6em;width:60em;opacity:.12" viewBox="0 0 200 200"><circle cx="100" cy="100" r="98" fill="none" stroke="#fff" stroke-width="1"/><circle cx="100" cy="100" r="70" fill="none" stroke="#fff" stroke-width="1"/><circle cx="100" cy="100" r="42" fill="none" stroke="#fff" stroke-width="1"/></svg>
+  <div style="position:absolute;left:6em;top:5em;color:#c7d6ff;font:600 1.2em Montserrat;letter-spacing:.06em" class="a">УО «ЭКОНОМИЧЕСКИЙ УНИВЕРСИТЕТ» · КАФЕДРА МАРКЕТИНГА</div>
+  <div style="position:absolute;left:6em;top:14em;width:60em;color:#fff">
+    <div class="a" style="--d:1;font:700 1.4em Montserrat;letter-spacing:.2em;color:#9db8ff">ДИПЛОМНАЯ РАБОТА</div>
+    <div class="a" style="--d:2;font:800 4.4em/1.12 Montserrat;letter-spacing:-.02em;margin-top:.5em">Повышение конкурентоспособности кофейни на рынке г.&nbsp;Минска</div>
+  </div>
+  <div style="position:absolute;left:6em;bottom:5em;display:flex;gap:6em;color:#fff" class="a">
+    <div style="--d:3"><div style="font-size:1.1em;color:#9db8ff;font-weight:600">Студент</div><div style="font:700 1.6em Montserrat">Иванов Иван Иванович</div></div>
+    <div><div style="font-size:1.1em;color:#9db8ff;font-weight:600">Научный руководитель</div><div style="font:700 1.6em Montserrat">к.э.н., доцент Петрова А. С.</div></div>
+  </div>
+  <div style="position:absolute;right:6em;bottom:5em;color:#c7d6ff;font:600 1.4em Montserrat" class="a">Минск · 2026</div>
+</div>`,
+`<div class="sl t-d"><div class="bar"></div>
+  <div class="hd a"><h2>Актуальность темы</h2><span>01</span></div>
+  <div class="body" style="display:grid;grid-template-columns:1.2fr 1fr;gap:4em;align-items:center">
+    <div>
+      <p class="a" style="--d:1">Рынок кофеен Минска вырос в <b class="acc">2,3 раза</b> за пять лет, а конкуренция на одну локацию стала максимальной за всё время наблюдений.</p>
+      <p class="a" style="--d:2;margin-top:1.2em">Без чёткой стратегии небольшие кофейни теряют гостей в пользу сетей, а <b class="acc">каждая третья</b> закрывается в первые два года работы.</p>
+    </div>
+    <div style="display:grid;gap:1.6em">
+      <div class="box a" style="--d:2;display:flex;align-items:center;gap:2em"><div style="font:900 4.4em Montserrat;color:#1f4fd8">640+</div><div style="font-size:1.4em;color:#33415e;line-height:1.35">кофеен работает<br>в Минске</div></div>
+      <div class="box a" style="--d:3;display:flex;align-items:center;gap:2em"><div style="font:900 4.4em Montserrat;color:#1f4fd8">33%</div><div style="font-size:1.4em;color:#33415e;line-height:1.35">закрываются в первые<br>2 года</div></div>
+      <div class="box a" style="--d:4;display:flex;align-items:center;gap:2em;background:#0f2a5f;color:#fff"><div style="font:900 4.4em Montserrat">+18%</div><div style="font-size:1.4em;line-height:1.35;color:#c7d6ff">рост спроса на кофе<br>с собой в год</div></div>
+    </div>
+  </div>
+  <div class="ft"><span>Иванов И. И. · Дипломная работа</span><span>2</span></div>
+</div>`,
+`<div class="sl t-d"><div class="bar"></div>
+  <div class="hd a"><h2>Цель, объект и задачи</h2><span>02</span></div>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1.25fr;gap:4em">
+    <div style="display:grid;gap:1.6em;align-content:start">
+      <div class="box a" style="--d:1;border-left:.5em solid #1f4fd8"><div style="font:800 1.2em Montserrat;letter-spacing:.14em;color:#1f4fd8">ЦЕЛЬ</div><p style="margin-top:.5em">Разработать комплекс мероприятий по повышению конкурентоспособности кофейни «Зерно»</p></div>
+      <div class="box a" style="--d:2"><div style="font:800 1.2em Montserrat;letter-spacing:.14em;color:#1f4fd8">ОБЪЕКТ</div><p style="margin-top:.5em">ООО «Зерно», кофейня формата «кофе с собой»</p></div>
+      <div class="box a" style="--d:3"><div style="font:800 1.2em Montserrat;letter-spacing:.14em;color:#1f4fd8">ПРЕДМЕТ</div><p style="margin-top:.5em">Конкурентные преимущества и маркетинговая деятельность</p></div>
+    </div>
+    <div>
+      <div class="a" style="--d:1;font:800 1.2em Montserrat;letter-spacing:.14em;color:#1f4fd8;margin-bottom:1.4em">ЗАДАЧИ ИССЛЕДОВАНИЯ</div>
+      ${['Изучить теоретические основы конкурентоспособности предприятий общепита','Проанализировать рынок кофеен г. Минска и ключевых конкурентов','Провести опрос гостей и выявить факторы выбора кофейни','Разработать мероприятия и оценить их экономический эффект'].map((t,i)=>`<div class="a" style="--d:${i+2};display:flex;gap:1.6em;align-items:flex-start;padding:1.3em 0;border-bottom:.1em solid #e3e8f2"><div style="flex:none;width:2.6em;height:2.6em;border-radius:.8em;background:#1f4fd8;color:#fff;display:grid;place-items:center;font:800 1.3em Montserrat">${i+1}</div><p style="margin:0">${t}</p></div>`).join('')}
+    </div>
+  </div>
+  <div class="ft"><span>Иванов И. И. · Дипломная работа</span><span>3</span></div>
+</div>`,
+`<div class="sl t-d"><div class="bar"></div>
+  <div class="hd a"><h2>SWOT-анализ кофейни «Зерно»</h2><span>03</span></div>
+  <div class="body" style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1.6em">
+    ${[['S','Сильные стороны','#1f4fd8','#eef3ff',['Качество зерна и обжарка','Удобная локация у метро','Лояльная команда бариста']],['W','Слабые стороны','#e11d48','#fff1f3',['Нет программы лояльности','Слабое присутствие в соцсетях','Узкое меню выпечки']],['O','Возможности','#059669','#ecfdf5',['Рост спроса на кофе с собой','Доставка через агрегаторы','Корпоративные заказы']],['T','Угрозы','#d97706','#fffbeb',['Экспансия сетевых кофеен','Рост цен на зерно','Сезонное падение трафика']]].map((q,i)=>`<div class="a" style="--d:${i+1};border-radius:1.2em;background:${q[3]};padding:2em 2.2em;display:flex;gap:2em">
+      <div style="font:900 5em/1 Montserrat;color:${q[2]}">${q[0]}</div>
+      <div><div style="font:800 1.6em Montserrat;color:${q[2]};margin-bottom:.6em">${q[1]}</div>${q[4].map(x=>`<div style="font-size:1.35em;color:#33415e;margin-bottom:.35em">• ${x}</div>`).join('')}</div>
+    </div>`).join('')}
+  </div>
+  <div class="ft"><span>Иванов И. И. · Дипломная работа</span><span>4</span></div>
+</div>`,
+`<div class="sl t-d"><div class="bar"></div>
+  <div class="hd a"><h2>Факторы выбора кофейни (опрос, n = 214)</h2><span>04</span></div>
+  <div class="body" style="display:grid;grid-template-columns:1.5fr 1fr;gap:4em;align-items:center">
+    <div style="display:grid;gap:1.7em">
+      ${[['Качество кофе',78],['Атмосфера и интерьер',64],['Цена',52],['Близость к дому или работе',47],['Скорость обслуживания',31],['Программа лояльности',24]].map((r,i)=>`<div class="a" style="--d:${i+1}"><div style="display:flex;justify-content:space-between;font-size:1.4em;font-weight:600;margin-bottom:.4em"><span>${r[0]}</span><b style="color:#1f4fd8">${r[1]}%</b></div><div style="height:1.4em;border-radius:1em;background:#eef2f9;overflow:hidden"><div class="growx" style="--d:${i};width:${r[1]}%;height:100%;border-radius:1em;background:${i===0?'linear-gradient(90deg,#1f4fd8,#4f7cff)':'#9db8ff'}"></div></div></div>`).join('')}
+    </div>
+    <div class="box a" style="--d:3;background:#0f2a5f;color:#fff;padding:3em">
+      <div style="font:800 1.2em Montserrat;letter-spacing:.14em;color:#9db8ff">ВЫВОД</div>
+      <div style="font:800 2.4em/1.2 Montserrat;margin:.6em 0">Гости выбирают вкус и атмосферу, а не цену</div>
+      <div style="font-size:1.35em;line-height:1.5;color:#c7d6ff">Значит, выгоднее вкладываться в качество и впечатления, чем снижать цены.</div>
+    </div>
+  </div>
+  <div class="ft"><span>Иванов И. И. · Дипломная работа</span><span>5</span></div>
+</div>`,
+`<div class="sl t-d"><div class="bar"></div>
+  <div class="hd a"><h2>Мероприятия и экономический эффект</h2><span>05</span></div>
+  <div class="body" style="display:grid;grid-template-columns:1.6fr 1fr;gap:3.4em">
+    <div class="a" style="--d:1;border-radius:1.2em;overflow:hidden;border:.1em solid #e3e8f2;align-self:start">
+      <div style="display:grid;grid-template-columns:2.2fr 1fr 1fr;background:#0f2a5f;color:#fff;font:700 1.25em Montserrat;padding:1.2em 1.6em"><span>Мероприятие</span><span style="text-align:right">Затраты</span><span style="text-align:right">Прибыль/год</span></div>
+      ${[['Программа лояльности в приложении','4 200','18 600'],['SMM и работа с отзывами','3 600','11 200'],['Расширение меню выпечки','2 800','9 400'],['Корпоративные абонементы','1 200','7 800']].map((r,i)=>`<div style="display:grid;grid-template-columns:2.2fr 1fr 1fr;padding:1.15em 1.6em;font-size:1.35em;${i%2?'background:#f7f9fd':''}"><span>${r[0]}</span><span style="text-align:right;color:#64708a">${r[1]}</span><span style="text-align:right;font-weight:700;color:#059669">${r[2]}</span></div>`).join('')}
+      <div style="display:grid;grid-template-columns:2.2fr 1fr 1fr;padding:1.2em 1.6em;font:800 1.4em Montserrat;background:#eef3ff"><span>Итого, BYN</span><span style="text-align:right">11 800</span><span style="text-align:right;color:#1f4fd8">47 000</span></div>
+    </div>
+    <div style="display:grid;gap:1.6em;align-content:start">
+      <div class="box a" style="--d:2;text-align:center;background:linear-gradient(140deg,#1f4fd8,#0f2a5f);color:#fff;padding:2.6em"><div style="font-size:1.3em;color:#c7d6ff;font-weight:600">Рентабельность вложений</div><div style="font:900 6em/1.1 Montserrat">298%</div></div>
+      <div class="box a" style="--d:3;text-align:center"><div style="font-size:1.3em;color:#64708a;font-weight:600">Срок окупаемости</div><div style="font:900 4em/1.1 Montserrat;color:#0f2a5f">3,1 мес.</div></div>
+    </div>
+  </div>
+  <div class="ft"><span>Иванов И. И. · Дипломная работа</span><span>6</span></div>
+</div>`,
+`<div class="sl t-d">
+  <div style="position:absolute;inset:0;background:linear-gradient(120deg,#0f2a5f,#1f4fd8)"></div>
+  <div style="position:absolute;left:6em;top:5em;width:58em;color:#fff">
+    <div class="a" style="font:700 1.3em Montserrat;letter-spacing:.2em;color:#9db8ff">ЗАКЛЮЧЕНИЕ</div>
+    <div class="a" style="--d:1;font:800 3.6em/1.15 Montserrat;margin:.4em 0 1em">Все задачи исследования выполнены</div>
+    ${['Изучены теоретические основы конкурентоспособности','Проанализирован рынок и 5 ключевых конкурентов','Выявлены главные факторы выбора гостей','Разработаны 4 мероприятия с окупаемостью 3,1 месяца'].map((t,i)=>`<div class="a" style="--d:${i+2};display:flex;gap:1.2em;align-items:center;font-size:1.6em;margin-bottom:.9em;color:#e3ebff"><span style="flex:none;width:1.6em;height:1.6em;border-radius:50%;background:#fff;color:#1f4fd8;display:grid;place-items:center;font-weight:900;font-size:.8em">✓</span>${t}</div>`).join('')}
+  </div>
+  <div class="a" style="--d:4;position:absolute;right:6em;bottom:5em;text-align:right;color:#fff"><div style="font:900 5.4em/1 Montserrat">Спасибо</div><div style="font:600 2em Montserrat;color:#9db8ff">за внимание!</div></div>
+</div>`
+  ]
+},
+{
+  id: 'kp', name: 'Северный Дом — коммерческое предложение', niche: 'Бизнес · продажи',
+  title: 'Коммерческое предложение',
+  desc: 'Продающая презентация компании для клиентов: кто мы, проекты, комплектации и цены, этапы, гарантии и призыв к действию. Тёплый премиальный стиль, чтобы подчеркнуть качество.',
+  chips: ['7 слайдов', 'Премиальный стиль', 'Сравнение пакетов', 'Таймлайн'],
+  slides: (() => {
+    const HOUSE = (c='#1d3a2c') => `<svg viewBox="0 0 300 220" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:auto"><path d="M20 200h260"/><path d="M50 200V100L150 30l100 70v100"/><path d="M30 114 150 28l120 86"/><rect x="128" y="140" width="44" height="60"/><rect x="72" y="118" width="40" height="34"/><rect x="188" y="118" width="40" height="34"/><path d="M92 118v34M72 135h40M208 118v34M188 135h40"/><path d="M205 62V36h22v42"/></svg>`;
+    const HOUSE2 = c => `<svg viewBox="0 0 300 200" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:auto"><path d="M10 180h280"/><path d="M40 180V90h140v90M180 180V60l90 30v90"/><path d="M28 98 110 40l82 58"/><rect x="70" y="118" width="34" height="62"/><rect x="128" y="112" width="36" height="30"/><rect x="200" y="100" width="50" height="40"/></svg>`;
+    const HOUSE3 = c => `<svg viewBox="0 0 300 200" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="width:100%;height:auto"><path d="M10 180h280"/><path d="M50 180V80h200v100"/><path d="M30 82h240L240 40H60z"/><rect x="80" y="110" width="60" height="44"/><rect x="170" y="110" width="50" height="70"/><path d="M110 110v44"/></svg>`;
+    const pg = n => `<div class="pg">0${n}</div>`;
+    const br = '<div class="brand">Северный Дом</div>';
+    return [
+`<div class="sl t-k">
+  <div style="position:absolute;right:0;top:0;bottom:0;width:46%;background:#1d3a2c"></div>
+  <div class="a" style="--d:1;position:absolute;right:6em;top:13em;width:36em">${HOUSE('#d9b98a')}</div>
+  <div style="position:absolute;right:6em;top:5em;color:#d9b98a;font:600 1.2em Inter;letter-spacing:.24em" class="a">С 2014 ГОДА</div>
+  <div style="position:absolute;left:5em;top:5em" class="lab a">Коммерческое предложение</div>
+  <div style="position:absolute;left:5em;top:14em;width:42em">
+    <div class="h a" style="--d:1;font-size:6em">Северный<br><i class="gold">Дом</i></div>
+    <div class="a" style="--d:2;width:8em;height:.2em;background:#b48a4c;margin:2.4em 0"></div>
+    <p class="a" style="--d:3;font-size:1.8em;max-width:20em">Тёплые каркасные дома под ключ за 90 дней — с фиксированной ценой в договоре</p>
+  </div>
+  ${br}
+</div>`,
+`<div class="sl t-k">
+  <div style="position:absolute;left:5em;top:5em;width:44em"><div class="lab a">О компании</div><div class="h a" style="--d:1;margin-top:.4em">Строим дома,<br>в которых <i class="gold">тепло</i></div>
+    <p class="a" style="--d:2;margin-top:1.4em">Собственное производство домокомплектов, свои бригады и технадзор на каждом этапе. Вы общаетесь с одним менеджером от проекта до ключей.</p></div>
+  <div style="position:absolute;left:5em;right:5em;bottom:8em;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:.1em solid #d8ccb6">
+    ${[['12','лет на рынке'],['340+','построенных домов'],['90','дней от фундамента до ключей'],['15 лет','гарантия на каркас']].map((s,i)=>`<div class="a" style="--d:${i+2};padding:2.4em 2em 0;${i?'border-left:.1em solid #d8ccb6':''}"><div class="serif" style="font-size:5em;font-weight:800;color:#1d3a2c;line-height:1">${s[0]}</div><div style="font-size:1.4em;color:#6b766e;margin-top:.5em">${s[1]}</div></div>`).join('')}
+  </div>
+  ${br}${pg(2)}
+</div>`,
+`<div class="sl t-k">
+  <div style="position:absolute;left:5em;top:5em;right:5em;display:flex;justify-content:space-between;align-items:flex-end"><div><div class="lab a">Проекты</div><div class="h a" style="--d:1;margin-top:.4em">Популярные дома</div></div><p class="a" style="--d:2;max-width:22em;text-align:right">Любой проект адаптируем под ваш участок и семью — бесплатно</p></div>
+  <div style="position:absolute;left:5em;right:5em;top:16.5em;display:grid;grid-template-columns:repeat(3,1fr);gap:2em">
+    ${[['Сканди 96','96 м² · 3 спальни','89 000',HOUSE2],['Лесной 120','120 м² · 4 спальни','112 000',HOUSE],['Барн 140','140 м² · 2 этажа','134 000',HOUSE3]].map((h,i)=>`<div class="a" style="--d:${i+2};background:#fbf8f2;border-radius:1.4em;overflow:hidden;box-shadow:0 1.4em 3em rgba(60,45,20,.1)">
+      <div style="background:${i===1?'#1d3a2c':'#e9dfcc'};padding:1.6em 4em 1em">${h[3](i===1?'#d9b98a':'#1d3a2c')}</div>
+      <div style="padding:2em 2.4em 2.4em"><div class="serif" style="font-size:2.4em;font-weight:800;color:#1d3a2c">${h[0]}</div><div style="font-size:1.3em;color:#6b766e;margin:.3em 0 1.2em">${h[1]}</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:.1em solid #e5dccb;padding-top:1.2em"><span style="font-size:1.2em;color:#6b766e">под ключ от</span><b class="serif" style="font-size:2.2em;color:#b48a4c">${h[2]} BYN</b></div></div>
+    </div>`).join('')}
+  </div>
+  ${pg(3)}
+</div>`,
+`<div class="sl t-k">
+  <div style="position:absolute;left:5em;top:5em"><div class="lab a">Комплектации</div><div class="h a" style="--d:1;margin-top:.4em">Выберите свой уровень</div></div>
+  <div class="a" style="--d:2;position:absolute;left:5em;right:5em;top:16em;border-radius:1.4em;overflow:hidden;background:#fbf8f2;box-shadow:0 1.4em 3em rgba(60,45,20,.08)">
+    <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;align-items:stretch">
+      <div style="padding:1.8em 2.4em"></div>
+      ${[['Тёплый контур','от 52 000'],['Предчистовая','от 74 000'],['Под ключ','от 89 000']].map((c,i)=>`<div style="padding:1.8em 2em;text-align:center;${i===2?'background:#1d3a2c;color:#f3ede2':''}"><div class="serif" style="font-size:2em;font-weight:800">${c[0]}</div><div style="font-size:1.3em;${i===2?'color:#d9b98a':'color:#b48a4c'};font-weight:700;margin-top:.2em">${c[1]} BYN</div></div>`).join('')}
+    </div>
+    ${[['Фундамент, каркас, кровля',1,1,1],['Окна, двери, утепление 200 мм',1,1,1],['Электрика, отопление, сантехника',0,1,1],['Внутренняя отделка',0,0,1],['Ванная и кухня под ключ',0,0,1]].map((r,i)=>`<div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;border-top:.1em solid #e5dccb;font-size:1.4em">
+      <div style="padding:.85em 1.7em;color:#3a4a40">${r[0]}</div>
+      ${[r[1],r[2],r[3]].map((v,j)=>`<div style="padding:.85em;text-align:center;${j===2?'background:#1d3a2c;color:#d9b98a':''};font-weight:800;color:${v?(j===2?'#d9b98a':'#2f6b4a'):'#c9bda6'}">${v?'✓':'—'}</div>`).join('')}
+    </div>`).join('')}
+  </div>
+  ${pg(4)}
+</div>`,
+`<div class="sl t-k">
+  <div style="position:absolute;left:5em;top:5em"><div class="lab a">Этапы работы</div><div class="h a" style="--d:1;margin-top:.4em">90 дней до новоселья</div></div>
+  <div style="position:absolute;left:5em;right:5em;top:27em">
+    <div class="growx" style="position:absolute;left:2em;right:2em;top:2em;height:.25em;background:linear-gradient(90deg,#b48a4c,#1d3a2c)"></div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2em;position:relative">
+      ${[['1–3 день','Проект и смета','Фиксируем цену в договоре'],['2 неделя','Фундамент','Свайный или плита'],['3–5 неделя','Каркас и кровля','Домокомплект с завода'],['6–10 неделя','Инженерия','Тепло, свет, вода'],['13 неделя','Ключи','Сдача по акту']].map((s,i)=>`<div class="a" style="--d:${i+2}">
+        <div style="width:4.2em;height:4.2em;border-radius:50%;background:${i===4?'#1d3a2c':'#f3ede2'};border:.25em solid ${i===4?'#1d3a2c':'#b48a4c'};display:grid;place-items:center;font:800 1.5em 'Playfair Display';color:${i===4?'#d9b98a':'#1d3a2c'}">${i+1}</div>
+        <div style="font-size:1.2em;color:#b48a4c;font-weight:700;margin-top:1.6em;letter-spacing:.06em;text-transform:uppercase">${s[0]}</div>
+        <div class="serif" style="font-size:2.2em;font-weight:800;color:#1d3a2c;margin:.3em 0">${s[1]}</div>
+        <div style="font-size:1.35em;color:#6b766e">${s[2]}</div>
+      </div>`).join('')}
+    </div>
+  </div>
+  ${br}${pg(5)}
+</div>`,
+`<div class="sl t-k">
+  <div style="position:absolute;left:0;top:0;bottom:0;width:38%;background:#1d3a2c"></div>
+  <div style="position:absolute;left:5em;top:5em;width:28em;color:#f3ede2">
+    <div class="a" style="font-size:1.05em;letter-spacing:.24em;text-transform:uppercase;color:#d9b98a;font-weight:700">Почему мы</div>
+    <div class="a serif" style="--d:1;font-size:4.2em;font-weight:800;line-height:1.05;margin-top:.4em">Честно.<br>В срок.<br><i style="color:#d9b98a">С гарантией.</i></div>
+    <p class="a" style="--d:2;color:#c9d1c6;margin-top:1.4em">Каждый пункт прописан в договоре — без «мелкого шрифта».</p>
+  </div>
+  <div style="position:absolute;left:46%;right:5em;top:5em;bottom:7em;display:grid;grid-template-columns:1fr 1fr;gap:2em">
+    ${[['Фиксированная цена','Смета не меняется после подписания договора'],['Штраф за просрочку','0,1% от стоимости за каждый день задержки'],['Фотоотчёт каждый день','Следите за стройкой в мессенджере'],['Гарантия 15 лет','На каркас и кровлю, 5 лет — на инженерию']].map((g,i)=>`<div class="a" style="--d:${i+2};background:#fbf8f2;border-radius:1.4em;padding:2.4em;box-shadow:0 1.2em 3em rgba(60,45,20,.07)">
+      <div style="width:3.6em;height:3.6em;border-radius:1em;background:#efe4cf;display:grid;place-items:center;margin-bottom:1.4em"><svg viewBox="0 0 24 24" style="width:1.9em" fill="none" stroke="#1d3a2c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 4 5.5v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10v-6l-8-3Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></div>
+      <div class="serif" style="font-size:2.1em;font-weight:800;color:#1d3a2c;line-height:1.15">${g[0]}</div><div style="font-size:1.35em;color:#6b766e;margin-top:.5em;line-height:1.45">${g[1]}</div></div>`).join('')}
+  </div>
+  ${pg(6)}
+</div>`,
+`<div class="sl t-k" style="background:#1d3a2c">
+  <div class="a" style="position:absolute;right:-4em;bottom:-3em;width:56em;opacity:.18">${HOUSE('#d9b98a')}</div>
+  <div style="position:absolute;left:5em;top:5em;font-size:1.05em;letter-spacing:.24em;text-transform:uppercase;color:#d9b98a;font-weight:700" class="a">Следующий шаг</div>
+  <div style="position:absolute;left:5em;top:13em;width:58em;color:#f3ede2">
+    <div class="serif a" style="--d:1;font-size:5.4em;font-weight:800;line-height:1.05">Рассчитаем стоимость вашего дома <i style="color:#d9b98a">за 1 день</i></div>
+    <p class="a" style="--d:2;color:#c9d1c6;font-size:1.7em;margin-top:1em;max-width:30em">Пришлите план участка или пожелания — подготовим смету и 3D-визуализацию бесплатно.</p>
+    <div class="a" style="--d:3;display:flex;gap:1.6em;margin-top:3em">
+      <div style="padding:1.3em 2.6em;border-radius:100em;background:#d9b98a;color:#1d3a2c;font:800 1.6em Inter">+375 (29) 000-00-00</div>
+      <div style="padding:1.3em 2.6em;border-radius:100em;border:.12em solid #d9b98a;color:#d9b98a;font:700 1.6em Inter">severnydom.by</div>
+    </div>
+  </div>
+  <div class="pg" style="color:#6f8a7c">07</div>
+</div>`
+    ];
+  })()
+}
+];
+
+/* ============================ RENDER ============================ */
+const $ = s => document.querySelector(s);
+const frame = (html, cls = '') => `<div class="frame ${cls}">${html}</div>`;
+const decksEl = $('#decks');
+decksEl.innerHTML = DECKS.map((d, di) => `
+<article class="deck">
+  <div class="deck-info rv">
+    <div class="n">0${di + 1} · ${d.niche}</div>
+    <h3>${d.title}</h3>
+    <p>${d.desc}</p>
+    <div class="chips">${d.chips.map(c => `<span>${c}</span>`).join('')}</div>
+    <button class="btn btn-g" data-open="${di}" data-i="0">Открыть презентацию <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+  <div class="deck-media rv">
+    <div class="cover" data-open="${di}" data-i="0">${frame(d.slides[0])}<div class="play"><span>▶ Смотреть ${d.slides.length} слайдов</span></div></div>
+    <div class="thumbs">${d.slides.map((s, i) => `<button data-open="${di}" data-i="${i}" aria-label="Слайд ${i + 1}">${frame(s)}</button>`).join('')}</div>
+  </div>
+</article>`).join('');
+
+$('#stack').innerHTML =
+  `<div class="frame f1" data-open="1" data-i="5" style="cursor:pointer">${DECKS[1].slides[5]}</div>` +
+  `<div class="frame f2" data-open="2" data-i="2" style="cursor:pointer">${DECKS[2].slides[2]}</div>` +
+  `<div class="frame f3" data-open="0" data-i="0" style="cursor:pointer">${DECKS[0].slides[0]}</div>`;
+
+/* ============================ VIEWER ============================ */
+const V = $('#viewer'), VS = $('#vSlide'), VR = $('#vRail');
+let cur = 0, idx = 0;
+function openDeck(d, i) {
+  cur = d; idx = i;
+  $('#vTitle').textContent = DECKS[d].name;
+  VR.innerHTML = DECKS[d].slides.map((s, k) => `<button data-k="${k}" aria-label="Слайд ${k + 1}">${frame(s)}</button>`).join('');
+  V.classList.add('on'); V.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  show(i);
+}
+function show(i) {
+  const n = DECKS[cur].slides.length;
+  idx = (i + n) % n;
+  VS.innerHTML = DECKS[cur].slides[idx];
+  $('#vCount').textContent = `${idx + 1} / ${n}`;
+  [...VR.children].forEach((b, k) => b.classList.toggle('on', k === idx));
+  VR.children[idx].scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+}
+function close() {
+  V.classList.remove('on'); V.setAttribute('aria-hidden', 'true'); document.body.style.overflow = '';
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-open]');
+  if (t) openDeck(+t.dataset.open, +t.dataset.i);
+});
+VR.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) show(+b.dataset.k); });
+$('#vPrev').onclick = () => show(idx - 1);
+$('#vNext').onclick = () => show(idx + 1);
+$('#vClose').onclick = close;
+VS.addEventListener('click', e => { const r = VS.getBoundingClientRect(); show(e.clientX - r.left < r.width / 3 ? idx - 1 : idx + 1); });
+$('#vFs').onclick = () => { try { (document.fullscreenElement ? document.exitFullscreen() : V.requestFullscreen()).catch(() => {}); } catch (_) {} };
+addEventListener('keydown', e => {
+  if (!V.classList.contains('on')) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(idx + 1); }
+  if (e.key === 'ArrowLeft') show(idx - 1);
+  if (e.key === 'Escape') close();
+});
+let sx = null;
+V.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+V.addEventListener('touchend', e => {
+  if (sx === null) return; const dx = e.changedTouches[0].clientX - sx;
+  if (Math.abs(dx) > 50) show(dx < 0 ? idx + 1 : idx - 1); sx = null;
+});
+
+/* nav + reveal */
+const nav = $('#nav');
+addEventListener('scroll', () => nav.classList.toggle('s', scrollY > 30), { passive: true });
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .1 });
+document.querySelectorAll('.rv').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
