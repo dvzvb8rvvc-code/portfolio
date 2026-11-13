@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ffd400">
+<title>ЮЛВМонтаж — шиномонтаж, ремонт и сварка в Минске</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
+button,input,select,textarea{font:inherit;color:inherit}
+img,svg{display:block;max-width:100%}
+h1,h2,h3{text-wrap:balance}
+p{text-wrap:pretty}
+a[href^="tel:"]{white-space:nowrap;font-variant-numeric:tabular-nums}
+.demo-rb{position:relative;z-index:60;text-align:center;font:600 12.5px/1.4 system-ui,sans-serif;padding:8px 14px;letter-spacing:.01em}
+.demo-rb a{text-decoration:underline;text-underline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.rv{opacity:0}
+@media (prefers-reduced-motion:no-preference){
+ .rv{transform:translateY(14px);filter:blur(4px);transition:opacity .7s cubic-bezier(.2,0,0,1),transform .7s cubic-bezier(.2,0,0,1),filter .7s cubic-bezier(.2,0,0,1);transition-delay:calc(var(--d,0)*100ms)}
+}
+.rv.in{opacity:1;transform:none;filter:none}
+@media (prefers-reduced-motion:reduce){.rv{transition:opacity .4s}*{animation-duration:.001ms!important;animation-iteration-count:1!important}}
+.bk-ok{display:none}
+.bk.sent form{display:none}.bk.sent .bk-ok{display:block}
+.bk-ok svg circle,.bk-ok svg path{stroke-dasharray:160;stroke-dashoffset:160}
+.bk.sent .bk-ok svg circle{animation:bkd .8s cubic-bezier(.2,0,0,1) forwards}
+.bk.sent .bk-ok svg path{animation:bkd .5s .45s cubic-bezier(.2,0,0,1) forwards}
+@keyframes bkd{to{stroke-dashoffset:0}}
+.fld.err input{animation:bksh .4s}
+@keyframes bksh{25%,75%{transform:translateX(-5px)}50%{transform:translateX(5px)}}
+.cbar{display:none}
+@media (max-width:640px){
+ .acts{flex-direction:column;align-items:stretch}.acts>*{width:100%}
+ .cbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:50;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+ body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+}
+
+:root{--y:#ffd400;--k:#0d0d0d;--g:#1a1a1a;--g2:#262626;--w:#f5f5f5;--m:#a3a3a3}
+body{background:var(--k);color:var(--w);font-family:Inter,system-ui,sans-serif;line-height:1.55}
+.cond{font-family:Oswald,sans-serif;text-transform:uppercase}
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px}
+.top{background:var(--k);position:sticky;top:0;z-index:40;border-bottom:2px solid var(--y)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;font:700 22px Oswald;letter-spacing:.02em;text-transform:uppercase}
+.logo svg{width:36px;height:36px}
+.top nav{display:flex;gap:28px;font:500 15px Oswald;text-transform:uppercase;letter-spacing:.06em;color:var(--m)}
+@media (hover:hover){.top nav a:hover{color:var(--y)}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;height:54px;padding:0 28px;font:600 17px Oswald;text-transform:uppercase;letter-spacing:.06em;transition:scale .15s ease-out,background-color .2s,color .2s;clip-path:polygon(0 0,100% 0,100% 70%,92% 100%,0 100%)}
+.btn:active{scale:.96}
+.btn-y{background:var(--y);color:var(--k)}
+.btn-k{background:var(--k);color:var(--y)}
+.btn-sm{height:44px;padding:0 20px;font-size:15px}
+.hero{background:var(--y);color:var(--k);position:relative;overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:center;padding-top:70px;padding-bottom:90px}
+.tag{display:inline-block;background:var(--k);color:var(--y);font:600 13px Oswald;letter-spacing:.14em;text-transform:uppercase;padding:7px 12px;margin-bottom:24px}
+h1{font:700 clamp(58px,9vw,140px)/.95 Oswald;text-transform:uppercase;letter-spacing:-.01em;margin-bottom:28px}
+h1 span{display:block}
+h1 .o{-webkit-text-stroke:2.5px var(--k);color:transparent}
+.hero p{font-size:18px;max-width:480px;margin-bottom:34px;font-weight:500}
+.hero .acts{display:flex;gap:12px;flex-wrap:wrap}
+.tire{width:100%;max-width:470px;justify-self:center;aspect-ratio:1}
+.tire svg{width:100%;height:100%;will-change:transform}
+.haz{height:34px;background:repeating-linear-gradient(-45deg,var(--y) 0 26px,var(--k) 26px 52px)}
+@media (prefers-reduced-motion:no-preference){.haz{animation:hz 2s linear infinite;background-size:73.5px 73.5px}}
+@keyframes hz{to{background-position:73.5px 0}}
+.season{background:var(--g);border-bottom:1px solid var(--g2)}
+.season .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-top:22px;padding-bottom:22px;flex-wrap:wrap}
+.season b{font:600 22px Oswald;text-transform:uppercase;letter-spacing:.02em}
+.season b em{font-style:normal;color:var(--y)}
+.season span{color:var(--m);font-size:14.5px}
+.sec{padding:110px 0}
+.sh{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:46px;flex-wrap:wrap}
+h2{font:700 clamp(44px,6vw,86px)/.9 Oswald;text-transform:uppercase}
+h2 em{font-style:normal;color:var(--y)}
+.sh p{color:var(--m);max-width:380px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--g2);border:2px solid var(--g2)}
+.tk{position:relative;background:var(--k);padding:34px 30px 30px;min-height:260px;display:flex;flex-direction:column;transition:background-color .2s}
+.tk .no{font:700 74px/1 Oswald;color:var(--g2);transition:color .2s;font-variant-numeric:tabular-nums}
+.tk h3{font:600 28px/1.1 Oswald;text-transform:uppercase;margin:auto 0 10px}
+.tk p{color:var(--m);font-size:15px}
+.tk .arr{position:absolute;top:30px;right:28px;width:44px;height:44px;display:grid;place-items:center;background:var(--g);color:var(--y);transition:background-color .2s,color .2s}
+@media (hover:hover){.tk:hover{background:var(--g)}.tk:hover .no{color:var(--y)}.tk:hover .arr{background:var(--y);color:var(--k)}}
+.big-call{background:var(--y);color:var(--k)}
+.big-call .wrap{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center;padding-top:70px;padding-bottom:70px}
+.big-call a.num{font:700 clamp(40px,7vw,104px)/1 Oswald;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.big-call small{display:block;font:600 14px Oswald;letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.fc{border-left:4px solid var(--y);padding:6px 0 6px 22px}
+.fc b{display:block;font:700 64px/1 Oswald;font-variant-numeric:tabular-nums}
+.fc span{color:var(--m)}
+.book{display:grid;grid-template-columns:1fr 1.1fr;background:var(--g);border:2px solid var(--g2)}
+.book-l{padding:56px;border-right:2px solid var(--g2)}
+.book-l p{color:var(--m);margin:18px 0 28px}
+.book-r{padding:56px}
+.bk form{display:grid;gap:16px}
+.fld{display:grid;gap:6px}
+.fld span{font:600 13px Oswald;letter-spacing:.14em;text-transform:uppercase;color:var(--y)}
+.fld input,.fld select{height:56px;background:var(--k);border:2px solid var(--g2);padding:0 16px;font-size:16px;outline:none;border-radius:0;transition:border-color .2s;appearance:none}
+.fld input:focus,.fld select:focus{border-color:var(--y)}
+.fld.err input{border-color:#ff4d4d}
+.bk-btn{height:60px;border:0;background:var(--y);color:var(--k);font:600 19px Oswald;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;transition:scale .15s ease-out,opacity .2s;clip-path:polygon(0 0,100% 0,100% 70%,96% 100%,0 100%)}
+.bk-btn:active{scale:.96}.bk-btn[data-loading]{opacity:.6}
+.bk-note{font-size:13px;color:var(--m)}
+.bk-ok{text-align:center;padding:40px 0;color:var(--y)}.bk-ok svg{margin:0 auto 16px}.bk-ok h3{font:700 40px Oswald;text-transform:uppercase;color:var(--w)}.bk-ok p{color:var(--m)}
+.ct{display:grid;grid-template-columns:1fr 1.3fr;gap:2px;background:var(--g2);border:2px solid var(--g2)}
+.ct-l{background:var(--k);padding:44px;display:grid;gap:26px;align-content:start}
+.ct-l small{font:600 13px Oswald;letter-spacing:.16em;text-transform:uppercase;color:var(--y);display:block;margin-bottom:4px}
+.ct-l p,.ct-l a.p{font:600 24px Oswald;display:block}
+.msg{display:inline-flex;margin:0 6px 6px 0;padding:9px 14px;background:var(--g);font:500 14px Oswald;letter-spacing:.06em;text-transform:uppercase;transition:background-color .2s,color .2s}
+@media (hover:hover){.msg:hover{background:var(--y);color:var(--k)}}
+.map{min-height:420px;background:var(--g)}.map iframe{width:100%;height:100%;min-height:420px;border:0}
+footer{border-top:2px solid var(--g2);padding:34px 0;color:var(--m);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.cbar{background:var(--k);border-top:2px solid var(--y)}
+.cbar a{display:grid;place-items:center;height:50px;font:600 16px Oswald;text-transform:uppercase;letter-spacing:.06em}
+@media (max-width:960px){.top nav{display:none}.hero .wrap{grid-template-columns:1fr}.tire{max-width:260px}.grid{grid-template-columns:1fr 1fr}.big-call .wrap,.book,.ct{grid-template-columns:1fr}.book-l{border-right:0;border-bottom:2px solid var(--g2)}.facts{grid-template-columns:1fr}}
+@media (max-width:640px){.top .btn{display:none}.grid{grid-template-columns:1fr}.hero .acts .btn{flex:1}.book-l,.book-r,.ct-l{padding:30px 22px}.sec{padding:80px 0}}
+</style>
+</head><body><div class="demo-rb" style="background:#0d0d0d;color:#ffd400">Демо-концепт сайта для «ЮЛВМонтаж» · тексты и фото заменим на ваши · <a href="https://dvzvb8rvvc-code.github.io/portfolio/" target="_blank" rel="noopener">автор — Артём</a></div>
+<header class="top"><div class="wrap">
+ <a href="#top" class="logo"><svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#ffd400"/><circle cx="20" cy="20" r="12" fill="none" stroke="#0d0d0d" stroke-width="4"/><circle cx="20" cy="20" r="4" fill="#0d0d0d"/></svg>ЮЛВМонтаж</a>
+ <nav aria-label="Разделы"><a href="#services">Услуги</a><a href="#facts">О нас</a><a href="#book">Запись</a><a href="#contacts">Контакты</a></nav>
+ <a href="#book" class="btn btn-y btn-sm">Записаться</a>
+</div></header>
+<main id="top">
+<section class="hero"><div class="wrap">
+ <div>
+  <span class="tag rv">Шиномонтаж · СТО · сварка</span>
+  <h1 class="rv" style="--d:1"><span>Переобуем.</span><span class="o">Починим.</span><span>Сварим.</span></h1>
+  <p class="rv" style="--d:2">Шиномонтаж, ремонт авто и сварочные работы в Минске. Записывайтесь заранее — приезжаете к своему времени, без очереди.</p>
+  <div class="acts rv" style="--d:3"><a href="#book" class="btn btn-k">Записаться <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="tel:+375293500002" class="btn" style="background:transparent;color:#0d0d0d;box-shadow:inset 0 0 0 2px #0d0d0d">+375 29 350-00-02</a></div>
+ </div>
+ <div class="tire rv" style="--d:1"><svg viewBox="0 0 400 400" id="tire" aria-hidden="true">
+<circle cx="200" cy="200" r="190" fill="#0d0d0d"/>
+<g fill="#ffd400"><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(0 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(15 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(30 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(45 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(60 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(75 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(90 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(105 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(120 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(135 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(150 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(165 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(180 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(195 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(210 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(225 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(240 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(255 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(270 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(285 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(300 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(315 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(330 200 200)"/><rect x="194" y="12" width="12" height="30" rx="2" transform="rotate(345 200 200)"/></g>
+<circle cx="200" cy="200" r="140" fill="#1a1a1a" stroke="#ffd400" stroke-width="4"/>
+<g stroke="#ffd400" stroke-width="14" stroke-linecap="round"><line x1="200" y1="200" x2="200" y2="78" transform="rotate(0 200 200)"/><line x1="200" y1="200" x2="200" y2="78" transform="rotate(72 200 200)"/><line x1="200" y1="200" x2="200" y2="78" transform="rotate(144 200 200)"/><line x1="200" y1="200" x2="200" y2="78" transform="rotate(216 200 200)"/><line x1="200" y1="200" x2="200" y2="78" transform="rotate(288 200 200)"/></g>
+<circle cx="200" cy="200" r="46" fill="#ffd400"/><circle cx="200" cy="200" r="18" fill="#0d0d0d"/>
+<circle cx="200" cy="168" r="5" fill="#0d0d0d" transform="rotate(0 200 200)"/><circle cx="200" cy="168" r="5" fill="#0d0d0d" transform="rotate(72 200 200)"/><circle cx="200" cy="168" r="5" fill="#0d0d0d" transform="rotate(144 200 200)"/><circle cx="200" cy="168" r="5" fill="#0d0d0d" transform="rotate(216 200 200)"/><circle cx="200" cy="168" r="5" fill="#0d0d0d" transform="rotate(288 200 200)"/></svg></div>
+</div></section>
+<div class="haz" aria-hidden="true"></div>
+<div class="season"><div class="wrap"><b id="season">Сезон <em>переобувки</em> открыт</b><span id="season-t">Запишитесь заранее — в пик сезона свободные окна разбирают за день.</span></div></div>
+<section class="sec wrap" id="services">
+ <div class="sh"><h2 class="rv">Что <em>делаем</em></h2><p class="rv" style="--d:1">Шесть видов работ в одном боксе. Нажмите на карточку — услуга подставится в заявку.</p></div>
+ <div class="grid"><a href="#book" class="tk rv" style="--d:0" data-svc="Шиномонтаж"><span class="no">01</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Шиномонтаж</h3><p>Снятие, монтаж и установка колёс легковых авто и кроссоверов.</p></a><a href="#book" class="tk rv" style="--d:1" data-svc="Балансировка"><span class="no">02</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Балансировка</h3><p>Точная балансировка — руль не дрожит на трассе.</p></a><a href="#book" class="tk rv" style="--d:2" data-svc="Ремонт проколов"><span class="no">03</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Ремонт проколов</h3><p>Жгут, латка, грибок — по ситуации и надолго.</p></a><a href="#book" class="tk rv" style="--d:0" data-svc="Сварочные работы"><span class="no">04</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Сварочные работы</h3><p>Глушители, диски, кузовные элементы.</p></a><a href="#book" class="tk rv" style="--d:1" data-svc="Ремонт авто"><span class="no">05</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Ремонт авто</h3><p>Ходовая, тормоза, расходники, диагностика.</p></a><a href="#book" class="tk rv" style="--d:2" data-svc="Сезонная переобувка"><span class="no">06</span><span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><h3>Сезонная переобувка</h3><p>Зима ↔ лето за один визит, без очереди по записи.</p></a></div>
+</section>
+<section class="big-call"><div class="wrap"><div><small>Звоните — ответим сразу</small><a class="num" href="tel:+375293500002">+375 29 350-00-02</a></div><a href="#book" class="btn btn-k">Онлайн-запись <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a></div></section>
+<section class="sec wrap" id="facts">
+ <div class="facts"><div class="fc rv"><b>378</b><span>оценок на Яндекс.Картах</span></div><div class="fc rv" style="--d:1"><b>3 в 1</b><span>шины, ремонт и сварка в одном месте</span></div><div class="fc rv" style="--d:2"><b>1 мин</b><span>чтобы записаться онлайн, без звонков</span></div></div>
+</section>
+<section class="sec wrap" id="book" style="padding-top:0">
+ <div class="book rv"><div class="book-l"><h2>Запись <em>в бокс</em></h2><p>Оставьте номер — перезвоним, уточним марку авто и предложим ближайшее время.</p><a class="btn btn-y" href="tel:+375293500002"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg> Позвонить</a></div><div class="book-r"><div class="bk">
+<form novalidate>
+ <label class="fld"><span>Имя</span><input name="name" autocomplete="name" placeholder="Как к вам обращаться"></label>
+ <label class="fld"><span>Телефон</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+375 (__) ___-__-__"></label>
+ <label class="fld"><span>Услуга</span><select name="svc"><option value="">Выберите услугу</option><option>Шиномонтаж</option><option>Балансировка</option><option>Ремонт проколов</option><option>Сварочные работы</option><option>Ремонт авто</option><option>Сезонная переобувка</option></select></label>
+ <button type="submit" class="bk-btn">Записаться в бокс</button>
+ <p class="bk-note">В готовом сайте заявка сразу придёт вам в Telegram.</p>
+</form>
+<div class="bk-ok" role="status"><svg viewBox="0 0 52 52" width="72" height="72" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-16"/></svg><h3>Заявка принята</h3><p>Так клиент увидит подтверждение записи. Перезвоним в течение 15 минут.</p></div>
+</div></div></div>
+</section>
+<section class="sec wrap" id="contacts" style="padding-top:0">
+ <div class="sh"><h2 class="rv">Где <em>мы</em></h2></div>
+ <div class="ct rv"><div class="ct-l"><div><small>Адрес</small><p>Минск, Центральный район</p></div><div><small>Телефон</small><a class="p" href="tel:+375293500002">+375 29 350-00-02</a></div><div><small>Написать</small><div><a class="msg" href="https://t.me/+375293500002" target="_blank" rel="noopener">Telegram</a><a class="msg" href="https://viber.click/375293500002" target="_blank" rel="noopener">Viber</a><a class="msg" href="https://wa.me/375293500002" target="_blank" rel="noopener">WhatsApp</a><a class="msg" href="https://www.instagram.com/sto3500002" target="_blank" rel="noopener">Instagram</a></div></div></div><div class="map"><iframe src="https://yandex.ru/map-widget/v1/?oid=1286689900&z=16" title="Карта" loading="lazy" style="filter:invert(.92) hue-rotate(180deg) saturate(.6)" allowfullscreen></iframe></div></div>
+</section>
+</main>
+<footer><div class="wrap"><span>© 2026 ЮЛВМонтаж</span><span>Демо-концепт · сайт — Артём</span></div></footer>
+<div class="cbar"><a href="tel:+375293500002" style="background:#1a1a1a;color:#f5f5f5">Позвонить</a><a href="#book" style="background:#ffd400;color:#0d0d0d">Записаться</a></div><script>
+(function(){
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.rv').forEach(function(el){io.observe(el)});
+document.querySelectorAll('[data-svc]').forEach(function(a){a.addEventListener('click',function(){var s=document.querySelector('.bk select');if(s)s.value=a.getAttribute('data-svc')})});
+document.querySelectorAll('.bk form').forEach(function(f){
+ var ph=f.querySelector('[name=phone]');
+ ph.addEventListener('focus',function(){if(!ph.value)ph.value='+375 '});
+ ph.addEventListener('input',function(){ph.closest('.fld').classList.remove('err')});
+ f.addEventListener('submit',function(e){e.preventDefault();
+  if(ph.value.replace(/\D/g,'').length<12){var x=ph.closest('.fld');x.classList.remove('err');void x.offsetWidth;x.classList.add('err');ph.focus();return}
+  var b=f.querySelector('button[type=submit]');b.disabled=true;b.setAttribute('data-loading','1');
+  setTimeout(function(){f.closest('.bk').classList.add('sent')},1000)});
+});
+})();
+
+var t=document.querySelector('#tire svg, #tire');var tr=document.getElementById('tire');
+if(tr&&matchMedia('(prefers-reduced-motion: no-preference)').matches){var ticking=false;addEventListener('scroll',function(){if(!ticking){requestAnimationFrame(function(){tr.style.transform='rotate('+(scrollY*0.35)+'deg)';ticking=false});ticking=true}},{passive:true})}
+var m=new Date().getMonth();var s=document.getElementById('season'),st=document.getElementById('season-t');
+if(m>=9&&m<=11){s.innerHTML='Пора <em>на зимнюю</em> резину';st.textContent='Ноябрь — пик переобувки. Запишитесь сейчас, пока есть свободные окна.'}
+else if(m>=2&&m<=4){s.innerHTML='Пора <em>на летнюю</em> резину';st.textContent='Весна — пик переобувки. Запишитесь заранее, чтобы не стоять в очереди.'}
+</script></body></html>
