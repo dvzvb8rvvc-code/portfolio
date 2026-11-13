@@ -5,7 +5,7 @@ import {
 } from 'framer-motion'
 import Lenis from 'lenis'
 
-export const PORTFOLIO = 'https://dvzvb8rvvc-code.github.io/portfolio/'
+export const PORTFOLIO = '/portfolio/'
 export const tel = p => '+' + p.replace(/\D/g, '')
 export const EASE = [0.2, 0, 0, 1]
 export const wrap = (min, max, v) => { const r = max - min; return ((((v - min) % r) + r) % r) + min }
@@ -302,4 +302,40 @@ export function LineReveal({ children, className = '', delay = 0 }) {
       <motion.span className={'inline-block ' + className} initial={reduce ? { opacity: 0 } : { y: '110%', rotate: 3 }} animate={reduce ? { opacity: 1 } : { y: '0%', rotate: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay }}>{children}</motion.span>
     </span>
   )
+}
+
+/* film grain overlay */
+export function Grain({ opacity = 0.07 }) {
+  return <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] mix-blend-overlay" style={{ opacity, backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")" }} />
+}
+
+/* scramble text on view */
+export function Scramble({ text, className = '', chars = '!<>-_\\/[]{}=+*^?#0123456789' }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true })
+  const [out, setOut] = useState(text)
+  useEffect(() => {
+    if (!inView || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let f = 0, id
+    const tick = () => {
+      f++
+      setOut([...text].map((c, i) => (c === ' ' || i < f / 2) ? c : chars[(Math.random() * chars.length) | 0]).join(''))
+      if (f / 2 < text.length) id = requestAnimationFrame(tick)
+    }
+    tick()
+    return () => cancelAnimationFrame(id)
+  }, [inView])
+  return <span ref={ref} className={className} aria-label={text}>{out}</span>
+}
+
+/* lite mode: skip heavy WebGL on weak devices */
+export function useLite() {
+  const [lite, set] = useState(false)
+  useEffect(() => {
+    const c = navigator.hardwareConcurrency || 8, m = navigator.deviceMemory || 8
+    let gl = false
+    try { gl = !!document.createElement('canvas').getContext('webgl2') } catch (e) {}
+    set(c <= 3 || m <= 2 || !gl || matchMedia('(prefers-reduced-motion: reduce)').matches)
+  }, [])
+  return lite
 }
