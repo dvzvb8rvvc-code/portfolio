@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html{-webkit-text-size-adjust:100%}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
+h1,h2,h3{text-wrap:balance}
+p{text-wrap:pretty}
+a[href^="tel:"]{white-space:nowrap;font-variant-numeric:tabular-nums}
+::selection{background:var(--sel,#000);color:var(--selc,#fff)}
+@media (hover:hover) and (pointer:fine){.has-cursor,.has-cursor a,.has-cursor button{cursor:none}}

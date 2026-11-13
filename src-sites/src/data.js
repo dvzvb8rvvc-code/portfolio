@@ -1,0 +1,12 @@
+export const B = {
+ hq: { name:'HQ Beauty', phones:['+375 29 647-90-07'], addr:'ул. Сурганова, 62', ig:'https://www.instagram.com/hq_by/', tg:'https://t.me/HQbeauty', wa:'https://wa.me/375296406007', viber:'https://viber.click/375296406007', rev:495, oid:'19971893942' },
+ yulv: { name:'ЮЛВМонтаж', phones:['+375 29 350-00-02'], addr:'Минск, Центральный район', ig:'https://www.instagram.com/sto3500002', tg:'https://t.me/+375293500002', wa:'https://wa.me/375293500002', viber:'https://viber.click/375293500002', rev:378, oid:'1286689900' },
+ gud: { name:'Гуд', phones:['+375 44 785-53-35'], addr:'Брилевская ул., 3', ig:'https://www.instagram.com/good_luck.by/', tg:'https://t.me/%D0%93%D1%83%D0%B4', viber:'https://viber.click/375447855335', rev:355, oid:'168922091454' },
+ tire: { name:'Шиномонтажный центр', phones:['+375 29 643-33-78','+375 33 994-41-76'], ig:'https://www.instagram.com/tire.service.by/', tg:'https://t.me/tireserviceby', rev:553, locs:[{n:'Чкалова',a:'ул. Чкалова, 14',p:'+375 29 643-33-78',o:'63037209076',r:320},{n:'Рыбалко',a:'ул. Рыбалко, 17, корп. 6',p:'+375 33 994-41-76',o:'98178931997',r:233}] },
+ fastclean: { name:'FastClean', phones:['+375 29 352-97-97'], addr:'ул. Змитрока Бядули, 13/6', ig:'https://www.instagram.com/fastclean.by', wa:'https://wa.me/375293529797', viber:'https://viber.click/375293529797', rev:254, oid:'111693987643' },
+ 'da-studio': { name:'Да-студия', phones:['+375 44 717-62-62'], addr:'ул. Романовская Слобода, 24', ig:'https://www.instagram.com/salon_dastudio/', tg:'https://t.me/375447176262', wa:'https://wa.me/375297176262', viber:'https://viber.click/375447176262', rev:230, oid:'1092597355' },
+ nodrama: { name:'No Drama', phones:['+375 29 353-12-23'], addr:'ул. Немига, 5', ig:'https://instagram.com/no_drama_minsk', tg:'https://t.me/+375447668047', rev:209, oid:'226066469576' },
+ nika: { name:'Ника Моторс', phones:['+375 29 138-81-88'], addr:'ул. Автомобилистов, 6А, корп. 3', ig:'https://www.instagram.com/nika_motors', rev:189, oid:'235723110526' },
+ aquacity: { name:'Aquacity', phones:['+375 29 291-27-50'], addr:'Нововиленская ул., 8А', ig:'https://instagram.com/aquacity_minsk/', rev:130, oid:'238078493703' },
+ chameleon: { name:'Хамелеон', phones:['+375 29 321-08-08'], addr:'Октябрьская площадь, 1', ig:'https://www.instagram.com/chameleon.detailing.by/', tg:'https://t.me/chameleondetailing', yt:'https://www.youtube.com/@chameleon.detailing', rev:61, oid:'231323654653' },
+}
