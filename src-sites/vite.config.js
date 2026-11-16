@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/portfolio/',
   build: {
-    outDir: 'dist', emptyOutDir: true, assetsDir: '_s', chunkSizeWarningLimit: 2000,
+    outDir: process.env.OUT || 'dist', emptyOutDir: true, assetsDir: '_s', chunkSizeWarningLimit: 2000,
     rollupOptions: { input: Object.fromEntries(sites.map(s => [s, resolve(__dirname, `${s}/index.html`)])) }
   }
 })

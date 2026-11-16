@@ -32,11 +32,12 @@ export function useSmooth() {
 }
 
 /* ---------------- demo ribbon ---------------- */
-export function Ribbon({ name, bg, fg }) {
+export function Ribbon({ name, bg, fg, lang = 'ru' }) {
   return (
     <div className="relative z-[70] px-4 py-2 text-center text-[12.5px] font-semibold leading-snug" style={{ background: bg, color: fg }}>
-      Демо-концепт сайта для «{name}» · тексты и фото заменим на ваши ·{' '}
-      <a className="underline underline-offset-2" href={PORTFOLIO} target="_blank" rel="noopener">автор — Артём</a>
+      {lang === 'en'
+        ? <>Website concept for {name} · demo — texts and photos will be replaced with yours ·{' '}<a className="underline underline-offset-2" href={PORTFOLIO} target="_blank" rel="noopener">by Artem</a></>
+        : <>Демо-концепт сайта для «{name}» · тексты и фото заменим на ваши ·{' '}<a className="underline underline-offset-2" href={PORTFOLIO} target="_blank" rel="noopener">автор — Артём</a></>}
     </div>
   )
 }
@@ -229,7 +230,7 @@ export function useBooking() {
   }, [])
   return { s, upd, submit, reset, set }
 }
-export const phoneFocus = (b) => () => { if (!b.s.phone) b.upd('phone', '+375 ') }
+export const phoneFocus = (b, prefix = '+375 ') => () => { if (!b.s.phone) b.upd('phone', prefix) }
 
 export function CheckDraw({ size = 76, className = '' }) {
   return (
@@ -260,11 +261,11 @@ export function messengerLinks(b) {
   return L
 }
 
-export function CallBar({ phone, callCls, bookCls, barCls }) {
+export function CallBar({ phone, callCls, bookCls, barCls, lang = 'ru' }) {
   return (
     <div className={'fixed inset-x-0 bottom-0 z-50 grid grid-cols-2 gap-2 px-3 pt-2.5 pb-[calc(10px+env(safe-area-inset-bottom))] sm:hidden ' + barCls}>
-      <a href={'tel:' + tel(phone)} className={'grid h-12 place-items-center font-bold ' + callCls}>Позвонить</a>
-      <a href="#book" className={'grid h-12 place-items-center font-bold ' + bookCls}>Записаться</a>
+      {phone ? <a href={'tel:' + tel(phone)} className={'grid h-12 place-items-center font-bold ' + callCls}>{lang === 'en' ? 'Call' : 'Позвонить'}</a> : <a href="#contact" className={'grid h-12 place-items-center font-bold ' + callCls}>{lang === 'en' ? 'Message' : 'Написать'}</a>}
+      <a href="#book" className={'grid h-12 place-items-center font-bold ' + bookCls}>{lang === 'en' ? 'Book' : 'Записаться'}</a>
     </div>
   )
 }
@@ -339,3 +340,13 @@ export function useLite() {
   }, [])
   return lite
 }
+
+/* Google map by address or place_id (for non-Yandex countries) */
+export function GMap({ q, placeId, dark = false, className = '' }) {
+  const query = placeId ? `place_id:${placeId}` : q
+  return <iframe title="Map" loading="lazy" allowFullScreen referrerPolicy="no-referrer-when-downgrade" className={'block h-full w-full border-0 ' + className}
+    style={dark ? { filter: 'invert(.9) hue-rotate(180deg) saturate(.6)' } : undefined}
+    src={`https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=15&output=embed`} />
+}
+export const WA = p => (<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" {...p}><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2.1 1-2.4c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 1c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z" /></svg>)
+export const waLink = p => 'https://wa.me/' + p.replace(/\D/g, '').replace(/^0/, '44')
