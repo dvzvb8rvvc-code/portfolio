@@ -118,7 +118,7 @@ function Zoom() {
         <div className="absolute inset-0 transition-[filter] duration-300" style={{ filter: lens.on ? 'blur(3px) brightness(.7)' : 'none' }}>
           <Stage p={p} W={sz.W} H={sz.H} lensRef={lensRef} />
         </div>
-        {lens.on && p < 3.85 && (
+        {lens.on && p < 3.3 && (
           <div aria-hidden="true" className="pointer-events-none absolute z-10 overflow-hidden rounded-full shadow-[0_0_0_2px_#f5a524,0_20px_60px_rgba(0,0,0,.6)]" style={{ left: lens.x - R, top: lens.y - R, width: R * 2, height: R * 2 }}>
             <div className="absolute" style={{ left: -(lens.x - R), top: -(lens.y - R), width: sz.W, height: sz.H, transform: 'scale(2.2)', transformOrigin: `${lens.x}px ${lens.y}px` }}>
               <Stage p={p} W={sz.W} H={sz.H} flake={false} />
