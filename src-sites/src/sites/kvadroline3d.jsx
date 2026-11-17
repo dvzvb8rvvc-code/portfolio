@@ -234,7 +234,8 @@ function Rig({ progress, st }) {
     camera.position.x += (r * Math.sin(th) - camera.position.x) * 0.1
     camera.position.y += (ty - camera.position.y) * 0.1
     camera.position.z += (r * Math.cos(th) - camera.position.z) * 0.1
-    look.set(0, (mob ? -0.6 : 0.1) + 0.9 * e + (mob ? 0 : -0.5), 0)
+    const h = 1 - sm(0, 0.07, p)
+    look.set(0, (mob ? -0.9 : -0.25) + 0.9 * e + h * (mob ? 2.1 : 1.45), 0)
     camera.lookAt(look)
   })
   return null

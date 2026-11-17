@@ -35,9 +35,9 @@ const B2 = BTN + ' bg-white/[.14] text-white backdrop-blur-md hover:bg-white/[.2
 
 function Mask({ children, delay = 0, className = '' }) {
   return (
-    <span className="block overflow-hidden pb-[0.08em]">
-      <motion.span className={'block ' + className} initial={{ y: '105%' }} whileInView={{ y: '0%' }} viewport={{ amount: 0.6 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay }}>{children}</motion.span>
-    </span>
+    <motion.span className="block overflow-hidden pb-[0.08em]" initial="h" whileInView="v" viewport={{ amount: 0.5 }}>
+      <motion.span className={'block ' + className} variants={{ h: { y: '105%' }, v: { y: '0%' } }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay }}>{children}</motion.span>
+    </motion.span>
   )
 }
 

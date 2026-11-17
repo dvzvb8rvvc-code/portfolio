@@ -47,7 +47,7 @@ function Sun({ progress }) {
     // sunrise: from below the frame to centre, then a gentle descent into golden hour
     const rise = ss(0, 0.32, p)
     const set = ss(0.7, 1, p)
-    g.current.position.y = -3.4 + rise * 3.25 - set * 0.35
+    g.current.position.y = -3.4 + rise * 3.25 - set * 0.15
     g.current.rotation.y = st.pointer.x * 0.15
     g.current.rotation.x = -st.pointer.y * 0.08
     sample(SUN, p, tmp)
@@ -95,7 +95,7 @@ function Rig({ children }) {
   const { size } = useThree()
   useFrame(() => {
     const mob = size.width < 768
-    g.current.position.set(0, mob ? 0.55 : 0.1, 0)
+    g.current.position.set(0, mob ? 0.6 : 0.42, 0)
     g.current.scale.setScalar(mob ? 0.62 : 0.92)
   })
   return <group ref={g}>{children}</group>

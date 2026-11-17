@@ -44,10 +44,10 @@ const STRANDS = [
 function Ribbon() {
   const geos = useMemo(() => STRANDS.map(s => ribbonGeo(s.ph, s.amp, s.w)), [])
   return (
-    <group>
+    <group scale={0.72} position-y={-0.35}>
       {STRANDS.map((s, i) => (
         <mesh key={i} geometry={geos[i]}>
-          <meshPhysicalMaterial color={s.c} metalness={0.55} roughness={0.28} clearcoat={1} clearcoatRoughness={0.15} sheen={1} sheenColor="#ffe2b8" side={THREE.DoubleSide} envMapIntensity={1.6} />
+          <meshPhysicalMaterial color={s.c} metalness={0.3} roughness={0.42} clearcoat={0.6} clearcoatRoughness={0.3} sheen={1} sheenColor="#ffe2b8" side={THREE.DoubleSide} envMapIntensity={1.6} />
         </mesh>
       ))}
     </group>
@@ -87,11 +87,11 @@ function Dome({ amt }) {
   })
   return (
     <group position-y={-0.6}>
-      <mesh rotation-y={-Math.PI * 0.35}>
+      <mesh rotation-y={Math.PI}>
         <sphereGeometry args={[1.7, 48, 24, 0, Math.PI * 1.4, 0, Math.PI / 2]} />
         <meshStandardMaterial color="#1a120c" metalness={0.9} roughness={0.25} side={THREE.FrontSide} />
       </mesh>
-      <mesh rotation-y={-Math.PI * 0.35} scale={0.985}>
+      <mesh rotation-y={Math.PI} scale={0.985}>
         <sphereGeometry args={[1.7, 48, 24, 0, Math.PI * 1.4, 0, Math.PI / 2]} />
         <meshStandardMaterial color="#ffb062" emissive="#ff8a2a" emissiveIntensity={0.8} roughness={0.6} side={THREE.BackSide} />
       </mesh>
@@ -150,7 +150,7 @@ function Slot({ progress, range, children, amtRef }) {
     g.current.visible = w > 0.01
     g.current.scale.setScalar(0.6 + w * 0.4)
     g.current.position.y = (1 - w) * (p < range[0] ? -1.8 : 1.8)
-    g.current.rotation.y = (1 - w) * (p < range[0] ? -1.4 : 1.4) + st.clock.elapsedTime * 0.18 + st.pointer.x * 0.25
+    g.current.rotation.y = (1 - w) * (p < range[0] ? -1.4 : 1.4) + Math.sin(st.clock.elapsedTime * 0.3) * 0.45 + st.pointer.x * 0.25
     g.current.rotation.x = st.pointer.y * -0.06
   })
   return <group ref={g}>{children}</group>
@@ -162,7 +162,7 @@ function Rig({ progress, children }) {
   const c = useMemo(() => new THREE.Color(), [])
   useFrame((st, dt) => {
     const p = progress.get(), mob = size.width < 768
-    g.current.position.y = mob ? -0.15 : -0.25
+    g.current.position.y = mob ? -0.35 : -0.3
     g.current.scale.setScalar(mob ? 0.68 : 1)
     const z = p < 1 ? 10 - p * 1.8 : 8.2
     camera.position.z += (z - camera.position.z) * Math.min(1, dt * 4)

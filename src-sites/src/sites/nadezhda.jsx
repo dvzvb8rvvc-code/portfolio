@@ -1,10 +1,11 @@
 import React, { useRef, useState, useEffect, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { motion, useScroll, useTransform, useSpring, useInView, useMotionValue, useMotionValueEvent, AnimatePresence, MotionConfig } from 'framer-motion'
-import { ArrowRight, ArrowUpRight, Phone, MapPin, Star, X, Plus, Clock, Facebook } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Phone, MapPin, Star, X, Plus, Clock } from 'lucide-react'
 import '../lib/base.css'
 import { useSmooth, Ribbon, LineReveal, Reveal, useBooking, phoneFocus, CheckDraw, MapFrame, CallBar, tel, useLite, IG } from '../lib/kit'
 
+const Facebook = ({ size = 18 }) => (<svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" aria-hidden="true"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21h3.1Z" /></svg>)
 const Tokens = lazy(() => import('./nadezhda3d'))
 
 const b = {
@@ -62,7 +63,7 @@ function Board({ stage }) {
   const all = stage === 4
   return (
     <motion.div initial={false} animate={on ? { y: 0, opacity: 1, rotate: 0, scale: 1 } : { y: 160, opacity: 0, rotate: 5, scale: 0.92 }} transition={{ type: 'spring', stiffness: 160, damping: 18 }}
-      className="absolute inset-x-4 bottom-[96px] top-[54svh] md:inset-x-auto md:bottom-auto md:right-[4vw] md:top-1/2 md:h-[min(460px,58vh)] md:w-[min(640px,50vw)] md:-translate-y-1/2">
+      className="absolute inset-x-4 bottom-[96px] top-[54svh] md:inset-x-auto md:bottom-auto md:right-[4vw] md:top-[calc(50%-min(230px,29vh))] md:h-[min(460px,58vh)] md:w-[min(640px,50vw)]">
       <motion.div animate={{ backgroundColor: all ? '#f6eefc' : s.soft }} transition={{ duration: 0.6 }} className="flex h-full overflow-hidden rounded-[28px] border-[6px] border-white shadow-[0_40px_80px_-40px_rgba(36,32,58,.45)]">
         {/* sidebar */}
         <div className="hidden w-[190px] shrink-0 flex-col p-3 md:flex">
@@ -162,7 +163,7 @@ function Film({ lite }) {
         <AnimatePresence mode="wait">
           {cap && (
             <motion.div key={stage} initial={{ opacity: 0, y: 30, rotate: -3 }} animate={{ opacity: 1, y: 0, rotate: 0 }} exit={{ opacity: 0, y: -20, rotate: 2 }} transition={BOUNCE}
-              className="pointer-events-none absolute inset-x-5 top-[84px] z-[2] md:inset-x-auto md:left-12 md:top-1/2 md:w-[min(420px,38vw)] md:-translate-y-1/2">
+              className="pointer-events-none absolute inset-x-5 top-[84px] z-[2] md:inset-x-auto md:left-12 md:top-[32%] md:w-[min(420px,38vw)]">
               <span className={`${DISP} inline-block rotate-[-3deg] rounded-full border-[3px] border-white px-3.5 py-1 text-[13px] font-semibold text-white shadow-md`} style={{ background: col }}>{cap.n} · {stage < 4 ? SP[stage].t : 'Надежда'}</span>
               <h2 className={`${DISP} mt-4 text-[clamp(28px,3.6vw,54px)] font-semibold leading-[1] tracking-[-0.04em]`}>{cap.h}</h2>
               <p className="mt-3 max-w-[380px] text-[15px] leading-relaxed text-[#24203a]/65 md:text-[16.5px]">{cap.d}</p>
