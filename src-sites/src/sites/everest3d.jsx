@@ -150,11 +150,11 @@ function FilmScene({ progress }) {
   useFrame(st => {
     const p = progress.get(), mob = size.width < 768
     const th = THREE.MathUtils.lerp(0.75, -0.35, p) + st.pointer.x * 0.05
-    const r = mob ? 8.6 : 6.6
+    const r = mob ? 9.4 : 7.6
     camera.position.x += (r * Math.sin(th) + (mob ? 0 : -0.9) - camera.position.x) * 0.08
     camera.position.y += (2.1 + 0.6 * (1 - p) - camera.position.y) * 0.08
     camera.position.z += (r * Math.cos(th) - camera.position.z) * 0.08
-    look.set(mob ? 0 : -1.0, mob ? 0.6 : 1.05, 0); camera.lookAt(look)
+    look.set(mob ? 0 : -1.1, mob ? 0.7 : 1.25, 0); camera.lookAt(look)
   })
   return (
     <group ref={g}>
@@ -194,11 +194,11 @@ function ConfigScene({ type, facade, layout }) {
   const g = useRef()
   const { camera, size } = useThree()
   React.useEffect(() => { camera.fov = size.width < 768 ? 44 : 34; camera.updateProjectionMatrix() }, [size.width])
-  const look = useMemo(() => new THREE.Vector3(0, 1.05, 0), [])
+  const look = useMemo(() => new THREE.Vector3(0, 0.95, 0), [])
   useFrame(st => {
     const t = st.clock.elapsedTime
     g.current.rotation.y += ((Math.sin(t * 0.25) * 0.35 + st.pointer.x * 0.35) - g.current.rotation.y) * 0.05
-    const r = 2.4 + span * 1.25 + (size.width < 768 ? 1.6 : 0)
+    const r = 1.7 + span * 1.05 + (size.width < 768 ? 1.4 : 0)
     camera.position.x += (r * 0.55 - camera.position.x) * 0.06
     camera.position.y += (2.3 - camera.position.y) * 0.06
     camera.position.z += (r * 0.85 - camera.position.z) * 0.06

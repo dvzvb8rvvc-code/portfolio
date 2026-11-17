@@ -248,7 +248,7 @@ function Panel() {
               </div>
               <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#1b1714]/10 pt-6">
                 <button type="button" role="switch" aria-checked={first} onClick={() => { setFirst(v => !v); click(first ? 1500 : 2200) }} className="flex items-center gap-3">
-                  <span className="relative h-8 w-14 rounded-full bg-[#d0cbc2] shadow-[inset_0_2px_4px_rgba(0,0,0,.2)]">
+                  <span className="relative h-8 w-14 shrink-0 rounded-full bg-[#d0cbc2] shadow-[inset_0_2px_4px_rgba(0,0,0,.2)]">
                     <motion.span animate={{ x: first ? 26 : 2 }} transition={{ type: 'spring', stiffness: 600, damping: 30 }} className="absolute top-1 h-6 w-6 rounded-full shadow-md" style={{ background: first ? OR : '#f4f2ee' }} />
                   </span>
                   <span className={`${MONO} text-[12px] font-bold uppercase tracking-[.1em]`}>Первый раз</span>

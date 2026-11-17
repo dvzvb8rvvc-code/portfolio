@@ -109,10 +109,10 @@ function Device({ progress }) {
     root.current.rotation.y = lerp(-0.22, -0.68, turnA) + st.pointer.x * 0.1 + Math.sin(t * 0.5) * 0.02
     root.current.rotation.x = lerp(0.06, 0.34, turnA) - st.pointer.y * 0.05
     shell.current.position.z = -1.2 * e
-    lamps.current.position.z = 0.55 * e
-    frame.current.position.z = 1.2 * e
-    panel.current.position.z = 1.0 * e
-    ctrl.current.position.z = 1.9 * e
+    lamps.current.position.z = 0.56 + 0.55 * e
+    frame.current.position.z = 0.6 + 1.2 * e
+    panel.current.position.z = 0.56 + 1.0 * e
+    ctrl.current.position.z = 0.6 + 1.9 * e
     bottle.current.position.set(2.15 + 0.6 * e, -1 + 0.35 * e, 0.2 * e)
     bottle.current.rotation.y = t * 0.3
     const want = on ? 0.35 + level * 0.65 : 0.03
