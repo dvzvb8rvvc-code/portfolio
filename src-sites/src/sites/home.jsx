@@ -80,7 +80,7 @@ function Caption({ p, r, c, last }) {
   const o = useTransform(p, r, last ? [0, 1, 1, 1] : [0, 1, 1, 0])
   const y = useTransform(p, [r[0], r[1], r[2], r[3]], last ? [30, 0, 0, 0] : [30, 0, 0, -30])
   return (
-    <motion.div style={{ opacity: o, y }} className="absolute inset-x-0 bottom-[9vh] mx-auto max-w-[760px] px-6 text-center md:bottom-[10vh]">
+    <motion.div style={{ opacity: o, y }} className="absolute inset-x-0 bottom-[15vh] mx-auto max-w-[760px] px-6 text-center md:bottom-[10vh]">
       {!last && <div className={M + ' mb-3 text-[11px] uppercase tracking-[.25em]'} style={{ color: A }}>{c[0]}</div>}
       <h2 className={D + ' text-[clamp(34px,6.4vw,84px)] font-semibold leading-[.98] tracking-[-.04em] ' + GRAD}>{c[1]}</h2>
       <p className="mx-auto mt-4 max-w-[520px] text-[15px] leading-relaxed text-white/55 md:text-[17px]">{c[2]}</p>

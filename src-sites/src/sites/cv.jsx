@@ -105,7 +105,7 @@ function App() {
                 </div>
                 <div className={M + ' mt-0.5 text-[11px] text-black/45 print:text-[7.5pt]'}>Concept · {w.niche.en}</div>
                 <p className="mt-1.5 text-[14px] leading-snug text-black/65 print:mt-[1pt] print:text-[9pt]">{w.idea.en}</p>
-                <div className={M + ' mt-1 text-[11px] text-black/40 group-hover:text-black print:text-[7.5pt]'}>{SITE}/{w.s}</div>
+                <div className={M + ' mt-1 whitespace-nowrap text-[10px] tracking-[-.02em] text-black/40 group-hover:text-black print:text-[7pt]'}>{SITE}/{w.s}</div>
               </a>
             ))}
           </div>

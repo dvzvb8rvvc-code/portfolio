@@ -1,0 +1,39 @@
+import{r as v,j as e}from"./kit-C-7jnb6k.js";import{b as _,C as G,u as E,aA as B,a as F,f as R,ah as V,a2 as N}from"./react-three-fiber.esm-BMpF6dD_.js";import{E as T,L as P}from"./Lightformer-CU3DGdo8.js";import{R as u}from"./RoundedBox-VwATSRgt.js";import"./BufferGeometryUtils-D6IBsYRb.js";const S=2.75,I=-2.3,U=`
+varying vec3 vS; varying vec3 vN; varying vec3 vW;
+uniform mat4 uInv;
+void main(){
+  vec4 w = modelMatrix * vec4(position,1.);
+  vW = w.xyz; vS = (uInv * w).xyz;
+  vN = normalize(mat3(modelMatrix) * normal);
+  gl_Position = projectionMatrix * viewMatrix * w;
+}`,k=`
+uniform vec3 uBase; uniform float uWand; uniform float uStain;
+varying vec3 vS; varying vec3 vN; varying vec3 vW;
+float h(vec3 p){ p = fract(p*.3183099+.1); p *= 17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float n3(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
+  return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z); }
+float fbm(vec3 p){ float a=.5, s=0.; for(int i=0;i<4;i++){ s+=a*n3(p); p*=2.03; a*=.5; } return s; }
+void main(){
+  vec3 n = normalize(vN);
+  vec3 L = normalize(vec3(.5,.9,.7));
+  float dif = max(dot(n,L),0.);
+  float hemi = .5 + .5*n.y;
+  vec3 V = normalize(cameraPosition - vW);
+  float rim = pow(1. - max(dot(n,V),0.), 3.);
+  vec3 col = uBase * (.32 + .38*hemi + .55*dif);
+  col += (sin(vS.x*140.)*sin(vS.y*140.+vS.z*140.))*.018;
+  float u = vS.y > -.42 ? vS.y : -.42 - (vS.z + .75);
+  float s = fbm(vS*2.4 + 3.1);
+  float stain = smoothstep(.55,.66,s) * uStain;
+  float spot = smoothstep(.72,.76,fbm(vS*5.+9.)) * uStain;
+  float clean = smoothstep(uWand - .18, uWand + .18, u);
+  stain = max(stain, spot*.8) * (1. - clean);
+  col = mix(col, col*vec3(.5,.4,.27), stain*.85);
+  float line = exp(-pow((u - uWand)*10.,2.));
+  col += vec3(.45,1.,.82) * line * .3;
+  col += vec3(.75,1.,.92) * rim * .25;
+  gl_FragColor = vec4(col,1.);
+  #include <colorspace_fragment>
+}`;function w(o,i){return v.useMemo(()=>new R({vertexShader:U,fragmentShader:k,uniforms:{uBase:{value:new N(o)},uWand:i.uWand,uInv:i.uInv,uStain:{value:1}}}),[o,i])}function L(o,i,l){return o>-.42?l.set(i,o,-.2+Math.max(0,o)*.06):l.set(i,-.05,-.75+(-.42-o)),l}function D({progress:o,steam:i}){const l=v.useRef(),c=v.useRef(),{size:f,viewport:g}=E(),m=f.width<768,n=v.useMemo(()=>({uWand:{value:S+.3},uInv:{value:new B}}),[]),r=w("#c4cdd2",n),d=w("#e6ecee",n),M=w("#56636c",n),h=v.useMemo(()=>new _,[]);return F((s,p)=>{const y=o?o.get():0,x=s.clock.elapsedTime,t=S+.3-Math.min(1,y*1.15)*(S+.3-I);n.uWand.value+=(t-n.uWand.value)*Math.min(1,p*6);const a=l.current;a.rotation.y+=(-.62+s.pointer.x*.35-a.rotation.y)*Math.min(1,p*2.5),a.rotation.x+=(.12-s.pointer.y*.12-a.rotation.x)*Math.min(1,p*2.5),a.position.set(m?0:g.width*.2,(m?g.height*.28:-.25)+Math.sin(x*.8)*.05,0),a.scale.setScalar(m?.48:1),a.updateMatrixWorld(),n.uInv.value.copy(a.matrixWorld).invert();const j=Math.sin(x*2.2)*.62;L(n.uWand.value,j,h),c.current.position.copy(h),c.current.rotation.set(n.uWand.value>-.42?-.35:-1.1,0,j*.25),c.current.visible=n.uWand.value<S+.2&&n.uWand.value>I-.1,c.current.getWorldPosition(i.current.nozzle),i.current.active=c.current.visible}),e.jsxs("group",{ref:l,children:[e.jsx(u,{args:[1.9,.42,1.75],radius:.17,smoothness:3,position:[0,-.62,0],material:r}),e.jsx(u,{args:[1.15,.08,1.45],radius:.04,smoothness:2,position:[0,-.39,.05],material:d}),[-1,1].map(s=>e.jsx(u,{args:[.34,.6,1.75],radius:.15,smoothness:3,position:[s*1.02,-.52,0],material:r},s)),e.jsxs("group",{position:[0,-.45,-.82],"rotation-x":-.16,children:[e.jsx(u,{args:[1.9,2.5,.44],radius:.18,smoothness:3,position:[0,1.25,0],material:r}),e.jsx(u,{args:[1.15,2,.08],radius:.04,smoothness:2,position:[0,1.22,.23],material:d}),[-1,1].map(s=>e.jsx(u,{args:[.34,2.3,.62],radius:.15,smoothness:3,position:[s*1.02,1.2,.08],material:r},s)),[-.22,.22].map(s=>e.jsxs("mesh",{position:[s,2.66,0],children:[e.jsx("cylinderGeometry",{args:[.035,.035,.4,10]}),e.jsx("meshStandardMaterial",{color:"#d9e0e3",metalness:1,roughness:.25})]},s)),e.jsx(u,{args:[1.05,.55,.36],radius:.16,smoothness:3,position:[0,3.05,0],material:r})]}),e.jsx(u,{args:[1.7,.18,1.5],radius:.06,smoothness:2,position:[0,-.95,0],material:M}),e.jsxs("group",{ref:c,children:[e.jsxs("mesh",{position:[0,0,.55],"rotation-x":Math.PI/2,children:[e.jsx("cylinderGeometry",{args:[.06,.085,1.1,16]}),e.jsx("meshStandardMaterial",{color:"#e9eef0",metalness:1,roughness:.18})]}),e.jsxs("mesh",{position:[0,0,.02],"rotation-x":Math.PI/2,children:[e.jsx("cylinderGeometry",{args:[.16,.1,.14,20]}),e.jsx("meshStandardMaterial",{color:"#3ccfa5",metalness:.3,roughness:.3})]}),e.jsxs("mesh",{position:[0,0,1.25],"rotation-x":Math.PI/2,children:[e.jsx("cylinderGeometry",{args:[.1,.1,.5,16]}),e.jsx("meshStandardMaterial",{color:"#24313b",roughness:.5})]})]})]})}const O=`attribute float aSize; attribute float aAlpha; varying float vA;
+void main(){ vec4 mv = modelViewMatrix * vec4(position,1.); gl_PointSize = aSize * (300. / -mv.z); vA = aAlpha; gl_Position = projectionMatrix * mv; }`,q="varying float vA; void main(){ float d = length(gl_PointCoord - .5); float a = smoothstep(.5, 0., d); gl_FragColor = vec4(vec3(.86,1.,.95), a*a*vA); }";function H({count:o,steam:i}){const l=v.useRef(),{viewport:c}=E(),f=v.useMemo(()=>{const m=new Float32Array(o*3),n=new Float32Array(o),r=new Float32Array(o),d=Array.from({length:o},(M,h)=>({life:Math.random(),max:2+Math.random()*2.5,vx:0,vy:0,vz:0,s:.6+Math.random()*1.4,amb:h%3===0}));return{pos:m,size:n,alpha:r,P:d}},[o]),g=v.useMemo(()=>new R({vertexShader:O,fragmentShader:q,transparent:!0,depthWrite:!1,blending:V}),[]);return F((m,n)=>{n=Math.min(n,.05);const{pos:r,size:d,alpha:M,P:h}=f,s=m.pointer.x*c.width/2,p=m.pointer.y*c.height/2,y=i.current.nozzle;h.forEach((t,a)=>{t.life+=n/t.max,(t.life>=1||r[a*3+1]===0&&r[a*3]===0)&&(t.life=0,t.amb||!i.current.active?(r[a*3]=(Math.random()-.5)*c.width,r[a*3+1]=-c.height/2-.5,r[a*3+2]=(Math.random()-.5)*3-1,t.vx=(Math.random()-.5)*.1,t.vy=.25+Math.random()*.35,t.vz=0):(r[a*3]=y.x+(Math.random()-.5)*.15,r[a*3+1]=y.y+(Math.random()-.5)*.1,r[a*3+2]=y.z+.1,t.vx=(Math.random()-.5)*.7,t.vy=.5+Math.random()*.7,t.vz=(Math.random()-.2)*.5));const j=r[a*3],C=r[a*3+1],z=j-s,b=C-p,W=z*z+b*b;if(W<1.6){const A=(1.6-W)*2.2*n;t.vx+=z*A,t.vy+=b*A}t.vx*=.985,t.vy=t.vy*.99+.12*n,r[a*3]+=(t.vx+Math.sin(m.clock.elapsedTime*.8+a)*.05)*n,r[a*3+1]+=t.vy*n,r[a*3+2]+=t.vz*n,d[a]=t.s*(.35+t.life*1.6)*(t.amb?1.6:1),M[a]=Math.sin(t.life*Math.PI)*(t.amb?.22:.42)});const x=l.current.geometry;x.attributes.position.needsUpdate=!0,x.attributes.aSize.needsUpdate=!0,x.attributes.aAlpha.needsUpdate=!0}),e.jsx("points",{ref:l,material:g,frustumCulled:!1,children:e.jsxs("bufferGeometry",{children:[e.jsx("bufferAttribute",{attach:"attributes-position",array:f.pos,count:o,itemSize:3}),e.jsx("bufferAttribute",{attach:"attributes-aSize",array:f.size,count:o,itemSize:1}),e.jsx("bufferAttribute",{attach:"attributes-aAlpha",array:f.alpha,count:o,itemSize:1})]})})}function Z({progress:o}){const i=typeof window<"u"&&innerWidth<768,l=v.useRef({nozzle:new _,active:!1}),c=typeof document<"u"?document.getElementById("root"):void 0;return e.jsxs(G,{dpr:[1,1.6],camera:{position:[0,.6,8.5],fov:42},gl:{antialias:!0,alpha:!0},eventSource:c,eventPrefix:"client",style:{pointerEvents:"none"},children:[e.jsx(D,{progress:o,steam:l}),e.jsx(H,{count:i?160:300,steam:l}),e.jsxs(T,{resolution:128,children:[e.jsx("color",{attach:"background",args:["#1c262e"]}),e.jsx(P,{form:"rect",intensity:4,position:[0,5,2],scale:[10,3,1],color:"#ffffff"}),e.jsx(P,{form:"rect",intensity:2.5,position:[-5,1,1],"rotation-y":Math.PI/2,scale:[8,3,1],color:"#9ff0d6"})]})]})}export{Z as default};
