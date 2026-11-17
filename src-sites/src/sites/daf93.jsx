@@ -85,13 +85,13 @@ function Hero() {
         <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg,rgba(11,12,13,.2) 0%,transparent 35%,rgba(11,12,13,.55) 70%,rgba(11,12,13,.92) 100%)' }} />
         {/* letterbox */}
         <div className="absolute inset-x-0 top-16 h-[4vh] bg-black" />
-        <div className="absolute inset-x-0 bottom-0 flex h-[7vh] min-h-[44px] items-center justify-between bg-black px-4 md:px-8">
+        <div className="absolute inset-x-0 bottom-[76px] flex h-[7vh] min-h-[44px] sm:bottom-0 items-center justify-between bg-black px-4 md:px-8">
           <span className={`${MONO} text-[12px] uppercase tracking-[.14em] text-[#ece8e0]/60`}>Кадр 0{frame} / 04</span>
           <a href="#services" className={`${MONO} text-[13px] uppercase tracking-[.1em] text-[#ece8e0]/80 hover:text-[#ffb347]`}>Пропустить →</a>
         </div>
-        <motion.div style={{ opacity: heroO, y: heroY }} className="absolute inset-x-0 bottom-[calc(7vh+28px)] mx-auto max-w-[1360px] px-4 md:bottom-[calc(7vh+48px)] md:px-8">
+        <motion.div style={{ opacity: heroO, y: heroY }} className="absolute inset-x-0 bottom-[calc(7vh+96px)] sm:bottom-[calc(7vh+28px)] mx-auto max-w-[1360px] px-4 md:bottom-[calc(7vh+48px)] md:px-8">
           <Tag>Автосервис · {b.addr} · {b.area}</Tag>
-          <h1 className="mt-4 text-[clamp(38px,7.4vw,118px)] uppercase leading-[0.9]" style={WIDE}>
+          <h1 className="mt-3 text-[clamp(36px,7.4vw,118px)] uppercase leading-[0.9]" style={WIDE}>
             <span className="block overflow-hidden"><motion.span className="block" initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1.1, ease: EZ }}>Автосервис</motion.span></span>
             <span className="block overflow-hidden"><motion.span className="block text-[#ffb347]" initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1.1, ease: EZ, delay: 0.1 }}>на Алтайской</motion.span></span>
           </h1>
@@ -107,7 +107,7 @@ function Hero() {
             </div>
           </div>
         </motion.div>
-        <div className="absolute bottom-[calc(7vh+24px)] left-4 right-4 md:bottom-[calc(7vh+48px)] md:left-auto md:right-8 md:w-[400px]">
+        <div className="absolute bottom-[calc(7vh+96px)] sm:bottom-[calc(7vh+24px)] left-4 right-4 md:bottom-[calc(7vh+48px)] md:left-auto md:right-8 md:w-[400px]">
           <AnimatePresence mode="wait">
             {i >= 0 && (
               <motion.div key={i} initial={{ opacity: 0, y: 24, clipPath: 'inset(0 0 100% 0)' }} animate={{ opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)' }} exit={{ opacity: 0, y: -16 }} transition={{ duration: 0.6, ease: EZ }}

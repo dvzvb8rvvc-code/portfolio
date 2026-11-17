@@ -109,17 +109,17 @@ function Lamp({ prog }) {
   useFrame((st, dt) => {
     dt = Math.min(dt, 1 / 30)
     const p = prog.current, t = st.clock.elapsedTime, mob = size.width < 768
-    const tx = -3.3 + p * 7.0
+    const tx = mob ? -1.8 + p * 3.6 : -3.3 + p * 7.0
     x.current += (tx - x.current) * (1 - Math.exp(-dt * 3))
     pivot.current.position.x = x.current
     pivot.current.rotation.z = Math.sin(t * 1.25) * (0.16 + Math.abs(tx - x.current) * 0.25) + (tx - x.current) * -0.4
     pivot.current.rotation.x = Math.sin(t * 0.9) * 0.05 - 0.12
     bulb.current.getWorldPosition(wp)
     target.position.set(wp.x * 1.04, wp.y - 1.6, 0)
-    tp.set(x.current * (mob ? 0.25 : 0.3), 0.3 - ss(0, 1, p) * 0.3 + st.pointer.y * 0.15, (mob ? 13 : 8.2) - p * 1.2)
+    tp.set(x.current * (mob ? 0.75 : 0.3), (mob ? 1.2 : 0.3) - ss(0, 1, p) * 0.3 + st.pointer.y * 0.15, (mob ? 13 : 8.2) - p * 1.2)
     tp.x += st.pointer.x * 0.35
     cp.current.lerp(tp, 1 - Math.exp(-dt * 3)); camera.position.copy(cp.current)
-    look.set(cp.current.x * 0.8, 0.2, 0); camera.lookAt(look)
+    look.set(cp.current.x * 0.8, mob ? 1.0 : 0.2, 0); camera.lookAt(look)
   })
   return (
     <>
