@@ -85,7 +85,7 @@ function Rig({ progress, children }) {
   useFrame((st, dt) => {
     const v = progress.get(), mob = size.width < 768
     const film = ss(0.06, 0.16, v)
-    const tx = mob ? 0 : 1.7 - film * 0.2
+    const tx = mob ? 0 : 2.1 - film * 0.3
     const ty = mob ? 1.15 : 0.1
     g.current.position.x += (tx - g.current.position.x) * Math.min(1, dt * 4)
     g.current.position.y = ty

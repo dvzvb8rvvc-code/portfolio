@@ -199,9 +199,7 @@ function ConfigScene({ type, facade, layout }) {
     const t = st.clock.elapsedTime
     g.current.rotation.y += ((Math.sin(t * 0.25) * 0.35 + st.pointer.x * 0.35) - g.current.rotation.y) * 0.05
     const r = 1.7 + span * 1.05 + (size.width < 768 ? 1.4 : 0)
-    camera.position.x += (r * 0.55 - camera.position.x) * 0.06
-    camera.position.y += (2.3 - camera.position.y) * 0.06
-    camera.position.z += (r * 0.85 - camera.position.z) * 0.06
+    camera.position.set(r * 0.55, 0.9 + r * 0.28, r * 0.85)
     camera.lookAt(look)
   })
   const front = mats[facade]
