@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
-import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence, MotionConfig } from 'framer-motion'
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, useInView, AnimatePresence, MotionConfig } from 'framer-motion'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import '../lib/base.css'
 import { useSmooth, Ribbon, Reveal, useBooking, phoneFocus, CheckDraw, MapFrame, CallBar, tel, useLite } from '../lib/kit'
@@ -19,9 +19,11 @@ function L({ children, className = '' }) {
 }
 /* text mask reveal by line */
 function Mask({ children, delay = 0, className = '' }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '0px 0px -5% 0px' })
   return (
-    <span className={'block overflow-hidden ' + className}>
-      <motion.span className="block" initial={{ y: '102%' }} whileInView={{ y: '0%' }} viewport={{ once: true, margin: '0px 0px -5% 0px' }} transition={{ duration: 1, ease: EZ, delay }}>{children}</motion.span>
+    <span ref={ref} className={'block overflow-hidden ' + className}>
+      <motion.span className="block" initial={{ y: '102%' }} animate={inView ? { y: '0%' } : {}} transition={{ duration: 1, ease: EZ, delay }}>{children}</motion.span>
     </span>
   )
 }
@@ -80,10 +82,10 @@ function Hero() {
 
 /* ---------------- pinned typographic film ---------------- */
 const STEPS = [
-  { t: 'Подготовка', d: 'Чистая кожа, без косметики и парфюма. Очки для глаз и бальзам для губ — обязательно.', col: 1 },
-  { t: 'Сеанс', d: 'Первый — короткий. Время подскажет администратор, дальше прибавляем постепенно.', col: 5 },
-  { t: 'Пауза', d: 'Между сеансами коже нужен отдых. Не каждый день — так загар ложится ровнее.', col: 8 },
-  { t: 'Тон', d: 'Оттенок проявляется постепенно. Увлажняйте кожу — и цвет держится дольше.', col: 4 },
+  { t: 'Подготовка', d: 'Чистая кожа, без косметики и парфюма. Очки для глаз и бальзам для губ — обязательно.', col: 9 },
+  { t: 'Сеанс', d: 'Первый — короткий. Время подскажет администратор, дальше прибавляем постепенно.', col: 1 },
+  { t: 'Пауза', d: 'Между сеансами коже нужен отдых. Не каждый день — так загар ложится ровнее.', col: 9 },
+  { t: 'Тон', d: 'Оттенок проявляется постепенно. Увлажняйте кожу — и цвет держится дольше.', col: 1 },
 ]
 function Film() {
   const ref = useRef(null)
@@ -102,17 +104,17 @@ function Film() {
           </div>
         </div>
         <div className="relative mx-auto mt-auto grid w-full max-w-[1440px] grid-cols-4 items-end gap-4 md:grid-cols-12 md:gap-5">
-          <div className="relative col-span-4 overflow-hidden md:col-span-12">
-            <AnimatePresence mode="popLayout" initial={false}>
+          <div className="relative col-span-4 h-[clamp(160px,30vw,440px)] overflow-hidden md:col-span-12">
+            <AnimatePresence initial={false}>
               <motion.p key={i} initial={{ y: '100%' }} animate={{ y: '0%' }} exit={{ y: '-100%' }} transition={{ duration: 0.8, ease: EZ }}
-                className="font-black leading-[.78] tracking-[-0.06em] text-[clamp(200px,44vw,640px)]" style={W(i % 2 ? 62 : 100)}>
+                className={`absolute bottom-0 font-black leading-[.78] tracking-[-0.06em] text-[clamp(200px,38vw,560px)] ${i % 2 ? "md:right-0" : "left-0"}`} style={W(i % 2 ? 62 : 100)}>
                 0{i + 1}
               </motion.p>
             </AnimatePresence>
           </div>
-          <motion.div layout transition={{ duration: 0.8, ease: EZ }} className="col-span-4 md:col-span-4 md:absolute md:bottom-[8%]" style={{ left: `calc(${(s.col - 1) / 12 * 100}% )` }}>
+          <motion.div layout transition={{ duration: 0.8, ease: EZ }} className="col-span-4 md:col-span-4 md:absolute md:bottom-[4%]" style={{ left: `calc(${(s.col - 1) / 12 * 100}% )` }}>
             <AnimatePresence mode="wait">
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.45 }} className="bg-[#0b0b0b] md:p-5">
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.45 }} className="pt-4 md:pt-0">
                 <p className="text-[clamp(34px,4vw,60px)] font-black uppercase leading-[.9] tracking-[-0.04em]" style={{ color: ACC }}>{s.t}</p>
                 <p className="mt-3 max-w-[380px] text-[16px] leading-[1.45] text-[#f1efe9]/75">{s.d}</p>
               </motion.div>

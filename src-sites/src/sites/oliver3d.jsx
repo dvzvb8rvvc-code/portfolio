@@ -129,7 +129,7 @@ function Serum({ amt }) {
     if (drop.current) { drop.current.position.y = 2.2 - ease(t) * 1.0; drop.current.scale.setScalar(t > 0.92 ? 0 : 0.6 + t * 0.5) }
   })
   return (
-    <group position-y={-0.15}>
+    <group position-y={-0.45} scale={0.82}>
       <mesh geometry={liquid}><meshPhysicalMaterial color="#e2a24f" roughness={0.15} clearcoat={1} emissive="#7a3d0c" emissiveIntensity={0.35} transparent opacity={0.85} /></mesh>
       <mesh geometry={bottle} renderOrder={2}><meshPhysicalMaterial color="#ffffff" transparent opacity={0.28} roughness={0.04} clearcoat={1} clearcoatRoughness={0.02} envMapIntensity={2.6} depthWrite={false} side={THREE.DoubleSide} /></mesh>
       <mesh position-y={1.18}><cylinderGeometry args={[0.28, 0.28, 0.36, 40]} /><meshPhysicalMaterial color="#14110f" metalness={0.4} roughness={0.15} clearcoat={1} /></mesh>

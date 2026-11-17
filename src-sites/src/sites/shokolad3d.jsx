@@ -118,7 +118,7 @@ function Device({ progress }) {
     const want = on ? 0.35 + level * 0.65 : 0.03
     glow.current = lerp(glow.current, want, Math.min(1, dt * 6))
     tubeMat.current.emissiveIntensity = glow.current * (0.95 + Math.sin(t * 9) * 0.03)
-    light.current.intensity = glow.current * 2.2
+    light.current.intensity = glow.current * 0.7
     const a = activeIdx(p)
     tags.current.forEach((el, i) => { if (!el) return; el.style.opacity = String(Math.min(1, e * 1.4)); el.style.transform = `scale(${a === i ? 1.35 : 1})`; el.style.background = a === i ? C.orange : C.blue })
   })
@@ -140,7 +140,7 @@ function Device({ progress }) {
         {tubes.map(x => (
           <mesh key={x} position={[x, 0, 0.09]} material={tubeMat.current}><cylinderGeometry args={[0.075, 0.075, 1.32, 16]} /></mesh>
         ))}
-        <pointLight ref={light} position={[0, 0, 0.8]} color="#ff8a44" distance={4} />
+        <pointLight ref={light} position={[0, 0, 0.5]} color="#ff8a44" distance={2.2} />
         <Tag n="02" i={1} tags={tags} position={[0.9, 0.9, 0.1]} />
       </group>
       {/* grille frame */}

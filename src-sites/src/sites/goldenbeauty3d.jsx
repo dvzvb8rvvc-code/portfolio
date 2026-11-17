@@ -60,7 +60,7 @@ function Key({ k, p, i, progress }) {
   return (
     <group ref={g} position={p}>
       <RoundedBox args={[1.36, 0.62, 1.36]} radius={0.2} smoothness={4}>
-        <meshPhysicalMaterial ref={mat} color="#e9b54c" emissive={amber} emissiveIntensity={0} metalness={1} roughness={0.16} clearcoat={1} clearcoatRoughness={0.08} envMapIntensity={1.6} />
+        <meshPhysicalMaterial ref={mat} color="#e9b54c" emissive={amber} emissiveIntensity={0} metalness={0.85} roughness={0.26} clearcoat={1} clearcoatRoughness={0.08} envMapIntensity={2} />
       </RoundedBox>
       <mesh rotation-x={-Math.PI / 2} position-y={0.312}><planeGeometry args={[0.9, 0.9]} /><meshStandardMaterial map={tex} transparent metalness={0.5} roughness={0.35} /></mesh>
     </group>
@@ -111,6 +111,8 @@ export default function KeysScene({ progress, active }) {
         <Lightformer form="rect" intensity={3} position={[-5, 1, 1]} rotation-y={Math.PI / 2} scale={[6, 1, 1]} color="#ffd38a" />
         <Lightformer form="rect" intensity={2.5} position={[5, 0, -1]} rotation-y={-Math.PI / 2} scale={[6, 2, 1]} color="#ff8a2a" />
         <Lightformer form="ring" intensity={4} position={[1, 3, 5]} scale={1.2} color="#ffffff" />
+        <Lightformer form="rect" intensity={2.2} position={[0, 3, 9]} scale={[14, 6, 1]} color="#ffd590" />
+        <Lightformer form="rect" intensity={1.5} position={[0, -2, 8]} scale={[14, 3, 1]} color="#ff9a3c" />
       </Environment>
     </Canvas>
   )
