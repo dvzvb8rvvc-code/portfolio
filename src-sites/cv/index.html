@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3f3f1">
+<title>Artem — Web Designer & Developer · CV</title>
+<meta name="description" content="CV of Artem, independent web designer & developer: websites and landing pages with 3D and motion, presentations and pitch decks, Telegram bots and Mini Apps.">
+<meta property="og:type" content="profile">
+<meta property="og:title" content="Artem — Web Designer & Developer · CV">
+<meta property="og:description" content="Websites · Presentations · Telegram Bots">
+<meta property="og:url" content="https://dvzvb8rvvc-code.github.io/portfolio/cv/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--sel:#111;--selc:#fff}
+@keyframes fx{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fx{animation:fx .8s cubic-bezier(.2,0,0,1) both}
+@media (prefers-reduced-motion:reduce){.fx{animation:none}}
+@page{size:A4;margin:11mm 13mm}
+@media print{
+  html,body{background:#fff!important}
+  *{animation:none!important;transition:none!important;box-shadow:none!important}
+  .fx{opacity:1!important;transform:none!important}
+  .sheet{border:0!important;padding:0!important;margin:0!important;max-width:none!important;border-radius:0!important}
+  body{font-size:9.6pt;color:#000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  a{color:#000!important;text-decoration:none!important}
+  .avoid{break-inside:avoid}
+}
+</style>
+</head><body style="background:#f3f3f1"><div id="root"></div>
+<script type="module" src="/src/sites/cv.jsx"></script>
+</body></html>
