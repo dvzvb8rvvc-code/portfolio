@@ -125,7 +125,7 @@ function Tan() {
             <p className={`${SANS} mb-5 text-[11.5px] font-medium uppercase tracking-[.26em] text-[#1d231c]/50`}>Полевой журнал · безопасный загар</p>
             <h2 className={`${SERIF} text-[clamp(38px,5.6vw,88px)] font-light leading-[.98] tracking-[-0.03em]`}>Маршрут к загару —<br /><em>без ожогов.</em></h2>
           </div>
-          <p className={`${SANS} max-w-[440px] text-[16px] leading-relaxed text-[#1d231c]/65 md:justify-self-end`}>Выберите свой фототип — покажем, с каких минут обычно начинают и как плавно наращивать время. Это ориентир: точное время зависит от ламп и вашей кожи.</p>
+          <p className={`${SANS} max-w-[440px] text-[16px] leading-relaxed text-[#1d231c]/65 md:justify-self-end`}>Выберите свой фототип — покажем, как обычно выстраивают первые сеансы: начинают с короткого времени и наращивают плавно. Точные минуты подберёт администратор — они зависят от ламп и вашей кожи.</p>
         </div>
 
         <div className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4" role="radiogroup" aria-label="Фототип кожи">
@@ -150,7 +150,7 @@ function Tan() {
                 <div className="flex flex-wrap items-end justify-between gap-4">
                   <div>
                     <p className={`${SANS} text-[11px] uppercase tracking-[.24em] text-[#f6efe2]/55`}>Фототип {T.k} · план первых сеансов</p>
-                    <p className={`${SERIF} mt-3 text-[clamp(28px,3.4vw,48px)] font-light leading-tight`}>Старт — около <span className="text-[#f0b365]">{T.plan[0]} минут</span></p>
+                    <p className={`${SERIF} mt-3 text-[clamp(28px,3.4vw,48px)] font-light leading-tight`}>Старт — <span className="text-[#f0b365]">короткие сеансы</span>, время подберёт администратор</p>
                   </div>
                   <p className={`${SANS} max-w-[340px] text-[14px] text-[#f6efe2]/60`}>Между сеансами — не меньше 48 часов, чтобы кожа успела восстановиться.</p>
                 </div>
@@ -162,7 +162,7 @@ function Tan() {
                         <div className="grid h-[104px] place-items-center">
                           <span className="rounded-full" style={{ width: 26 + (m / max) * 70, height: 26 + (m / max) * 70, background: `radial-gradient(circle at 40% 35%, #fff1c4, ${AMBER} 70%)`, boxShadow: `0 0 ${10 + m * 4}px rgba(240,179,101,.5)` }} />
                         </div>
-                        <p className={`${SERIF} mt-3 text-[clamp(22px,2.4vw,34px)] font-light`}>{m}<span className="text-[.5em]"> мин</span></p>
+                        <p className={`${SERIF} mt-3 text-[clamp(15px,1.6vw,22px)] font-light leading-tight`}>{['Мягкий старт', 'Чуть дольше', 'Привыкание', 'Ровный тон', 'Поддержка'][j]}</p>
                         <p className={`${SANS} mt-1 text-[11px] uppercase tracking-[.16em] text-[#f6efe2]/50`}>Сеанс {j + 1}</p>
                         <p className={`${SANS} hidden text-[12.5px] text-[#f6efe2]/45 md:block`}>{j === 0 ? 'день 1' : `день ${1 + j * 2}+`}</p>
                       </motion.div>
