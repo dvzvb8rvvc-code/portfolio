@@ -36,7 +36,7 @@ function Caption({ p, c, i }) {
   const k = [a, a + 0.04, z - 0.04, z]
   const o = useTransform(p, k, [0, 1, 1, 0]), y = useTransform(p, k, [30, 0, 0, -20])
   return (
-    <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-5 bottom-[100px] md:bottom-auto md:left-12 md:right-auto md:top-1/2 md:w-[440px] md:-translate-y-1/2">
+    <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-5 bottom-[100px] md:bottom-auto md:left-12 md:right-auto md:top-[32%] md:w-[440px]">
       <div className="rounded-[20px] border border-white/10 bg-white/[.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] backdrop-blur-2xl md:p-8">
         <div className="flex items-center gap-3"><Kbd>⌘</Kbd><Kbd>{c.n}</Kbd><span className={`${MONO} text-[12px] uppercase tracking-[.16em] text-[#f5b84a]`}>{c.g}</span></div>
         <h2 className="mt-5 text-[clamp(26px,3vw,40px)] font-semibold leading-[1.05] tracking-[-0.035em]">{c.t}</h2>
@@ -67,7 +67,7 @@ function Film({ lite }) {
         <div className="pointer-events-none absolute left-1/2 top-[30%] h-[520px] w-[900px] -translate-x-1/2 rounded-full opacity-30 blur-[120px] md:left-[68%]" style={{ background: 'radial-gradient(circle,#ff9a1f,transparent 65%)' }} />
         <div className="pointer-events-none absolute inset-0 opacity-[.35] [background-image:linear-gradient(rgba(255,255,255,.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.04)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_70%)]" />
         <div className="absolute inset-0">{lite ? <LiteKeys /> : m && <Suspense fallback={null}><Keys progress={p} active={near} /></Suspense>}</div>
-        <motion.div style={{ opacity: heroO, y: heroY, pointerEvents: heroPE }} className="absolute inset-x-0 bottom-[96px] px-5 md:bottom-auto md:left-12 md:right-auto md:top-1/2 md:max-w-[620px] md:-translate-y-1/2 md:px-0">
+        <motion.div style={{ opacity: heroO, y: heroY, pointerEvents: heroPE }} className="absolute inset-x-0 bottom-[96px] px-5 md:bottom-auto md:left-12 md:right-auto md:top-[20%] md:max-w-[620px] md:px-0">
           <motion.a href="#book" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[.04] py-1.5 pl-1.5 pr-3.5 text-[13px] text-white/70 backdrop-blur hover:border-white/25">
             <span className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-[#2a1703]" style={{ background: GOLD }}>{b.rating}</span>{b.rev} оценок на Яндекс Картах
           </motion.a>

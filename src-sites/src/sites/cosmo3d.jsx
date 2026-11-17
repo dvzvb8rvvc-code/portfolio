@@ -95,11 +95,11 @@ function Rig({ progress, children }) {
   const g = useRef(), { size } = useThree()
   useFrame((st, dt) => {
     const p = progress.get(), mob = size.width < 768
-    const tx = mob ? 0 : 1.6 - ss(0.1, 0.3, p) * 1.6 + ss(0.82, 1, p) * 1.2
+    const tx = mob ? 0 : 2.3 - ss(0.1, 0.3, p) * 2.3 + ss(0.82, 1, p) * 1.4
     const ty = mob ? 0.95 : 0
     g.current.position.x += (tx - g.current.position.x) * Math.min(1, dt * 4)
     g.current.position.y = ty
-    g.current.scale.setScalar(mob ? 0.56 : 1)
+    g.current.scale.setScalar(mob ? 0.56 : 0.86)
     // 3/4 view -> side -> end-on (glyph ring) -> 3/4
     const ry = -0.6 + ss(0.12, 0.45, p) * 0.6 + ss(0.5, 0.78, p) * (Math.PI / 2 - 0.15) - ss(0.82, 1, p) * 0.9
     const rx = 0.32 - ss(0.12, 0.45, p) * 0.22 + ss(0.82, 1, p) * 0.2

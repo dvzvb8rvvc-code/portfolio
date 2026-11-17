@@ -144,7 +144,7 @@ function Film({ lite }) {
           <h1><DotText lines={['КОСМОС', 'И СВЕТ']} maxCells={26} label="Космос и свет" /></h1>
           <p className="mt-6 max-w-[400px] text-[16px] leading-relaxed text-white/60 md:text-[17px]">Cosmo — студия загара на Лобанка, 14. Ровный загар в своём темпе.</p>
           <div className="mt-8 hidden gap-3 md:flex">
-            <a href="#timer" className={`${DOT} inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 text-[15px] text-black hover:bg-white/85`}>Выбрать время сеанса</a>
+            <a href="#timer" className={`${DOT} inline-flex h-12 items-center gap-2 whitespace-nowrap rounded-full bg-white px-6 text-[15px] text-black hover:bg-white/85`}>Таймер сеанса</a>
             <a href="#book" className={`${DOT} inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-6 text-[15px] hover:border-white`}><span className="h-2 w-2 rounded-full" style={{ background: RED }} />Записаться</a>
           </div>
         </motion.div>

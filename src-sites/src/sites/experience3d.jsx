@@ -42,7 +42,7 @@ function Nail({ progress }) {
     colMat.current.clearcoat += ((mat ? 0 : 1) - colMat.current.clearcoat) * Math.min(1, dt * 5)
     topMat.current.roughness += ((mat ? 0.7 : 0.02) - topMat.current.roughness) * Math.min(1, dt * 5)
     const mob = size.width < 768
-    root.current.scale.setScalar(mob ? 0.95 : 1.15)
+    root.current.scale.setScalar(mob ? 0.72 : 0.85)
     root.current.rotation.x = -0.95 + c.e * 0.15 + st.pointer.y * 0.1
     root.current.rotation.z = 0.5 + Math.sin(t * 0.4) * 0.08
     root.current.rotation.y = Math.sin(t * 0.3) * 0.2 + st.pointer.x * 0.3 + (p > 0.8 ? (p - 0.8) * 6 : 0)
@@ -51,8 +51,8 @@ function Nail({ progress }) {
   return (
     <group>
       <mesh ref={glow} position={[0, -1.2, -1]} rotation-x={-Math.PI / 2}>
-        <circleGeometry args={[2.2, 48]} />
-        <meshBasicMaterial transparent opacity={0.16} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <circleGeometry args={[1.5, 48]} />
+        <meshBasicMaterial transparent opacity={0.09} depthWrite={false} blending={THREE.AdditiveBlending} />
       </mesh>
       <group ref={root}>
         <mesh ref={L[0]} geometry={geos[2]}><meshStandardMaterial color="#efc9c1" roughness={0.55} /></mesh>
