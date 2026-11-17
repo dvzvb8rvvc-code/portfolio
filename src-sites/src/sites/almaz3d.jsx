@@ -63,7 +63,7 @@ export default function GemScene({ progress, active, finish = 'silver' }) {
         <Lightformer form="ring" intensity={1.5} position={[2, 3, 4]} scale={1.5} />
       </Environment>
       <Gem progress={progress} finish={finish} />
-      <ContactShadows position={[0, -0.9, 0]} opacity={0.22} scale={4} blur={3} far={2} resolution={256} />
+      <ContactShadows position={[0, -0.75, 0]} opacity={0.16} scale={3} blur={3} far={2} resolution={256} />
     </Canvas>
   )
 }
