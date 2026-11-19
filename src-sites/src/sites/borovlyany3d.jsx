@@ -78,7 +78,7 @@ function Card({ progress }) {
     card.current.rotation.y = THREE.MathUtils.lerp(card.current.rotation.y, turn * Math.PI * 4 - 0.35 * idle * (1 - ins) + st.pointer.x * 0.2 * (1 - ins), k)
     card.current.rotation.x = THREE.MathUtils.lerp(card.current.rotation.x, (0.22 * idle + Math.sin(turn * Math.PI) * 0.35) * (1 - ins) - st.pointer.y * 0.1 * (1 - ins), k)
     card.current.rotation.z = THREE.MathUtils.lerp(card.current.rotation.z, (-0.12 * idle) * (1 - ins) + ins * Math.PI / 2, k)
-    card.current.position.y = Math.sin(t * 1.2) * 0.06 * (1 - ins) + 0.35 * rd - ins * 1.55
+    card.current.position.y = Math.sin(t * 1.2) * 0.06 * (1 - ins) + 0.35 * rd - ins * 1.0
     reader.current.position.y = THREE.MathUtils.lerp(-4, -1.35, rd)
     reader.current.visible = rd > 0.01
     led.current.material.color.copy(ledOff).lerp(ledOn, ss(0.86, 0.92, p))
@@ -92,12 +92,12 @@ function Card({ progress }) {
         <mesh geometry={face} position-z={-T / 2 - 0.001} rotation-y={Math.PI}><meshStandardMaterial map={back} roughness={0.5} /></mesh>
       </group>
       <group ref={reader}>
-        <RoundedBox args={[1.2, 1.5, 0.7]} radius={0.12} smoothness={4}><meshStandardMaterial color="#1b1b1d" roughness={0.35} metalness={0.3} /></RoundedBox>
-        <mesh position={[0, 0.751, 0]}><boxGeometry args={[0.1, 0.004, 0.5]} /><meshStandardMaterial color="#000" /></mesh>
-        <mesh ref={led} position={[0, 0.35, 0.36]}><sphereGeometry args={[0.07, 24, 24]} /><meshStandardMaterial color={BLUE} emissive={BLUE} emissiveIntensity={1.5} /></mesh>
-        <mesh position={[0, -0.25, 0.352]}><planeGeometry args={[0.7, 0.04]} /><meshStandardMaterial color="#3a3a3e" /></mesh>
+        <RoundedBox args={[2.4, 1.8, 0.7]} radius={0.12} smoothness={4}><meshStandardMaterial color="#1b1b1d" roughness={0.35} metalness={0.3} /></RoundedBox>
+        <mesh position={[0, 0.901, 0]}><boxGeometry args={[2.15, 0.004, 0.09]} /><meshStandardMaterial color="#000" /></mesh>
+        <mesh ref={led} position={[0.85, 0.5, 0.36]}><sphereGeometry args={[0.07, 24, 24]} /><meshStandardMaterial color={BLUE} emissive={BLUE} emissiveIntensity={1.5} /></mesh>
+        <mesh position={[0, -0.3, 0.352]}><planeGeometry args={[1.6, 0.04]} /><meshStandardMaterial color="#3a3a3e" /></mesh>
       </group>
-      <ContactShadows position={[0, -2.15, 0]} opacity={0.3} scale={7} blur={2.8} far={3} resolution={256} color="#000" />
+      <ContactShadows position={[0, -2.3, 0]} opacity={0.3} scale={7} blur={2.8} far={3} resolution={256} color="#000" />
     </group>
   )
 }

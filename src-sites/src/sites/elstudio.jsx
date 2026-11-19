@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { motion, useScroll, useSpring, useInView, AnimatePresence, MotionConfig } from 'framer-motion'
-import { ArrowRight, Phone, MapPin, Clock, Star, Plus, Minus, Check, Eye, Accessibility, Percent, TrainFront, Footprints, DoorOpen, Sun, Sparkles, Waves, Wind, Droplets, MessageCircle } from 'lucide-react'
+import { ArrowRight, Phone, MapPin, Clock, Star, Plus, Minus, Check, Eye, Accessibility, Percent, TrainFront, Footprints, DoorOpen, Sun, Sparkles, WavesHorizontal, Wind, Droplets, MessageCircle } from 'lucide-react'
 import '../lib/base.css'
 import { useSmooth, Ribbon, Reveal, useBooking, phoneFocus, CheckDraw, MapFrame, CallBar, tel, useLite, IG } from '../lib/kit'
 
@@ -90,7 +90,7 @@ function Hero({ lite, hc }) {
 /* ---------------- concern matcher ---------------- */
 const CONCERNS = [
   { k: 'Тусклая кожа', I: Sun, dir: ['Фракционная мезотерапия', 'Уходовые процедуры для лица'], note: 'Когда коже не хватает свежести и ровного тона, косметолог может предложить курс мезотерапии или уходовые процедуры — после осмотра кожи.' },
-  { k: 'Морщины', I: Waves, dir: ['Фракционная мезотерапия', 'Уход и рекомендации для дома'], note: 'Подход зависит от типа морщин и состояния кожи. На консультации косметолог объяснит, какой результат реально ожидать.' },
+  { k: 'Морщины', I: WavesHorizontal, dir: ['Фракционная мезотерапия', 'Уход и рекомендации для дома'], note: 'Подход зависит от типа морщин и состояния кожи. На консультации косметолог объяснит, какой результат реально ожидать.' },
   { k: 'Пигментация', I: Droplets, dir: ['Подбор процедуры после осмотра', 'Домашний уход и защита от солнца'], note: 'Пигментация бывает разной природы, поэтому процедуру подбирают только после осмотра. Иногда специалист может порекомендовать сначала обратиться к дерматологу.' },
   { k: 'Выпадение волос', I: Wind, dir: ['Консультация: процедуры для кожи головы'], note: 'На консультации обсудим, подходят ли вам процедуры для кожи головы. Если выпадение сильное или внезапное, специалист порекомендует обратиться к врачу.' },
   { k: 'Хочу кудри', I: Sparkles, dir: ['Биозавивка'], note: 'Биозавивка помогает получить локоны или мягкую волну. Мастер оценит состояние волос и подскажет, какой вариант подойдёт.' },

@@ -86,7 +86,7 @@ function Lotus({ progress }) {
         <mesh><cylinderGeometry args={[0.24, 0.17, 0.2, 32]} /><meshStandardMaterial color="#e7c552" roughness={0.5} /></mesh>
         {stamens.map(([x, z], i) => <mesh key={i} position={[x, 0.12, z]}><sphereGeometry args={[0.035, 10, 8]} /><meshStandardMaterial color="#f2d36b" roughness={0.4} /></mesh>)}
       </group>
-      <Pad pos={[0, -0.02, 0]} s={1.9} rot={0.4} />
+      <Pad pos={[0, -0.02, 0]} s={1.35} rot={0.4} />
       <Pad pos={[-2.3, -0.06, 0.9]} s={1.0} rot={2.2} />
       <Pad pos={[1.9, -0.05, -1.4]} s={0.8} rot={4.1} />
       <ContactShadows position={[0, -0.08, 0]} opacity={0.25} scale={7} blur={2.8} far={2} resolution={256} color="#1f4747" />

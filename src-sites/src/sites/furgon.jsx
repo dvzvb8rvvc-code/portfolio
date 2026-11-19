@@ -105,7 +105,7 @@ function Film({ lite }) {
             <a href="#fleet" className="inline-flex h-12 items-center gap-2 rounded-md bg-white px-6 text-[16px] font-medium text-black hover:bg-white/85">Заявка для компании <ArrowRight size={17} /></a>
             <a href={'tel:' + tel(b.phone)} className={`${M} inline-flex h-12 items-center gap-2 rounded-md border border-white/20 bg-black/60 px-5 text-[14px] hover:bg-white/10`}><Phone size={15} />{b.phone}</a>
           </div>
-          <a href="#rating" className={`${M} mt-6 inline-flex items-center gap-3 text-[13px] text-[#a1a1a1] hover:text-white`}><span className="text-[15px] text-white">★ {b.rating}</span><span className="h-3 w-px bg-white/20" />{b.rev} оценки на Яндекс Картах</a>
+          <a href="#rating" className={`${M} mt-6 inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/80 px-3 py-1.5 text-[13px] text-[#a1a1a1] hover:text-white`}><span className="text-[15px] text-white">★ {b.rating}</span><span className="h-3 w-px bg-white/20" />{b.rev} оценки на Яндекс Картах</a>
         </motion.div>
         {CH.map(c => <Chapter key={c.n} p={p} c={c} />)}
         <motion.div style={{ opacity: hudO }} className={`${M} absolute bottom-[86px] left-5 right-5 z-[3] flex items-end justify-between gap-6 text-[12px] text-[#a1a1a1] md:bottom-6 md:left-8 md:right-8`}>
