@@ -53,8 +53,8 @@ function Hero({ lite }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const sp = useSpring(scrollYProgress, { stiffness: 70, damping: 22, mass: 0.5 })
   const near = useInView(ref, { margin: '200px 0px' })
-  const sky = useTransform(sp, [0, 0.33, 0.66, 1], ['#fbe9e3', '#ece5fb', '#e1ecfb', '#f8f1ea'])
-  const sky2 = useTransform(sp, [0, 0.33, 0.66, 1], ['#f3e6fb', '#f9e4ee', '#ece8fb', '#efe6fa'])
+  const sky = useTransform(sp, [0, 0.33, 0.66, 1], ['#f6c9bb', '#cfc1f4', '#b9d3f5', '#f3d3c4'])
+  const sky2 = useTransform(sp, [0, 0.33, 0.66, 1], ['#e3d3f6', '#f2d3e4', '#dcd6f7', '#e6d6f4'])
   const bg = useMotionTemplate`linear-gradient(180deg, ${sky2} 0%, ${sky} 100%)`
   const heroO = useTransform(sp, [0, 0.1], [1, 0])
   const heroS = useTransform(sp, [0, 0.1], [1, 0.96])
@@ -69,7 +69,7 @@ function Hero({ lite }) {
             </div>
           ) : near && <Suspense fallback={null}><CloudScene progress={sp} active={near} count={mob ? 30 : 64} /></Suspense>}
         </div>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(42% 38% at 50% 50%, rgba(255,255,255,.55), rgba(255,255,255,0) 70%)' }} />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(42% 38% at 50% 50%, rgba(255,255,255,.7), rgba(255,255,255,0) 72%)' }} />
         <motion.div style={{ opacity: heroO, scale: heroS, pointerEvents: heroPE }} className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center">
           <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[15px] font-extrabold uppercase tracking-[.16em]" style={{ color: VIO_D }}>
             <span>Студия красоты</span><span aria-hidden="true">·</span><span>{b.district}, {b.addr}</span>

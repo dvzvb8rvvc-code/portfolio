@@ -30,8 +30,8 @@ const vert = noise + /* glsl */`
 uniform float uTime, uRough;
 varying vec3 vN; varying vec3 vV; varying vec3 vP;
 float f(vec3 p){
-  float soft = snoise(p * 1.8 + vec3(0.0, uTime * 0.06, 0.0)) * 0.06;
-  float ridge = (1.0 - abs(snoise(p * vec3(3.0, 9.0, 3.0)))) * 0.045;
+  float soft = snoise(p * 1.8 + vec3(0.0, uTime * 0.06, 0.0)) * 0.035;
+  float ridge = (1.0 - abs(snoise(p * vec3(3.0, 9.0, 3.0)))) * 0.02;
   return soft * (0.4 + uRough) + ridge * uRough;
 }
 vec3 disp(vec3 p){ vec3 n = normalize(p); return n * (1.0 + f(n)); }
@@ -55,7 +55,7 @@ varying vec3 vN; varying vec3 vV; varying vec3 vP;
 void main(){
   vec3 N = normalize(vN), V = normalize(vV);
   vec3 L = normalize(vec3(-0.4, 0.75, 0.55));
-  float dif = 0.5 + 0.5 * max(dot(N, L), 0.0);
+  float dif = 0.72 + 0.32 * max(dot(N, L), 0.0);
   vec3 col = mix(cA, cB, smoothstep(-0.8, 0.9, vP.y));
   float sp = smoothstep(0.45, 0.75, snoise(vP * 4.2)) * uSpots;
   col = mix(col, col * vec3(0.78, 0.66, 0.58), sp * 0.6);
@@ -71,13 +71,13 @@ function Orb({ progress }) {
   const { size } = useThree()
   const mat = useMemo(() => new THREE.ShaderMaterial({
     vertexShader: vert, fragmentShader: frag,
-    uniforms: { uTime: { value: 0 }, uRough: { value: 1 }, uSpots: { value: 1 }, cA: { value: new THREE.Color('#e6c9b5') }, cB: { value: new THREE.Color('#f6e8dc') }, cRim: { value: new THREE.Color('#bcd6cb') } },
+    uniforms: { uTime: { value: 0 }, uRough: { value: 1 }, uSpots: { value: 1 }, cA: { value: new THREE.Color('#efd8c8') }, cB: { value: new THREE.Color('#fbf1e9') }, cRim: { value: new THREE.Color('#bcd6cb') } },
   }), [])
   const geo = useMemo(() => new THREE.IcosahedronGeometry(1, 20), [])
   useFrame((s, dt) => {
     const t = s.clock.elapsedTime, p = progress ? progress.get() : 0
-    const k = Math.min(1, Math.max(0, t / 5)), e = k * k * (3 - 2 * k)
-    const target = (0.95 - 0.6 * e) * (1 - p)
+    const k = Math.min(1, Math.max(0, t / 3)), e = k * k * (3 - 2 * k)
+    const target = (0.8 - 0.6 * e) * (1 - p)
     const u = mat.uniforms
     u.uTime.value = t
     u.uRough.value += (target - u.uRough.value) * Math.min(1, dt * 3)

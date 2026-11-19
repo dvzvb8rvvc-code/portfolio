@@ -10,7 +10,7 @@ function puffTexture() {
   const W = 256, c = document.createElement('canvas'); c.width = c.height = W
   const g = c.getContext('2d')
   const blob = (x, y, r, a) => { const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(255,255,255,${a})`); gr.addColorStop(0.55, `rgba(255,255,255,${a * 0.55})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill() }
-  for (let i = 0; i < 26; i++) { const a = rnd() * Math.PI * 2, d = Math.sqrt(rnd()) * 62; blob(128 + Math.cos(a) * d * 1.25, 140 + Math.sin(a) * d * 0.6, 34 + rnd() * 34, 0.22 + rnd() * 0.2) }
+  for (let i = 0; i < 26; i++) { const a = rnd() * Math.PI * 2, d = Math.sqrt(rnd()) * 62; blob(128 + Math.cos(a) * d * 1.25, 140 + Math.sin(a) * d * 0.6, 34 + rnd() * 34, 0.36 + rnd() * 0.26) }
   // flatter, slightly shaded base
   g.globalCompositeOperation = 'destination-out'
   const fade = g.createLinearGradient(0, 150, 0, 256); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, 'rgba(0,0,0,.55)')

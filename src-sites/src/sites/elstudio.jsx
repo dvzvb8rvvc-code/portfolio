@@ -75,11 +75,11 @@ function Hero({ lite, hc }) {
           </ul>
         </div>
         <div className="order-1 lg:order-2">
-          <div className="relative mx-auto aspect-square w-full max-w-[20rem] sm:max-w-[26rem] lg:max-w-[34rem]">
+          <div className="relative mx-auto aspect-square w-full max-w-[13rem] sm:max-w-[26rem] lg:max-w-[34rem]">
             {!hc && <div aria-hidden="true" className="absolute inset-[6%] rounded-full" style={{ background: 'radial-gradient(circle at 40% 35%, #fbf1e8 0%, #ead3c2 55%, #d9bba6 100%)', boxShadow: '0 50px 90px -50px rgba(60,40,30,.55)' }} />}
             {hc && <div aria-hidden="true" className="absolute inset-[10%] rounded-full border-4 border-black" />}
             {!lite && !hc && near && <div className="absolute inset-0"><Suspense fallback={null}><SkinOrb progress={sp} active={near} /></Suspense></div>}
-            <p className={`${SERIF} e-ink absolute bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap text-[1.0625rem] italic`}>кожа — в центре внимания</p>
+            <p className={`${SERIF} e-ink absolute bottom-1 hidden sm:block left-1/2 -translate-x-1/2 whitespace-nowrap text-[1.0625rem] italic`}>кожа — в центре внимания</p>
           </div>
         </div>
       </div>

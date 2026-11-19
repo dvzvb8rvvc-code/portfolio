@@ -28,15 +28,15 @@ function Field({ progress, count }) {
       const r = rnd()
       return {
         x: -W / 2 + (cx + 0.5 + (rnd() - .5) * 0.6) * (W / cols), z: -D / 2 + (cz + 0.5 + (rnd() - .5) * 0.6) * (D / rows),
-        h: 0.22 + rnd() * 0.25, tilt: (rnd() - .5) * 0.5, tz: (rnd() - .5) * 0.3,
+        h: 0.07 + rnd() * 0.12, tilt: (rnd() - .5) * 0.5, tz: (rnd() - .5) * 0.3,
         phase: r < 0.38 ? 0 : r < 0.72 ? 1 : 2, // 0 active now, 1 active next, 2 resting
       }
     })
   }, [count])
   const n = hairs.length
-  const hGeo = useMemo(() => { const g = new THREE.CylinderGeometry(0.009, 0.014, 1, 5, 1); g.translate(0, 0.5, 0); return g }, [])
+  const hGeo = useMemo(() => { const g = new THREE.CylinderGeometry(0.006, 0.011, 1, 5, 1); g.translate(0, 0.5, 0); return g }, [])
   const bGeo = useMemo(() => new THREE.SphereGeometry(0.035, 10, 8), [])
-  const hMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#3a2a22', roughness: 0.6 }), [])
+  const hMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#5a4034', roughness: 0.6 }), [])
   const bMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.4, emissive: '#ffffff', emissiveIntensity: 0.0 }), [])
   const tex = useMemo(glowTex, [])
   const dummy = useMemo(() => new THREE.Object3D(), [])
@@ -89,9 +89,9 @@ function Field({ progress, count }) {
   return (
     <group ref={grp}>
       {/* skin surface */}
-      <mesh position={[0, -0.006, 0]} rotation-x={-Math.PI / 2}><planeGeometry args={[W, D]} /><meshStandardMaterial color="#ecd0bd" roughness={0.75} /></mesh>
+      <mesh position={[0, -0.006, 0]} rotation-x={-Math.PI / 2}><planeGeometry args={[W, D]} /><meshStandardMaterial color="#f2d5c4" roughness={0.75} /></mesh>
       {/* translucent dermis */}
-      <mesh position={[0, -TH / 2 - 0.01, 0]}><boxGeometry args={[W, TH, D]} /><meshStandardMaterial color="#f3c9b5" roughness={0.9} transparent opacity={0.45} depthWrite={false} /></mesh>
+      <mesh position={[0, -TH / 2 - 0.01, 0]}><boxGeometry args={[W, TH, D]} /><meshStandardMaterial color="#f6cdb9" roughness={0.9} transparent opacity={0.5} depthWrite={false} /></mesh>
       <mesh position={[0, -0.04, D / 2 + 0.001]}><planeGeometry args={[W, 0.06]} /><meshStandardMaterial color="#d9a58e" /></mesh>
       <instancedMesh ref={hair} args={[hGeo, hMat, n]} frustumCulled={false} />
       <instancedMesh ref={bulb} args={[bGeo, bMat, n]} frustumCulled={false} />
@@ -102,7 +102,7 @@ function Field({ progress, count }) {
 
 export default function FollicleScene({ progress, active, count = 300 }) {
   return (
-    <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, 1.6]} camera={{ position: [0, 1.55, 3.7], fov: 34 }} gl={{ antialias: true, alpha: true }} style={{ pointerEvents: 'none' }}
+    <Canvas flat frameloop={active ? 'always' : 'never'} dpr={[1, 1.6]} camera={{ position: [0, 1.55, 3.7], fov: 34 }} gl={{ antialias: true, alpha: true }} style={{ pointerEvents: 'none' }}
       onCreated={({ camera }) => camera.lookAt(0, -0.2, 0)}>
       <ambientLight intensity={0.35} />
       <Environment resolution={64}>
