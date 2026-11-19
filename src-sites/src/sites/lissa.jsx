@@ -516,7 +516,7 @@ function Header() {
       <div className="mx-auto flex h-[64px] max-w-[1320px] items-center justify-between gap-4 px-4 md:h-[72px] md:px-10">
         <a href="#top" className="flex min-w-0 items-baseline gap-3" aria-label="Lissa — наверх">
           <span className={`${DISP} text-[28px] font-light tracking-[-0.04em]`}>lissa<span style={{ color: TEAL }}>.</span></span>
-          <span className="hidden truncate text-[13px] font-semibold uppercase tracking-[.14em] text-[#1c2024]/55 sm:block">салон красоты · Сухарево</span>
+          <span className="hidden truncate text-[13px] font-semibold uppercase tracking-[.14em] text-[#1c2024]/55 2xl:block">салон красоты · Сухарево</span>
         </a>
         <nav className="hidden items-center gap-0.5 xl:flex" aria-label="Разделы">
           {NAV.map(([h, t]) => <a key={h} href={h} aria-current={active === h ? 'true' : undefined} className={`whitespace-nowrap rounded-full px-3.5 py-2 text-[16px] font-medium transition-colors ${active === h ? 'bg-[#d7ebe8] text-[#0e6b68]' : 'hover:bg-[#1c2024]/[.05]'}`}>{t}</a>)}

@@ -40,7 +40,7 @@ function A11yToggle({ on, set, compact }) {
   return (
     <button type="button" aria-pressed={on} onClick={() => set(!on)}
       className={`inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border-2 px-3.5 text-[0.9375rem] font-semibold transition-colors ${on ? 'e-on' : 'e-ink border-[color:var(--ink)]'}`}>
-      <Eye size={18} aria-hidden="true" />{compact ? <span>{on ? 'Обычная версия' : 'Крупный текст'}</span> : <span>{on ? 'Обычная версия' : 'Версия для слабовидящих'}</span>}
+      <Eye size={18} aria-hidden="true" />{compact ? <span>{on ? 'Обычный' : 'Крупный текст'}</span> : <span>{on ? 'Обычная версия' : 'Версия для слабовидящих'}</span>}
     </button>
   )
 }
@@ -55,7 +55,7 @@ function Hero({ lite, hc }) {
   return (
     <section ref={ref} id="top" className="e-bg relative overflow-hidden px-5 pb-16 pt-10 md:px-10 md:pb-24 md:pt-16">
       <div className="mx-auto grid max-w-[80rem] items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="order-2 lg:order-1">
+        <div className={hc ? "lg:col-span-2" : ""}>
           <Kicker>Косметология и салон · Малиновка</Kicker>
           <h1 className={`${SERIF} e-ink mt-4 text-[clamp(2.6rem,1.6rem+4vw,5.4rem)] font-medium leading-[1.02] tracking-[-0.02em]`}>
             <motion.span className="block" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}>Косметолог</motion.span>
@@ -74,14 +74,14 @@ function Hero({ lite, hc }) {
             {facts.map(([I, t]) => <li key={t} className="e-card flex items-start gap-3 rounded-2xl p-4 text-[1rem] font-medium leading-snug"><span className="e-soft e-acc grid h-9 w-9 shrink-0 place-items-center rounded-full"><I size={18} aria-hidden="true" /></span><span className="e-ink">{t}</span></li>)}
           </ul>
         </div>
-        <div className="order-1 lg:order-2">
-          <div className="relative mx-auto aspect-square w-full max-w-[13rem] sm:max-w-[26rem] lg:max-w-[34rem]">
+        {!hc && <div>
+          <div className="relative mx-auto aspect-square w-full max-w-[16rem] sm:max-w-[26rem] lg:max-w-[34rem]">
             {!hc && <div aria-hidden="true" className="absolute inset-[6%] rounded-full" style={{ background: 'radial-gradient(circle at 40% 35%, #fbf1e8 0%, #ead3c2 55%, #d9bba6 100%)', boxShadow: '0 50px 90px -50px rgba(60,40,30,.55)' }} />}
             {hc && <div aria-hidden="true" className="absolute inset-[10%] rounded-full border-4 border-black" />}
             {!lite && !hc && near && <div className="absolute inset-0"><Suspense fallback={null}><SkinOrb progress={sp} active={near} /></Suspense></div>}
-            <p className={`${SERIF} e-ink absolute bottom-1 hidden sm:block left-1/2 -translate-x-1/2 whitespace-nowrap text-[1.0625rem] italic`}>кожа — в центре внимания</p>
+            <p className={`${SERIF} e-ink absolute bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap text-[1.0625rem] italic`}>кожа — в центре внимания</p>
           </div>
-        </div>
+        </div>}
       </div>
     </section>
   )
@@ -424,11 +424,11 @@ function Header({ hc, setHc }) {
   return (
     <header className="e-bg e-line sticky top-0 z-50 border-b">
       <div className="mx-auto flex min-h-[4.5rem] max-w-[86rem] items-center justify-between gap-3 px-4 py-2 md:px-10">
-        <a href="#top" className="min-w-0 leading-none" aria-label="ELstudio — наверх">
+        <a href="#top" className="shrink-0 leading-none" aria-label="ELstudio — наверх">
           <span className={`${SERIF} e-ink block text-[1.625rem] font-medium tracking-[-0.01em]`}>EL<span className="e-acc italic">studio</span></span>
-          <span className="e-mut mt-1 block truncate text-[0.8125rem] font-semibold uppercase tracking-[.1em]">Малиновка</span>
+          <span className="e-mut mt-1 block text-[0.8125rem] font-semibold uppercase tracking-[.1em]">Малиновка</span>
         </a>
-        <nav className="hidden items-center gap-1 xl:flex" aria-label="Разделы">
+        <nav className={`hidden items-center gap-1 ${hc ? '2xl:flex' : 'xl:flex'}`} aria-label="Разделы">
           {NAV.map(([h, t]) => <a key={h} href={h} aria-current={active === h ? 'true' : undefined} className={`rounded-full px-4 py-2 text-[1rem] font-medium ${active === h ? 'e-on' : 'e-ink hover:bg-[color:var(--bg2)]'}`}>{t}</a>)}
         </nav>
         <div className="flex shrink-0 items-center gap-2">
