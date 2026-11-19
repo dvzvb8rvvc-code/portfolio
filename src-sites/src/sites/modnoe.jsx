@@ -92,7 +92,7 @@ function Film({ lite }) {
   const heroO = useTransform(p, [0, 0.09], [1, 0])
   const heroPE = useTransform(p, v => (v < 0.05 ? 'auto' : 'none'))
   const stageY = useTransform(p, [0, 0.1], [mob ? '24vh' : '0vh', '0vh'])
-  const page = useTransform(p, [0, 0.12, 0.32, 0.52, 0.72, 0.9], ['01', '01', '03', '05', '07', '09'])
+  const page = useTransform(p, v => ['01', '03', '05', '07', '09'][Math.max(0, Math.min(4, Math.floor((v - 0.12) / 0.2) + 1))])
   const hudO = useTransform(p, [0.05, 0.1], [0, 1])
   return (
     <section ref={ref} id="top" className="relative h-[300vh] bg-[#f1e6d2]">
