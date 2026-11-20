@@ -163,8 +163,8 @@ export default function Contact() {
         <div aria-hidden className="absolute inset-0">
           {near && !lite && <Suspense fallback={null}><Lake3D active={vis} mobile={mobile} /></Suspense>}
           {lite && <img src={img(129)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover [filter:brightness(.55)_saturate(.7)_hue-rotate(-8deg)]" />}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,22,29,.55)_0%,rgba(20,22,29,0)_30%,rgba(20,22,29,0)_60%,rgba(20,22,29,.85)_100%)]" />
-          <div className="absolute inset-y-0 left-0 hidden w-[55%] bg-gradient-to-r from-[#14161d]/75 to-transparent lg:block" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,22,29,.35)_0%,rgba(20,22,29,0)_25%,rgba(20,22,29,0)_70%,rgba(20,22,29,.8)_100%)]" />
+          <div className="absolute inset-y-0 left-0 hidden w-[50%] bg-gradient-to-r from-[#14161d]/60 to-transparent lg:block" />
         </div>
         <div className="relative mx-auto grid max-w-[1440px] gap-12 px-5 py-20 md:px-10 md:py-28 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">

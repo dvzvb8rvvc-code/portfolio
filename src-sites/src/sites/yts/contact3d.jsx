@@ -23,24 +23,27 @@ float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); 
 void main(){
   vec3 c = texture2D(uMap, vUv).rgb;
   float l = dot(c, vec3(.299,.587,.114));
-  vec3 shadow = vec3(.10,.14,.24), mid = vec3(.42,.42,.52), hi = vec3(1.,.74,.52);
-  vec3 g = l < .5 ? mix(shadow, mid, l * 2.) : mix(mid, hi, (l - .5) * 2.);
-  vec3 col = mix(c, g * (.55 + l * .6), uDusk);
-  // afterglow on sky & far ridges
-  float far = 1. - smoothstep(.05, .3, vD);
-  col += vec3(.85,.45,.25) * far * smoothstep(.45, 1., vUv.y) * .35 * uDusk;
-  // haze by depth
-  col = mix(col, vec3(.32,.33,.45), far * .28 * uDusk);
+  float l2 = smoothstep(.04, .96, l);
+  vec3 g = mix(vec3(.025,.04,.09), vec3(.3,.34,.48), smoothstep(0., .6, l2));
+  g = mix(g, vec3(1.,.68,.45), smoothstep(.6, 1., l2) * .85);
+  vec3 col = mix(c, g, uDusk);
+  float far = 1. - smoothstep(.04, .22, vD);
+  // sky: afterglow at the horizon → deep blue at the top
+  float skyM = (1. - smoothstep(.02, .07, vD)) * smoothstep(.72, .86, vUv.y);
+  vec3 skyC = mix(vec3(1.,.5,.26), vec3(.1,.13,.3), smoothstep(.84, 1., vUv.y));
+  col = mix(col, skyC * (.55 + l * .7), skyM * uDusk);
+  // far ridges catch the glow, water mirrors it
+  col += vec3(.8,.38,.2) * far * (1. - skyM) * smoothstep(.5, .85, vUv.y) * .22 * uDusk;
   // near foliage goes to silhouette
-  col *= mix(1., .55, smoothstep(.5, .9, vD) * uDusk);
+  col *= mix(1., .38, smoothstep(.45, .85, vD) * uDusk);
   // village lights on the mid-distance slopes
   vec2 cell = floor(vUv * vec2(420., 160.));
   float r = hash(cell);
   vec2 f = fract(vUv * vec2(420., 160.)) - .5;
   float band = smoothstep(.12, .2, vD) * (1. - smoothstep(.42, .55, vD)) * (1. - smoothstep(.62, .7, vUv.y));
   float tw = .65 + .35 * sin(uT * (1. + r * 3.) + r * 40.);
-  float light = step(.984, r) * band * smoothstep(.22, 0., length(f)) * tw;
-  col += vec3(1., .72, .4) * light * 1.6 * uDusk;
+  float light = step(.975, r) * band * smoothstep(.3, 0., length(f)) * tw;
+  col += vec3(1., .72, .4) * light * 2.6 * uDusk;
   // vignette
   vec2 q = vUv - .5; col *= 1. - dot(q, q) * .9;
   gl_FragColor = vec4(col, 1.);

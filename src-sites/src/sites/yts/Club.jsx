@@ -72,7 +72,7 @@ export default function Club() {
       <div ref={host} className="sticky top-0 h-[100svh] touch-pan-y overflow-hidden">
         {near && <Suspense fallback={null}><Sea3D progress={scrollYProgress} active={vis} mobile={mobile} lite={lite} host={host} /></Suspense>}
         {/* giant word sits on the horizon */}
-        <motion.div aria-hidden style={{ x: bigX }} className="pointer-events-none absolute left-0 top-[24%] select-none whitespace-nowrap text-[30vw] font-black uppercase leading-[.8] tracking-[-.06em] text-[#ece7df]/[.05] mix-blend-plus-lighter md:top-[14%] md:text-[22vw]">Club · Vela · Vino</motion.div>
+        <motion.div aria-hidden style={{ x: bigX }} className="pointer-events-none absolute left-0 top-[24%] select-none whitespace-nowrap text-[30vw] font-black uppercase leading-[.8] tracking-[-.06em] text-[#ece7df]/[.035] md:top-[14%] md:text-[22vw]">Club · Vela · Vino</motion.div>
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-[#06101a]/80 to-transparent" />
         <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-[#04080d]/85 to-transparent" />
 
@@ -93,7 +93,7 @@ export default function Club() {
               <div className="flex items-center gap-4 text-[12px] font-semibold tabular-nums text-[#ece7df]/55">
                 <span className="text-[#e9a25c]">{pad(i + 1)}</span><span className="h-px w-16 overflow-hidden bg-[#ece7df]/20"><motion.span style={{ scaleX: bar }} className="block h-full origin-left bg-[#e9a25c]" /></span><span>{pad(CLUB.items.length)}</span>
               </div>
-              <div className="relative mt-3 h-[1.9em] text-[15vw] leading-[.92] md:h-[1.05em] md:text-[8.4vw] 2xl:text-[120px]">
+              <div className="relative mt-3 h-[1.9em] text-[15vw] leading-[.92] md:h-[1.05em] md:whitespace-nowrap md:text-[6.4vw] 2xl:text-[96px]">
                 <AnimatePresence mode="popLayout" initial={false}>
                   <motion.div key={i} className={`${T.serif} absolute inset-x-0 bottom-0`} initial={{ y: '60%', opacity: 0, filter: 'blur(10px)' }} animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }} exit={{ y: '-50%', opacity: 0, filter: 'blur(8px)' }} transition={{ duration: .9, ease: EASE }}>
                     {t(it.t).split(' ').map((w, k) => <span key={k} className={k % 2 ? 'italic text-[#e9a25c]' : ''}>{w} </span>)}

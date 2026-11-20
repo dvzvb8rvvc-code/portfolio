@@ -167,7 +167,7 @@ function Hud({ hover, filter, list }) {
   )
 }
 
-function Stage({ filter, setFilter, list, onOpen }) {
+function Stage({ filter, setFilter, list, onOpen, lbOpen, mobile }) {
   const { t } = useLang()
   const ref = useRef(null), stageRef = useRef(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
@@ -177,44 +177,40 @@ function Stage({ filter, setFilter, list, onOpen }) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => { if (near) setMounted(true) }, [near])
   const [hover, setHover] = useState(null)
+  const [flying, setFlying] = useState(false)
   const drag = useRef({ down: false, x: 0, sx: 0, moved: false, offset: 0, target: 0 })
   const x1 = useTransform(scrollYProgress, [0, 1], ['8%', '-22%'])
-  const x2 = useTransform(scrollYProgress, [0, 1], ['-18%', '6%'])
   const bar = useTransform(scrollYProgress, [0, 1], [0, 1])
   const skip = () => { const el = document.getElementById('works-after'); if (el) window.__lenis ? window.__lenis.scrollTo(el, { offset: -70 }) : el.scrollIntoView() }
   const openIt = useCallback(it => { const i = list.findIndex(x => x.id === it.id); if (i >= 0) onOpen(i) }, [list, onOpen])
   return (
-    <div ref={ref} className="relative h-[290vh]">
+    <div ref={ref} className="relative h-[220vh] md:h-[300vh]">
       <div ref={stageRef} className="sticky top-0 h-screen overflow-hidden bg-[#151412] text-[#ece7df]"
         style={{ touchAction: 'pan-y' }}
         onPointerDown={e => { const d = drag.current; d.down = true; d.x = d.sx = e.clientX; d.moved = false }}
         onPointerMove={e => { const d = drag.current; if (!d.down) return; d.target -= (e.clientX - d.x) * 0.0042; d.x = e.clientX; if (Math.abs(e.clientX - d.sx) > 6) d.moved = true }}
         onPointerUp={() => { drag.current.down = false }} onPointerLeave={() => { drag.current.down = false }}>
-        {/* giant kinetic type behind the rotunda */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 flex select-none flex-col justify-center overflow-hidden">
-          <motion.div style={{ x: x2 }} className={`${T.serif} mt-[2vw] whitespace-nowrap pl-[30vw] text-[15vw] italic leading-[.8] text-[#ece7df]/[.07]`}>{t({ en: 'sketch · render · site', it: 'schizzo · render · cantiere' })}</motion.div>
-        </div>
         {mounted && (
           <Suspense fallback={null}>
-            <WorksWall items={ITEMS} filter={filter} progress={progress} dragState={drag} onHover={setHover} onOpen={openIt} active={active} />
+            <WorksWall items={ITEMS} filter={filter} progress={progress} dragState={drag} onHover={setHover} onOpen={openIt} active={active} lbOpen={lbOpen} onFly={setFlying} mobile={mobile} />
           </Suspense>
         )}
         {/* the big word passes over the wall, inverting what it crosses */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[50%] -translate-y-1/2 select-none overflow-hidden mix-blend-difference">
+        <div aria-hidden className={`pointer-events-none absolute inset-x-0 top-[50%] -translate-y-1/2 select-none overflow-hidden mix-blend-difference transition-opacity duration-500 ${flying ? 'opacity-0' : ''}`}>
           <motion.div style={{ x: x1, WebkitTextStroke: '1.5px rgba(236,231,223,.75)' }} className="whitespace-nowrap text-[21vw] font-black uppercase leading-[.82] tracking-[-.05em] text-transparent">{t({ en: 'The lineup.', it: 'La rassegna.' })}</motion.div>
         </div>
         {/* top bar */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-[#151412] via-[#151412]/70 to-transparent pb-10 pt-20">
-          <div className="mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 md:px-10">
+        <div className={`pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-[#151412] via-[#151412]/70 to-transparent pb-10 pt-20 transition-opacity duration-500 ${flying ? 'opacity-0' : ''}`}>
+          <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-5 md:flex-row md:items-end md:justify-between md:gap-6 md:px-10">
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[.22em] text-[#c3a15e]">{t({ en: '04 — Works', it: '04 — Progetti' })}</div>
               <h2 className={`${T.serif} mt-2 text-[44px] leading-[.95] lg:text-[56px]`}>{t({ en: 'The archive, ', it: 'L’archivio, ' })}<em className="text-[#ece7df]/55">{t({ en: 'in the round.', it: 'a tutto tondo.' })}</em></h2>
             </div>
-            <div className="pointer-events-auto"><Tabs filter={filter} setFilter={setFilter} dark /></div>
+            <div className="pointer-events-auto -mx-5 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:px-0"><Tabs filter={filter} setFilter={setFilter} dark /></div>
           </div>
         </div>
         {/* bottom bar */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#151412] via-[#151412]/70 to-transparent pb-7 pt-14">
+        <div className={`pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#151412]/90 via-[#151412]/30 to-transparent pb-7 pt-14 transition-opacity duration-500 ${flying ? 'opacity-0' : ''}`}>
           <div className="mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 md:px-10">
             <Hud hover={hover} filter={filter} list={list} />
             <div className="pointer-events-auto flex items-center gap-5">
@@ -260,7 +256,7 @@ export default function Works() {
   const [filter, setFilter] = useState('all')
   const [index, setIndex] = useState(null)
   const list = useMemo(() => ITEMS.filter(it => filter === 'all' || it.kind === filter), [filter])
-  const simple = lite || mobile
+  const simple = lite
   return (
     <section id="works" className={`relative bg-[#151412] text-[#ece7df] ${T.sans}`}>
       {simple ? (
@@ -273,7 +269,7 @@ export default function Works() {
           <div className="mt-2 text-[11px] uppercase tracking-[.18em] text-[#ece7df]/45">{t({ en: 'Swipe sideways · tap to open', it: 'Scorri di lato · tocca per aprire' })}</div>
         </div>
       ) : (
-        <Stage filter={filter} setFilter={setFilter} list={list} onOpen={setIndex} />
+        <Stage filter={filter} setFilter={setFilter} list={list} onOpen={setIndex} lbOpen={index !== null} mobile={mobile} />
       )}
       <div id="works-after" className="bg-[#ece7df] text-[#151412]">
         <div className="mx-auto max-w-[1440px] px-5 py-24 md:px-10 md:py-32"><IsraelList /></div>

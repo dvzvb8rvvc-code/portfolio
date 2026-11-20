@@ -14,8 +14,8 @@ const SKY = /* glsl */`
 uniform float uNight; uniform vec3 uGlowDir;
 vec3 sky(vec3 d){
   float h = clamp(d.y, -0.2, 1.);
-  vec3 top = mix(vec3(.05,.1,.2), vec3(.02,.04,.09), uNight);
-  vec3 hor = mix(vec3(.36,.47,.6), vec3(.12,.18,.3), uNight);
+  vec3 top = mix(vec3(.05,.1,.2), vec3(.008,.015,.04), uNight);
+  vec3 hor = mix(vec3(.36,.47,.6), vec3(.07,.1,.19), uNight);
   vec3 c = mix(hor, top, pow(clamp(h * 2.2, 0., 1.), .6));
   float g = pow(max(dot(normalize(vec3(d.x, 0., d.z)), uGlowDir), 0.), 6.) * exp(-max(h, 0.) * 9.);
   c += vec3(1., .55, .3) * g * mix(.95, .35, uNight);

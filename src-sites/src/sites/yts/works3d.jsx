@@ -69,8 +69,8 @@ void main(){
   vec2 e = min(vUv, 1. - vUv);
   float edge = step(min(e.x * uPlaneA, e.y), .006) * uHover * (1. - uFly);
   col = mix(col, vec3(1.2,.95,.55), edge);
-  gl_FragColor = vec4(col, uAlpha);
-  #include <tonemapping_fragment>
+  gl_FragColor = vec4(pow(max(col, 0.), vec3(2.2)), uAlpha);
+  #include <colorspace_fragment>
 }`
 
 const blank = (() => { const t = new THREE.DataTexture(new Uint8Array([30, 29, 27, 255]), 1, 1); t.needsUpdate = true; return t })()

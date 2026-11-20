@@ -1,441 +1,496 @@
-import React, { useMemo, useRef, useLayoutEffect } from 'react'
+import React, { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Environment, Lightformer, Html, Line } from '@react-three/drei'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { Html, Line, MeshReflectorMaterial } from '@react-three/drei'
+import { EffectComposer, Bloom, Vignette, Noise, ToneMapping } from '@react-three/postprocessing'
+import { ToneMappingMode } from 'postprocessing'
 
-/* ───────────── procedural Lake Como: east shore (Perledo / Varenna) in front, Bellagio peninsula, west shore across ───────────── */
-const hash = (x, y) => { const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return h - Math.floor(h) }
-function vnoise(x, y) {
-  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi
-  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf)
-  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1)
-  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
-const fbm = (x, y, o = 4) => { let s = 0, a = .5, f = 1; for (let i = 0; i < o; i++) { s += a * vnoise(x * f, y * f); f *= 2.03; a *= .5 } return s }
-const ridge = (x, y, o = 4) => { let s = 0, a = .5, f = 1; for (let i = 0; i < o; i++) { s += a * (1 - Math.abs(vnoise(x * f, y * f) * 2 - 1)) ** 2; f *= 2.1; a *= .5 } return s }
+/* ─────────────────────────────────────────────────────────────────────────────
+   Lake Como, rebuilt from his own photographs.
+   His panorama #129 (shot from the hillside above Varenna) is cut into real depth layers
+   (far mountains · near hill & Varenna · foreground trees — sky and water removed, see /yts/como/*),
+   the lake between them is a real mirror (MeshReflectorMaterial) and the sky is a time-of-day shader.
+   Render #140 (the homes) and #5 (the terraces) are depth-displaced stages on the east shore.
+   World units: 1 px of #129 = 0.2 at the far plane (z = -150). Camera eye height 18 = photo horizon.
+   ───────────────────────────────────────────────────────────────────────────── */
+const S = 0.2, ZF = -150, EYE = 18, SHORE = 305 // shoreline row in #129 → y = 0
 const ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t) }
-
-const F = 2.2 // terrain scale vs. the homes — keeps the mountains monumental
-function h0(x, z) {
-  // near (east) shore — our hillside, rising into the Grigne behind
-  const zn = z - 3 - (fbm(x * .02, 9) - .5) * 5
-  const near = zn > 0 ? (zn < 30 ? zn * .5 : 15 + (zn - 30) * .16) + ss(30, 88, zn) * (5 + 20 * ridge(x * .03, z * .03)) + (fbm(x * .05 + 3, z * .05) - .5) * 3.2 * ss(0, 8, zn) : zn * 1.3
-  // far (west) shore — Menaggio / Cadenabbia under the mountains
-  const zf = -62 - z + (fbm(x * .025, 4) - .5) * 12
-  const far = zf > 0 ? zf * .3 + ss(4, 60, zf) * (6 + 19 * ridge(x * .025 + 7, z * .025)) : zf * 1.3
-  // Bellagio peninsula (from the south, tip near x=-22)
-  const px = Math.min(-22, x), d = Math.hypot(x - px, z + 30 + (fbm(x * .04, 2) - .5) * 6)
-  const pk = 3 + 24 * ss(-24, -85, x)
-  const pen = pk * (1 - d / (5 + .3 * pk)) - 1.2 + (ridge(x * .06, z * .06) - .4) * 3 * ss(-26, -50, x)
-  let h = Math.max(near, far, pen, -7)
-  if (h > .3) h += (fbm(x * .18, z * .18, 2) - .5) * .5
-  return h
-}
-export function height(x, z) {
-  let h = F * h0(x / F, z / F)
-  h += 3.4 * Math.exp(-((x - 24) ** 2 + (z - 15) ** 2) / 22) // Vezio knoll
-  return h
-}
-
-const SUN = new THREE.Vector3(-.5, .2, -.85).normalize()
-const lerpC = (a, b, t) => a.clone().lerp(b, t)
 const C = c => new THREE.Color(c)
-// palettes: looking east (sun behind) → looking west into the sunset
-const PAL = {
-  top: [C('#56738a'), C('#5f7d90')], hor: [C('#e2b8a6'), C('#f2c992')], fog: [C('#d8b4a4'), C('#eac499')],
-}
+const far = (px, py) => [(px - 900) * S, (SHORE - py) * S, ZF]
+// a point of #129 seen from the photo viewpoint, projected onto a nearer plane (k = zPlane / ZF)
+const onPlane = (px, py, k) => { const [x, y] = far(px, py); return [x * k, EYE + (y - EYE) * k, ZF * k] }
+const ZN = -30, ZFG = -14, KN = ZN / ZF, KFG = ZFG / ZF
+const asset = n => `/portfolio/yts/como/${n}.webp`
+const depthUrl = id => `/portfolio/yts/depth/${id}.webp`
+const photoUrl = id => `/portfolio/yts/img/${id}.webp`
 
-function useTerrainGeo(seg) {
-  return useMemo(() => {
-    const W = 360 * F, D = 300 * F
-    const g = new THREE.PlaneGeometry(W, D, seg, Math.round(seg * D / W))
-    g.rotateX(-Math.PI / 2); g.translate(0, 0, -40 * F)
-    const p = g.attributes.position
-    for (let i = 0; i < p.count; i++) p.setY(i, height(p.getX(i), p.getZ(i)))
-    g.computeVertexNormals()
-    const n = g.attributes.normal, col = new Float32Array(p.count * 3)
-    const forest = C('#466430'), forest2 = C('#66803b'), meadow = C('#8e9c4c'), rock = C('#857a6c'), rock2 = C('#b2a593'), shore = C('#a89a80')
-    const haze = C('#7f8aa6'), sunC = C('#ffcf9a'), sky = C('#8ea6b6'), tmp = new THREE.Color(), lit = new THREE.Color()
-    const nv = new THREE.Vector3()
-    for (let i = 0; i < p.count; i++) {
-      const x = p.getX(i), y = p.getY(i), z = p.getZ(i)
-      nv.set(n.getX(i), n.getY(i), n.getZ(i))
-      const steep = 1 - nv.y, k = fbm(x * .05, z * .05, 2)
-      tmp.copy(forest).lerp(forest2, k).lerp(meadow, ss(.62, .8, k) * .6)
-      tmp.lerp(rock, ss(.3, .55, steep + (y > 66 ? .15 : 0)))
-      tmp.lerp(rock2, ss(80, 130, y + k * 18))
-      tmp.lerp(shore, 1 - ss(.15, .7, y))
-      tmp.multiplyScalar(.82 + .3 * ss(-.2, .9, k + (y < 20 ? .1 : 0)))
-      tmp.lerp(haze, ss(-90, -260, z) * .55 + ss(90, 220, z) * .25)
-      // baked golden-hour light: sky dome + low western sun
-      const dif = Math.max(0, nv.dot(SUN)), amb = .34 + .28 * nv.y
-      lit.copy(sky).multiplyScalar(amb).add(sunC.clone().multiplyScalar(dif * 1.75))
-      tmp.multiply(lit)
-      col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b
-    }
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3))
-    return g
-  }, [seg])
+/* ───────────── time of day: afternoon → golden hour → sunset → blue hour ───────────── */
+const TOD = {
+  k: [0, .5, .8, 1],
+  top: ['#5f8ab4', '#6f82a6', '#43507a', '#141d38'].map(C),
+  hor: ['#e3ebef', '#f4d5a8', '#f3a774', '#6d6688'].map(C),
+  sun: ['#fff3dc', '#ffd59e', '#ff9b52', '#ff6a3c'].map(C),
+  tint: ['#ffffff', '#ffe6c8', '#f2b896', '#5c6c9c'].map(C),
+  haze: ['#cfdde7', '#efd3ab', '#e9a982', '#3d4870'].map(C),
+  exp: [1, 1, .86, .4], el: [.6, .28, .12, .02], glow: [.15, .55, 1, .5], lights: [0, 0, .25, 1], stars: [0, 0, 0, 1], hazeAmt: [.55, .6, .65, .55],
 }
+function todAt(t, out) {
+  const k = TOD.k; let i = 0; while (i < k.length - 2 && t > k[i + 1]) i++
+  const u = ss(0, 1, (t - k[i]) / (k[i + 1] - k[i]))
+  for (const n of ['top', 'hor', 'sun', 'tint', 'haze']) out[n].copy(TOD[n][i]).lerp(TOD[n][i + 1], u)
+  for (const n of ['exp', 'el', 'glow', 'lights', 'stars', 'hazeAmt']) out[n] = TOD[n][i] + (TOD[n][i + 1] - TOD[n][i]) * u
+  return out
+}
+const SUN_AZ = .5 // to the right, setting behind the Grigne-side ridge of the photo
+const sunDir = (el, v) => v.set(Math.sin(SUN_AZ) * Math.cos(el), Math.sin(el), -Math.cos(SUN_AZ) * Math.cos(el))
 
-/* water: sky reflection + fresnel + sun glitter, transparent over a mirrored terrain */
-const waterVS = `varying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`
-const waterFS = `
-uniform float uTime; uniform vec3 uDeep, uSun, uSunCol, uFog, uHor; uniform float uFogNear, uFogFar;
-varying vec3 vW;
+/* ───────────── photo layer shader: depth displacement + dissolve + grading + aerial haze ───────────── */
+const layerVS = /* glsl */`
+uniform sampler2D uDepth; uniform float uAmount;
+varying vec2 vUv; varying float vD; varying vec3 vW;
 void main(){
-  vec3 V = normalize(cameraPosition - vW);
-  float t = uTime;
-  vec2 p = vW.xz;
-  vec3 n = normalize(vec3(
-    sin(p.x*.9+t*1.1)*.5 + sin(p.x*2.3 - p.y*1.7 + t*1.7)*.3 + sin(p.y*3.1+t*.6)*.2,
-    14.,
-    sin(p.y*1.3 + t*.9)*.6 + sin(p.x*1.9 + p.y*2.7 - t*1.3)*.3));
-  float fr = .03 + .97*pow(1. - max(dot(n, V), 0.), 5.);
-  vec3 R = reflect(-V, n);
-  float s = max(dot(R, uSun), 0.);
-  float spec = pow(s, 420.)*5. + pow(s, 40.)*.22;
-  float streak = .85 + .15*sin(vW.z*.9 + sin(vW.x*.15 + t*.4)*2.);
-  float a = clamp((1. - fr)*.36*streak + spec, 0., 1.);
-  vec3 col = mix(uDeep, uSunCol*1.6, clamp(spec/max(a,.001), 0., 1.));
-  float dist = length(cameraPosition - vW);
-  float f = smoothstep(uFogNear, uFogFar, dist);
-  col = mix(col, uFog, f*.85); a = mix(a, .55, f);
-  gl_FragColor = vec4(col, a);
+  vUv = uv;
+  float d = texture2D(uDepth, uv).r;
+  vD = d;
+  vec3 p = position + normal * d * uAmount;
+  vec4 w = modelMatrix * vec4(p, 1.0); vW = w.xyz;
+  gl_Position = projectionMatrix * viewMatrix * w;
 }`
-/* lower-hemisphere sky so the reflection never sees the page behind */
-const domeVS = `varying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`
-const domeFS = `
-uniform vec3 uTop, uHor, uSun, uSunCol; varying vec3 vW;
+const layerFS = /* glsl */`
+uniform sampler2D uMap; uniform float uOpacity, uReveal, uHazeAmt, uExp, uDesat, uEdgeX, uEdgeY, uBaseHaze, uLift;
+uniform vec3 uTint, uHaze;
+varying vec2 vUv; varying float vD; varying vec3 vW;
+float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+  return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
+void main(){
+  vec4 c = texture2D(uMap, vUv);
+  float a = c.a * uOpacity;
+  a *= smoothstep(0., uEdgeX, vUv.x) * smoothstep(0., uEdgeX, 1. - vUv.x) * smoothstep(0., uEdgeY, vUv.y);
+  // dissolve: near pixels (white depth) arrive first, with a noisy edge
+  float key = (1. - vD) * .7 + n2(vUv * vec2(60., 30.)) * .3;
+  float r = uReveal * 1.25 - .12;
+  a *= smoothstep(r, r - .1, key);
+  if (a < .003) discard;
+  vec3 col = c.rgb;
+  float l = dot(col, vec3(.299, .587, .114));
+  col = mix(col, vec3(l), uDesat);
+  col = col * uTint * uExp + uLift * uHaze;
+  // aerial perspective: far pixels and low pixels sink into the haze
+  float hz = uHazeAmt * (1. - vD) * (1. - uBaseHaze + uBaseHaze * (1. - smoothstep(0., 26., vW.y)));
+  col = mix(col, uHaze, clamp(hz, 0., 1.));
+  gl_FragColor = vec4(col, a);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`
+function makeLayerUniforms(map, dmap, o = {}) {
+  return {
+    uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: o.amount ?? 0 }, uOpacity: { value: o.opacity ?? 1 }, uReveal: { value: o.reveal ?? 1 },
+    uHazeAmt: { value: .5 }, uExp: { value: 1 }, uDesat: { value: 0 }, uEdgeX: { value: o.edgeX ?? .02 }, uEdgeY: { value: o.edgeY ?? 0 }, uBaseHaze: { value: o.baseHaze ?? .5 }, uLift: { value: 0 },
+    uTint: { value: new THREE.Color(1, 1, 1) }, uHaze: { value: new THREE.Color('#cfdde7') },
+  }
+}
+function useTex(urls) {
+  const tex = useLoader(THREE.TextureLoader, urls)
+  tex.forEach((t, i) => { if (i % 2 === 0) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4 } })
+  return tex
+}
+function Layer({ name, depthId, width, seg, position, rotation, amount = 0, hazeScale = 1, layer = 0, renderOrder = 0, depthTest = true, reg, opts }) {
+  const [map, dmap] = useTex([asset(name), depthUrl(depthId)])
+  const aspect = map.image.height / map.image.width
+  const geo = useMemo(() => new THREE.PlaneGeometry(width, width * aspect, seg, Math.max(2, Math.round(seg * aspect))), [width, aspect, seg])
+  const uniforms = useMemo(() => makeLayerUniforms(map, dmap, { amount, ...opts }), [map, dmap])
+  const m = useRef()
+  useLayoutEffect(() => { m.current.layers.set(layer); reg.current[name] = { u: uniforms, mesh: m.current, hazeScale } }, [])
+  return (
+    <mesh ref={m} geometry={geo} position={position} rotation={rotation} renderOrder={renderOrder} frustumCulled={false}>
+      <shaderMaterial uniforms={uniforms} vertexShader={layerVS} fragmentShader={layerFS} transparent depthWrite={depthTest} depthTest={depthTest} />
+    </mesh>
+  )
+}
+// render stages (full photos, not cut-outs): #5 the terraces
+function Stage({ id, width, seg, position, lookAt, amount, reg, name }) {
+  const [map, dmap] = useTex([photoUrl(id), depthUrl(id)])
+  const aspect = map.image.height / map.image.width
+  const geo = useMemo(() => new THREE.PlaneGeometry(width, width * aspect, seg, Math.round(seg * aspect)), [width, aspect, seg])
+  const uniforms = useMemo(() => makeLayerUniforms(map, dmap, { amount, edgeX: .08, edgeY: .08, baseHaze: 0, reveal: 0 }), [map, dmap])
+  const m = useRef()
+  useLayoutEffect(() => { m.current.lookAt(...lookAt); reg.current[name] = { u: uniforms, mesh: m.current, hazeScale: .25 } }, [])
+  useLayoutEffect(() => { uniforms.uEdgeY.value = .08 }, [])
+  return (
+    <mesh ref={m} geometry={geo} position={position} frustumCulled={false} renderOrder={4}>
+      <shaderMaterial uniforms={uniforms} vertexShader={layerVS} fragmentShader={layerFS.replace('smoothstep(0., uEdgeY, vUv.y);', 'smoothstep(0., uEdgeY, vUv.y) * smoothstep(0., uEdgeY, 1. - vUv.y);')} transparent depthWrite={false} />
+    </mesh>
+  )
+}
+
+/* ───────────── sky dome: gradient, sun disc (feeds bloom), horizon glow, stars ───────────── */
+const skyVS = `varying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }`
+const skyFS = /* glsl */`
+uniform vec3 uTop, uHor, uSunCol, uSun; uniform float uGlow, uStars, uTime, uSunI;
+varying vec3 vW;
+float h31(vec3 p){ return fract(sin(dot(p, vec3(17.1, 113.7, 291.3))) * 43758.5453); }
 void main(){
   vec3 d = normalize(vW - cameraPosition);
-  if (d.y > .002) discard;
-  vec3 r = vec3(d.x, -d.y, d.z);
-  vec3 c = mix(uHor, uTop, pow(clamp(r.y*1.5, 0., 1.), .8));
-  float g = max(dot(r, uSun), 0.);
-  c += uSunCol*(pow(g, 9.)*.45 + pow(g, 120.)*.8);
-  gl_FragColor = vec4(c*.95, 1.);
+  float e = d.y;
+  vec3 col = mix(uHor, uTop, pow(smoothstep(-.02, .55, e), .7));
+  float cs = dot(d, uSun);
+  vec2 az = normalize(d.xz + 1e-5), saz = normalize(uSun.xz + 1e-5);
+  float side = pow(max(dot(az, saz), 0.), 4.);
+  col += uSunCol * uGlow * (exp(-max(e, 0.) * 7.) * side * .55 + pow(max(cs, 0.), 12.) * .45);
+  col += uSunCol * (pow(max(cs, 0.), 180.) * 1.2 + smoothstep(.99955, .9997, cs) * uSunI);
+  if (e < 0.) col = mix(col, uHor * .9, smoothstep(0., -.2, e));
+  if (uStars > .001 && e > .02) {
+    vec3 g = d * 260.; vec3 cell = floor(g); vec3 f = fract(g) - .5;
+    float h = h31(cell);
+    float st = step(.994, h) * smoothstep(.32, .0, length(f)) * (.6 + .4 * sin(uTime * (1. + h * 5.) + h * 40.));
+    col += vec3(1., .95, .88) * st * uStars * smoothstep(.02, .3, e) * 1.6;
+  }
+  gl_FragColor = vec4(col, 1.);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
 }`
-
-function Terrain({ seg }) {
-  const geo = useTerrainGeo(seg)
-  const above = useMemo(() => [new THREE.Plane(new THREE.Vector3(0, 1, 0), .25)], [])
-  const below = useMemo(() => [new THREE.Plane(new THREE.Vector3(0, -1, 0), 0)], [])
+function Sky({ reg }) {
+  const m = useRef()
+  const uniforms = useMemo(() => ({ uTop: { value: C('#5f8ab4') }, uHor: { value: C('#e3ebef') }, uSunCol: { value: C('#fff3dc') }, uSun: { value: new THREE.Vector3(0, .5, -1).normalize() }, uGlow: { value: .2 }, uStars: { value: 0 }, uTime: { value: 0 }, uSunI: { value: 14 } }), [])
+  useLayoutEffect(() => { reg.current.sky = { u: uniforms } }, [])
+  useFrame(({ camera }) => m.current && m.current.position.copy(camera.position))
   return (
-    <>
-      <mesh geometry={geo}><meshBasicMaterial vertexColors clippingPlanes={above} /></mesh>
-      <mesh geometry={geo} scale={[1, -1, 1]}><meshBasicMaterial vertexColors color="#9db0b6" clippingPlanes={below} /></mesh>
-    </>
+    <mesh ref={m} renderOrder={-10} frustumCulled={false}>
+      <sphereGeometry args={[1400, 48, 24]} />
+      <shaderMaterial uniforms={uniforms} vertexShader={skyVS} fragmentShader={skyFS} side={THREE.BackSide} depthWrite={false} />
+    </mesh>
   )
 }
 
-function Ridges() {
-  // far silhouettes for atmospheric depth (west for the sunset view, east behind the Grigne)
-  const geos = useMemo(() => [[-620, 40, 150, '#8f8796', 1], [-800, 70, 200, '#a99a9a', 2], [520, 120, 150, '#9b93a0', 3]].map(([z, base, amp, c, s]) => {
-    const pts = [], N = 160, X = 1400
-    for (let i = 0; i <= N; i++) { const x = -X + i * 2 * X / N; pts.push(x, base + amp * ridge(x * .0028 + s * 10, s, 4)) }
-    const sh = new THREE.Shape(); sh.moveTo(-X, -60)
-    for (let i = 0; i < pts.length; i += 2) sh.lineTo(pts[i], pts[i + 1])
-    sh.lineTo(X, -60)
-    const g = new THREE.ShapeGeometry(sh); g.translate(0, 0, z)
-    return [g, c]
-  }), [])
-  return geos.map(([g, c], i) => <mesh key={i} geometry={g}><meshBasicMaterial color={c} fog={false} side={THREE.DoubleSide} /></mesh>)
-}
-
-/* ───────────── the terraced homes ───────────── */
-const ROWS = [{ z: 16, n: 5 }, { z: 18.7, n: 5 }, { z: 21.4, n: 4 }, { z: 24.1, n: 4 }, { z: 26.8, n: 3 }]
-const UNITS = (() => {
-  const u = [], W = [1.7, 2.3, 2.0, 2.8, 1.9, 2.5]
-  ROWS.forEach((r, ri) => {
-    const ws = Array.from({ length: r.n }, (_, k) => W[(k + ri * 2) % W.length])
-    const total = ws.reduce((a, b) => a + b, 0) + (r.n - 1) * .45
-    let x = -total / 2 + (ri % 2 ? .7 : -.4)
-    ws.forEach((w, k) => { const xc = x + w / 2; u.push({ x: xc, z: r.z, w, y: height(xc, r.z), tub: (k + ri) % 2 === 0 }); x += w + .45 })
-  })
-  return u
-})()
-export const TOP_ROW = ROWS[ROWS.length - 1]
-
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _p = new THREE.Vector3(), _e = new THREE.Euler()
-function setI(mesh, i, x, y, z, sx, sy, sz, ry = 0) { _e.set(0, ry, 0); _q.setFromEuler(_e); _m.compose(_p.set(x, y, z), _q, _s.set(sx, sy, sz)); mesh.setMatrixAt(i, _m) }
-const done = refs => refs.forEach(r => { r.current.instanceMatrix.needsUpdate = true; if (r.current.instanceColor) r.current.instanceColor.needsUpdate = true; r.current.computeBoundingSphere() })
-
-function Homes() {
-  const body = useRef(), glass = useRef(), fascia = useRef(), roof = useRef(), garden = useRef(), tub = useRef(), fins = useRef(), olive = useRef()
-  const box = useMemo(() => new THREE.BoxGeometry(1, 1, 1), [])
-  const ico = useMemo(() => new THREE.IcosahedronGeometry(.5, 0), [])
-  const stone = useMemo(() => new THREE.MeshStandardMaterial({ color: '#d6c8b0', roughness: .95 }), [])
-  const lawn = useMemo(() => new THREE.MeshStandardMaterial({ color: '#86a050', roughness: 1 }), [])
-  const gardenMats = useMemo(() => [stone, stone, lawn, stone, stone, stone], [stone, lawn])
-  const tubs = UNITS.filter(u => u.tub)
-  const FIN = 3
-  useLayoutEffect(() => {
-    UNITS.forEach((u, i) => {
-      setI(body.current, i, u.x, u.y - 1.1, u.z, u.w, 3.8, 1.3)
-      setI(glass.current, i, u.x, u.y + .4, u.z - .655, u.w * .94, .7, .03)
-      setI(fascia.current, i, u.x, u.y + .82, u.z - .12, u.w + .2, .1, 1.62)
-      setI(roof.current, i, u.x, u.y + .885, u.z - .1, u.w + .08, .04, 1.5)
-      setI(garden.current, i, u.x, u.y - 1.4, u.z - 1.45, u.w + .45, 2.85, 1.35)
-      for (let k = 0; k < FIN; k++) setI(fins.current, i * FIN + k, u.x - u.w / 2 + .12 + (k === 2 ? u.w - .24 : k * .22), u.y + .4, u.z - .72, .05, .74, .1)
-      setI(olive.current, i, u.x + (u.tub ? -u.w * .32 : u.w * .3), u.y + .26, u.z - 1.85, .5, .45, .5, i)
-    })
-    tubs.forEach((u, i) => setI(tub.current, i, u.x + u.w * .26, u.y + .06, u.z - 1.6, .4, .06, .4))
-    done([body, glass, fascia, roof, garden, tub, fins, olive])
-  }, [])
-  const pool = UNITS[0]
-  return (
-    <group>
-      <instancedMesh ref={body} args={[box, stone, UNITS.length]} />
-      <instancedMesh ref={garden} args={[box, gardenMats, UNITS.length]} />
-      <instancedMesh ref={glass} args={[box, null, UNITS.length]}><meshStandardMaterial color="#9fb4bd" metalness={.9} roughness={.05} emissive="#ffb066" emissiveIntensity={.06} envMapIntensity={1.1} /></instancedMesh>
-      <instancedMesh ref={fascia} args={[box, null, UNITS.length]}><meshStandardMaterial color="#f1ece2" roughness={.7} /></instancedMesh>
-      <instancedMesh ref={roof} args={[box, null, UNITS.length]}><meshStandardMaterial color="#5f7d3b" roughness={1} /></instancedMesh>
-      <instancedMesh ref={fins} args={[box, null, UNITS.length * FIN]}><meshStandardMaterial color="#7a5a3e" roughness={.8} /></instancedMesh>
-      <instancedMesh ref={olive} args={[ico, null, UNITS.length]}><meshStandardMaterial color="#7d8b5e" roughness={1} flatShading /></instancedMesh>
-      <instancedMesh ref={tub} args={[box, null, tubs.length]}><meshStandardMaterial color="#86d6de" emissive="#3aa7b5" emissiveIntensity={.3} roughness={.15} /></instancedMesh>
-      {/* shared pool + deck at the west end of the lowest terrace */}
-      <mesh position={[pool.x - pool.w / 2 - 2.3, pool.y - 1, pool.z - .5]} scale={[3.6, 2.1, 2.7]} geometry={box} material={stone} />
-      <mesh position={[pool.x - pool.w / 2 - 2.3, pool.y + .065, pool.z - .65]} scale={[2.7, .04, 1.4]} geometry={box}><meshStandardMaterial color="#5cc6d6" emissive="#2a93a4" emissiveIntensity={.35} roughness={.08} metalness={.3} /></mesh>
-    </group>
-  )
-}
-
-/* trees, villages, castle — all instanced */
-function rng(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646 } }
-const inHomes = (x, z) => x > -12 && x < 11 && z > 13.5 && z < 28.5
-
-function Trees({ count }) {
-  const crowns = useRef(), cyp = useRef()
-  const geoC = useMemo(() => new THREE.IcosahedronGeometry(.6, 0), [])
-  const geoY = useMemo(() => { const g = new THREE.ConeGeometry(.2, 1.7, 6); g.translate(0, .85, 0); return g }, [])
-  const data = useMemo(() => {
-    const r = rng(7), a = [], cy = []
-    let guard = 0
-    while (a.length < count && guard++ < count * 40) {
-      const x = -110 + r() * 220, z = 6 + r() * 110, h = height(x, z)
-      if (h < .5 || h > 60 || inHomes(x, z) || (Math.abs(x + 8) < 11 && z < 13)) continue
-      const dd = Math.hypot(x, z - 20)
-      if (fbm(x * .06, z * .06, 2) < .38 + dd * .0018) continue
-      a.push([x, h, z, (.55 + r() * .6) * (1 + dd * .012)])
+/* ───────────── giant "COMO" set in the sky, behind the mountains ───────────── */
+function ComoWord({ reg }) {
+  const [tex, setTex] = React.useState(null)
+  useEffect(() => {
+    let dead = false
+    const draw = () => {
+      const c = document.createElement('canvas'); c.width = 2048; c.height = 620
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'alphabetic'
+      g.font = "900 600px 'Inter Tight', 'Inter', 'Helvetica Neue', Arial, sans-serif"
+      try { g.letterSpacing = '-30px' } catch (e) {}
+      g.fillText('COMO', 1024, 560)
+      const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4
+      if (!dead) setTex(t)
     }
-    // cypresses lining the terraces and the road
-    for (let i = 0; i < 44; i++) { const side = i % 2 ? 1 : -1, x = side * (11 + r() * 7), z = 12 + r() * 18; cy.push([x, height(x, z), z, .8 + r() * .6]) }
-    for (let i = 0; i < 12; i++) { const x = -10 + r() * 20, z = 29.5 + r() * 3; cy.push([x, height(x, z), z, .9 + r() * .5]) }
-    for (let i = 0; i < 14; i++) { const x = 19 + r() * 10, z = 9 + r() * 10; cy.push([x, height(x, z), z, .9 + r() * .5]) }
-    return { a, cy }
-  }, [count])
-  useLayoutEffect(() => {
-    const c = new THREE.Color(), base = [C('#3b5528'), C('#4f6a2c'), C('#62763a'), C('#466238'), C('#55703a')]
-    data.a.forEach(([x, h, z, s], i) => { setI(crowns.current, i, x, h + s * .12, z, s, s * (.75 + (i % 5) * .07), s, i); c.copy(base[i % 5]); crowns.current.setColorAt(i, c) })
-    data.cy.forEach(([x, h, z, s], i) => setI(cyp.current, i, x, h - .15, z, s, s * 1.25, s))
-    done([crowns, cyp])
-  }, [data])
-  return (
-    <>
-      <instancedMesh ref={crowns} args={[geoC, null, data.a.length]}><meshStandardMaterial flatShading roughness={1} color="#fff" /></instancedMesh>
-      <instancedMesh ref={cyp} args={[geoY, null, data.cy.length]}><meshStandardMaterial flatShading roughness={1} color="#2c4524" /></instancedMesh>
-    </>
-  )
-}
-
-// [cx, cz, rx, rz, count, scale]
-const TOWNS = [[-8, 9.5, 11, 4.5, 60, .8], [-52, -66, 9, 5, 40, 1.1], [40, -141, 16, 5, 44, 1.5], [-12, -140, 12, 4, 26, 1.5]]
-function Towns() {
-  const walls = useRef(), roofs = useRef()
-  const box = useMemo(() => new THREE.BoxGeometry(1, 1, 1), [])
-  const roofG = useMemo(() => { const g = new THREE.ConeGeometry(.75, .4, 4, 1); g.rotateY(Math.PI / 4); g.translate(0, .2, 0); return g }, [])
-  const data = useMemo(() => {
-    const r = rng(3), out = []
-    TOWNS.forEach(([cx, cz, rx, rz, n, sc]) => {
-      let k = 0, g = 0
-      while (k < n && g++ < n * 60) {
-        const a = r() * Math.PI * 2, rr = Math.sqrt(r()), x = cx + Math.cos(a) * rx * rr, z = cz + Math.sin(a) * rz * rr, h = height(x, z)
-        if (h < .25 || h > 9) continue
-        const w = (.8 + r() * .6) * sc, hh = (.7 + r() * .8) * sc
-        out.push([x, h, z, w, hh, r() * .5 - .25]); k++
-      }
-    })
-    return out
+    const f = document.fonts?.load ? document.fonts.load("900 200px 'Inter Tight'").then(draw, draw) : draw()
+    return () => { dead = true }
   }, [])
-  useLayoutEffect(() => {
-    const pal = ['#e8c79a', '#e3a983', '#f0dcb8', '#d9927a', '#efe2c8', '#e7b46a', '#d8b48e'].map(C)
-    data.forEach(([x, h, z, w, hh, ry], i) => {
-      setI(walls.current, i, x, h + hh / 2 - .4, z, w, hh + .8, w * .85, ry); walls.current.setColorAt(i, pal[i % pal.length])
-      setI(roofs.current, i, x, h + hh - .02, z, w * 1.02, w * .7, w * .9, ry)
-    })
-    done([walls, roofs])
-  }, [data])
-  const vy = height(24, 15)
+  const mat = useRef()
+  useLayoutEffect(() => { if (tex) reg.current.word = { mat: mat.current } }, [tex])
+  if (!tex) return null
+  return (
+    <mesh position={[18, 64, -330]} renderOrder={-5}>
+      <planeGeometry args={[560, 560 * 620 / 2048]} />
+      <meshBasicMaterial ref={mat} map={tex} transparent depthWrite={false} toneMapped={false} fog={false} color="#ffffff" />
+    </mesh>
+  )
+}
+
+/* ───────────── the lake: real reflections + drifting normal-mapped ripples ───────────── */
+function useWaterNormals() {
+  return useMemo(() => {
+    const N = 256, data = new Uint8Array(N * N * 4), TAU = Math.PI * 2
+    const W = [[3, 1, .9, .3], [5, -2, .6, 1.7], [1, 4, .7, 2.2], [7, 3, .35, .4], [-4, 6, .3, 2.9], [11, -5, .18, 1.1], [2, 9, .2, 0.6]]
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      let dx = 0, dy = 0
+      for (const [kx, ky, a, ph] of W) { const s = Math.cos(TAU * (kx * x + ky * y) / N + ph) * a; dx += s * kx; dy += s * ky }
+      const nx = -dx * .045, ny = -dy * .045, l = Math.hypot(nx, ny, 1)
+      const i = (y * N + x) * 4
+      data[i] = (nx / l * .5 + .5) * 255; data[i + 1] = (ny / l * .5 + .5) * 255; data[i + 2] = (1 / l * .5 + .5) * 255; data[i + 3] = 255
+    }
+    const t = new THREE.DataTexture(data, N, N); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.needsUpdate = true
+    return t
+  }, [])
+}
+function Water({ mobile, reg }) {
+  const nrm = useWaterNormals()
+  const geo = useMemo(() => {
+    const g = new THREE.PlaneGeometry(1400, 1400, 1, 1); const uv = g.attributes.uv
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 140, uv.getY(i) * 140)
+    return g
+  }, [])
+  const m = useRef(), mat = useRef()
+  useLayoutEffect(() => { reg.current.water = { mat: mat.current } }, [])
+  useFrame((_, dt) => { if (m.current) { m.current.position.x = (m.current.position.x + dt * .35) % 100; m.current.position.z = 0 } })
+  return (
+    <mesh ref={m} geometry={geo} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
+      <MeshReflectorMaterial ref={mat} resolution={mobile ? 320 : 768} blur={mobile ? [0, 0] : [140, 40]} mixBlur={.9} mixStrength={1.15} mixContrast={1.05} mirror={1}
+        depthScale={0} roughness={.42} metalness={0} color="#9fb3bb" normalMap={nrm} normalScale={[.35, .35]} envMapIntensity={0} />
+    </mesh>
+  )
+}
+
+/* ───────────── low mist banks (volumetric look from stacked noisy sheets) ───────────── */
+const mistFS = /* glsl */`
+uniform vec3 uCol; uniform float uAmt, uTime; varying vec2 vUv;
+float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+  return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
+float fbm(vec2 p){ float s = 0., a = .5; for (int i = 0; i < 4; i++){ s += a * n2(p); p *= 2.07; a *= .5; } return s; }
+void main(){
+  vec2 p = vUv * vec2(9., 2.2) + vec2(uTime * .012, 0.);
+  float f = fbm(p + fbm(p * .7 - uTime * .006));
+  float a = pow(1. - vUv.y, 1.6) * smoothstep(0., .08, vUv.y + .02) * smoothstep(.0, .25, vUv.x) * smoothstep(1., .75, vUv.x);
+  a *= smoothstep(.25, .85, f) * uAmt;
+  gl_FragColor = vec4(uCol, a);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`
+const mistVS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`
+function Mist({ reg }) {
+  const banks = [[[10, 9, -143], 520, 30, .9], [[-20, 5, -110], 420, 18, .45], [[30, 3.5, -78], 300, 11, .3]]
+  const us = useMemo(() => banks.map(b => ({ uCol: { value: C('#cfdde7') }, uAmt: { value: b[3] }, uBase: b[3], uTime: { value: Math.random() * 50 } })), [])
+  useLayoutEffect(() => { reg.current.mist = us }, [])
+  return banks.map(([p, w, h], i) => (
+    <mesh key={i} position={p} renderOrder={3}>
+      <planeGeometry args={[w, h]} />
+      <shaderMaterial uniforms={us[i]} vertexShader={mistVS} fragmentShader={mistFS} transparent depthWrite={false} />
+    </mesh>
+  ))
+}
+
+/* ───────────── lights coming on: Bellagio, Cadenabbia, Menaggio across the water; Varenna & Vezio below ───────────── */
+const FAR_SHORE = [[0, 300], [100, 300], [250, 305], [300, 315], [440, 320], [600, 300], [640, 262], [800, 250], [900, 266], [950, 295], [1050, 304], [1200, 306], [1300, 318], [1400, 318], [1500, 312], [1550, 308], [1650, 316], [1800, 322]]
+const shoreY = px => { for (let i = 0; i < FAR_SHORE.length - 1; i++) { const [a, ya] = FAR_SHORE[i], [b, yb] = FAR_SHORE[i + 1]; if (px >= a && px <= b) return ya + (yb - ya) * (px - a) / (b - a) } return 310 }
+function rng(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646 } }
+const lightVS = /* glsl */`
+attribute float aSeed; uniform float uTime, uI, uSize; varying float vA;
+void main(){
+  vec4 mv = modelViewMatrix * vec4(position, 1.);
+  float on = smoothstep(aSeed * .7, aSeed * .7 + .3, uI);
+  vA = on * (.75 + .25 * sin(uTime * (1.5 + aSeed * 3.) + aSeed * 50.));
+  gl_PointSize = uSize * (0.6 + aSeed) * (300. / -mv.z);
+  gl_Position = projectionMatrix * mv;
+}`
+const lightFS = /* glsl */`
+uniform vec3 uCol; varying float vA;
+void main(){ vec2 c = gl_PointCoord - .5; float d = length(c); float a = smoothstep(.5, .0, d); a = a * a * vA; if (a < .01) discard; gl_FragColor = vec4(uCol * (1.6 + 3. * smoothstep(.18, 0., d)), a); }`
+function Lights({ reg, mobile }) {
+  const [farGeo, nearGeo] = useMemo(() => {
+    const r = rng(11)
+    const fp = [], fs = [], np = [], ns = []
+    const towns = [[240, 640, 110, 22], [940, 1260, 80, 16], [1440, 1800, 120, 30], [650, 900, 25, 10]]
+    for (const [a, b, n, up] of towns) for (let i = 0; i < (mobile ? n * .6 : n); i++) {
+      const px = a + r() * (b - a), py = shoreY(px) - 2 - Math.pow(r(), 1.6) * up
+      const p = far(px, py); fp.push(p[0], p[1], p[2] + 1); fs.push(r())
+    }
+    const near = [[1130, 1275, 566, 600, 40], [625, 725, 482, 512, 22], [880, 1020, 560, 605, 8]]
+    for (const [a, b, y0, y1, n] of near) for (let i = 0; i < n; i++) {
+      const p = onPlane(a + r() * (b - a), y0 + r() * (y1 - y0), KN); np.push(p[0], p[1], p[2] + .3); ns.push(r())
+    }
+    const mk = (p, s) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); g.setAttribute('aSeed', new THREE.Float32BufferAttribute(s, 1)); return g }
+    return [mk(fp, fs), mk(np, ns)]
+  }, [mobile])
+  const uf = useMemo(() => ({ uTime: { value: 0 }, uI: { value: 0 }, uSize: { value: 1.5 }, uCol: { value: C('#ffb460') } }), [])
+  const un = useMemo(() => ({ uTime: { value: 0 }, uI: { value: 0 }, uSize: { value: .55 }, uCol: { value: C('#ffb768') }, uOp: { value: 1 } }), [])
+  const nearRef = useRef()
+  useLayoutEffect(() => { reg.current.lights = [uf, un]; nearRef.current.layers.set(1) }, [])
   return (
     <>
-      <instancedMesh ref={walls} args={[box, null, data.length]}><meshStandardMaterial roughness={.9} color="#fff" /></instancedMesh>
-      <instancedMesh ref={roofs} args={[roofG, null, data.length]}><meshStandardMaterial roughness={.9} color="#b4583a" flatShading /></instancedMesh>
-      {/* Castello di Vezio — keep + curtain wall */}
-      <group position={[24, vy - .2, 15]}>
-        <mesh position={[0, 1.6, 0]} scale={[1.1, 3.6, 1.1]} geometry={box}><meshStandardMaterial color="#c2b49c" roughness={1} /></mesh>
-        {[[0, -1.8, 3.4, .3], [1.7, 0, .3, 3.6], [-1.7, 0, .3, 3.6], [0, 1.8, 3.4, .3]].map(([x, z, sx, sz], i) => <mesh key={i} position={[x, .5, z]} scale={[sx, 1.2, sz]} geometry={box}><meshStandardMaterial color="#b1a28a" roughness={1} /></mesh>)}
-      </group>
+      <points geometry={farGeo} renderOrder={2} frustumCulled={false}><shaderMaterial uniforms={uf} vertexShader={lightVS} fragmentShader={lightFS} transparent depthWrite={false} blending={THREE.AdditiveBlending} /></points>
+      <points ref={nearRef} geometry={nearGeo} renderOrder={12} frustumCulled={false}><shaderMaterial uniforms={un} vertexShader={lightVS} fragmentShader={lightFS} transparent depthWrite={false} depthTest={false} blending={THREE.AdditiveBlending} /></points>
     </>
   )
 }
 
-/* ───────────── labels + Golden Triangle ───────────── */
-const P = { varenna: [-8, 8.5], bellagio: [-50, -64], menaggio: [40, -140], cadenabbia: [-12, -139], vezio: [24, 15], home: [-.5, 21] }
-// id, lift above ground, visibility windows (film progress)
-const LBL = [
-  ['varenna', 4, [[.04, .6]]], ['vezio', 6.5, [[.04, .66]]], ['bellagio', 9, [[.13, .52], [.88, 1.01]]], ['menaggio', 14, [[.14, .5], [.9, 1.01]]], ['cadenabbia', 14, [[.15, .5], [.9, 1.01]]], ['home', 9, [[.03, .14], [.52, .8]]],
-]
-function Label({ id, lift, win, text, sub, progress, gold }) {
+/* ───────────── labels anchored in the scene ───────────── */
+const HILL = { pos: [0, 22, 32], w: 112 } // render #140 stage, faces the lake (−z)
+const TERR = { pos: [0, 34.2, 25.9], look: [0, 44, 4], w: 38 } // render #5 stage
+const LBL = {
+  bellagio: { p: [...far(560, 296)].map((v, i) => (i === 1 ? v + 2 : v)), win: [[.2, .45], [.86, 1.01]] },
+  cadenabbia: { p: far(1130, 292), win: [[.22, .45], [.88, 1.01]] },
+  menaggio: { p: far(1660, 300), win: [[.24, .45], [.88, 1.01]] },
+  vezio: { p: onPlane(776, 418, KN), win: [[.88, 1.01]] },
+  varenna: { p: onPlane(1205, 582, KN), win: [[.86, 1.01]] },
+  home: { p: [-8, 25, 30], win: [[.54, .69]] },
+}
+function Label({ id, text, sub, progress, gold, layer }) {
   const el = useRef()
-  const pos = useMemo(() => { const [x, z] = P[id]; return [x, Math.max(0, height(x, z)) + lift, z] }, [id, lift])
+  const { p: pos, win } = LBL[id]
   useFrame(() => {
     if (!el.current) return
     const p = progress.get()
     let o = 0
-    for (const [a, b] of win) o = Math.max(o, ss(a, a + .04, p) * (1 - ss(b - .04, b, p)))
+    for (const [a, b] of win) o = Math.max(o, ss(a, a + .035, p) * (1 - ss(b - .035, b, p)))
     el.current.style.opacity = o
-    el.current.style.transform = `translate(-50%,-100%) translateY(${(1 - o) * 10}px)`
+    el.current.style.transform = `translate(-50%,-100%) translateY(${(1 - o) * 12}px)`
   })
   return (
     <Html position={pos} zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
       <div ref={el} style={{ opacity: 0, position: 'absolute', left: 0, top: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', whiteSpace: 'nowrap', fontFamily: "'Inter Tight',sans-serif" }}>
-        <div style={{ background: gold ? '#c3a15e' : 'rgba(21,20,18,.55)', color: gold ? '#151412' : '#ece7df', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', padding: '6px 11px', borderRadius: 999, fontSize: 11, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', display: 'flex', gap: 8, alignItems: 'baseline' }}>
-          <span>{text}</span>{sub && <span style={{ opacity: .7, fontWeight: 500, letterSpacing: '.04em', textTransform: 'none' }}>{sub}</span>}
-        </div>
-        <div style={{ width: 1, height: 28, background: gold ? '#c3a15e' : 'rgba(236,231,223,.85)' }} />
-        <div style={{ width: 5, height: 5, borderRadius: 9, background: gold ? '#c3a15e' : '#ece7df', marginTop: -2 }} />
+        <div style={{ color: gold ? '#f3dca6' : '#fff', fontFamily: "'Instrument Serif',serif", fontSize: gold ? 26 : 22, lineHeight: 1, fontStyle: 'italic', textShadow: '0 1px 16px rgba(0,0,0,.45)' }}>{text}</div>
+        {sub && <div style={{ marginTop: 5, color: 'rgba(255,255,255,.82)', fontSize: 10, fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', textShadow: '0 1px 10px rgba(0,0,0,.5)' }}>{sub}</div>}
+        <div style={{ width: 1, height: gold ? 46 : 34, marginTop: 8, background: `linear-gradient(${gold ? '#f3dca6' : '#fff'}, rgba(255,255,255,0))` }} />
+        <div style={{ width: 7, height: 7, borderRadius: 9, border: `1px solid ${gold ? '#f3dca6' : '#fff'}`, marginTop: -1, boxShadow: '0 0 12px rgba(255,220,170,.9)' }} />
       </div>
     </Html>
   )
 }
-
 function Triangle({ progress, label }) {
   const line = useRef(), lab = useRef()
   const pts = useMemo(() => {
-    const k = [P.varenna, P.bellagio, P.menaggio, P.varenna].map(([x, z]) => new THREE.Vector3(x, .3, z)), out = []
+    const k = [LBL.varenna.p, LBL.bellagio.p, LBL.menaggio.p, LBL.varenna.p].map(p => new THREE.Vector3(...p)), out = []
     for (let s = 0; s < 3; s++) for (let i = 0; i < 40; i++) out.push(k[s].clone().lerp(k[s + 1], i / 40))
     out.push(k[3]); return out
   }, [])
   useFrame(() => {
-    const p = progress.get(), d = ss(.13, .34, p), fade = 1 - ss(.54, .62, p)
-    if (line.current) { line.current.geometry.instanceCount = Math.max(1, Math.round(d * (pts.length - 1))); line.current.material.opacity = fade; line.current.visible = d > 0 && fade > 0 }
-    if (lab.current) lab.current.style.opacity = ss(.28, .34, p) * fade
+    const p = progress.get(), d = ss(.875, .93, p), fade = 1 - ss(.965, .995, p)
+    if (line.current) { line.current.geometry.instanceCount = Math.max(1, Math.round(d * (pts.length - 1))); line.current.material.opacity = fade * .9; line.current.visible = d > 0 && fade > 0 }
+    if (lab.current) lab.current.style.opacity = ss(.91, .935, p) * fade
   })
+  useLayoutEffect(() => { line.current?.layers.set(1) }, [])
   return (
     <>
-      <Line ref={line} points={pts} color="#f3d28a" lineWidth={2.4} transparent dashed dashSize={3} gapSize={1.6} depthTest={false} renderOrder={5} />
-      <Html position={[-8, 3, -68]} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
-        <div ref={lab} style={{ opacity: 0, whiteSpace: 'nowrap', color: '#fff7e6', fontFamily: "'Instrument Serif',serif", fontStyle: 'italic', fontSize: 34, textShadow: '0 2px 18px rgba(0,0,0,.35)' }}>{label}</div>
+      <Line ref={line} points={pts} color="#f3d28a" lineWidth={1.6} transparent dashed dashSize={1.2} gapSize={.8} depthTest={false} renderOrder={20} />
+      <Html position={[30, 6, -100]} center zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
+        <div ref={lab} style={{ opacity: 0, whiteSpace: 'nowrap', color: '#fff2d6', fontFamily: "'Instrument Serif',serif", fontStyle: 'italic', fontSize: 30, textShadow: '0 2px 18px rgba(0,0,0,.45)' }}>{label}</div>
       </Html>
     </>
   )
 }
 
-/* ───────────── camera film ───────────── */
-function buildPath(mobile) {
-  const hTop = height(1, TOP_ROW.z) // camera rests on the top garden at the end
-  const pos = [[-15, 50, -112], [-150, 120, -36], [-140, 104, -72], [-14, 8, -28], [18, 21, 1], [-6, hTop + 3.4, 12], [1, hTop + 1.3, TOP_ROW.z - 1.1]]
-  const tgt = [[-14, 42, 60], [-2, 0, -62], [-4, 0, -66], [0, 7, 22], [0, 8, 21], [0, 8, 23], [-34, 22, -140]]
-  const fov = mobile ? [66, 60, 60, 56, 54, 54, 60] : [50, 44, 42, 40, 36, 38, 44]
-  if (mobile) { pos[1] = [-170, 190, -30]; pos[2] = [-160, 170, -70]; pos[4] = [20, 25, -3]; pos[5] = [-7, hTop + 4.6, 8] }
-  const v = a => a.map(p => new THREE.Vector3(...p))
-  return { pos: new THREE.CatmullRomCurve3(v(pos), false, 'centripetal'), tgt: new THREE.CatmullRomCurve3(v(tgt), false, 'centripetal'), fov }
+/* ───────────── camera film: stations (p, position, yaw, pitch, fov) ───────────── */
+// yaw 0 looks west across the lake (−z); +π/2 looks −x; π looks back at the hillside (+z)
+const PI = Math.PI
+const STATIONS_D = [
+  [0, [6, 30, -42], -.1, -.2, 54],
+  [.17, [0, 21, -50], 0, -.1, 50],
+  [.31, [-12, 4.2, -62], .14, -.015, 46],
+  [.42, [-17, 3.6, -68], .32, 0, 46],
+  [.53, [-8, 8, -60], PI - .04, .02, 46],
+  [.62, [0, 18, -14], PI, .04, 44],
+  [.7, [0, 34.9, -.1], PI, -.42, 46],
+  [.79, [0, 44, 4], PI, -.42, 46],
+  [.85, [0, 34, 4], PI * 1.45, -.2, 50],
+  [.93, [0, EYE, 0], 2 * PI, -.178, 50],
+  [1, [0, EYE, 0], 2 * PI, -.165, 47],
+]
+const STATIONS_M = STATIONS_D.map(([p, pos, y, pt, f], i) => [p, i === 2 || i === 3 ? [pos[0], pos[1] + 1.5, pos[2]] : pos, y + (i <= 3 ? .08 : 0), pt, Math.min(74, f + 18)])
+function sampleStations(st, p, out) {
+  let i = 0; while (i < st.length - 2 && p > st[i + 1][0]) i++
+  const a = st[i], b = st[i + 1], u0 = Math.min(1, Math.max(0, (p - a[0]) / (b[0] - a[0])))
+  const u = u0 * u0 * (3 - 2 * u0)
+  // Catmull-Rom on positions for smooth flight
+  const pa = st[Math.max(0, i - 1)][1], p0 = a[1], p1 = b[1], pb = st[Math.min(st.length - 1, i + 2)][1]
+  const v = u, v2 = v * v, v3 = v2 * v
+  for (let k = 0; k < 3; k++) out.pos[k] = .5 * ((2 * p0[k]) + (-pa[k] + p1[k]) * v + (2 * pa[k] - 5 * p0[k] + 4 * p1[k] - pb[k]) * v2 + (-pa[k] + 3 * p0[k] - 3 * p1[k] + pb[k]) * v3)
+  out.yaw = a[2] + (b[2] - a[2]) * u; out.pitch = a[3] + (b[3] - a[3]) * u; out.fov = a[4] + (b[4] - a[4]) * u
+  return out
 }
 
-function Rig({ progress, skyRef, mobile, water, dome }) {
+function Rig({ progress, mobile, reg, clockRef }) {
   const { camera, scene } = useThree()
-  const path = useMemo(() => buildPath(mobile), [mobile])
-  const s = useRef({ p: progress.get(), pt: new THREE.Vector3(), mx: 0, my: 0 })
-  const tmp = useMemo(() => ({ v: new THREE.Vector3(), f: new THREE.Vector3(), top: new THREE.Color(), hor: new THREE.Color(), fog: new THREE.Color() }), [])
-  useLayoutEffect(() => { scene.fog = new THREE.Fog('#d8b4a4', 70, 560) }, [scene])
-  useFrame((st, dt) => {
-    const S = s.current
-    S.p = window.__comoSnap ? progress.get() : THREE.MathUtils.damp(S.p, progress.get(), 3.2, Math.min(dt, .05))
-    S.mx = THREE.MathUtils.damp(S.mx, st.pointer.x, 2, dt); S.my = THREE.MathUtils.damp(S.my, st.pointer.y, 2, dt)
-    const p = S.p, pc = Math.min(1, p / .94) // hold the final view
-    path.pos.getPoint(pc, camera.position)
-    path.tgt.getPoint(pc, S.pt)
-    camera.position.x += S.mx * .8; camera.position.y += S.my * .4
-    camera.lookAt(S.pt)
-    const N = path.fov.length - 1, fi = Math.min(N - .001, pc * N), i0 = Math.floor(fi), fv = THREE.MathUtils.lerp(path.fov[i0], path.fov[i0 + 1], ss(0, 1, fi - i0))
-    if (Math.abs(camera.fov - fv) > .01) { camera.fov = fv; camera.updateProjectionMatrix() }
-    // palette: east → west as the camera turns into the sunset
-    const k = ss(.7, .98, p)
-    tmp.top.copy(PAL.top[0]).lerp(PAL.top[1], k); tmp.hor.copy(PAL.hor[0]).lerp(PAL.hor[1], k); tmp.fog.copy(PAL.fog[0]).lerp(PAL.fog[1], k)
-    scene.fog.color.copy(tmp.fog); scene.fog.far = 560 - 60 * k
-    if (water.current) { const u = water.current.uniforms; u.uTime.value += dt; u.uFog.value.copy(tmp.fog) }
-    if (dome.current) { const u = dome.current.uniforms; u.uTop.value.copy(tmp.top); u.uHor.value.copy(tmp.hor) }
-    // sky lives in the DOM behind the canvas, so the giant type sits behind the mountains
-    const el = skyRef.current
-    if (el) {
-      camera.getWorldDirection(tmp.f); tmp.f.y = 0; tmp.f.normalize()
-      tmp.v.copy(camera.position).addScaledVector(tmp.f, 1500); tmp.v.y = 0
-      const hz = tmp.v.project(camera).y
-      tmp.v.copy(camera.position).addScaledVector(SUN, 900).project(camera)
-      const vis = tmp.v.z < 1
-      el.style.setProperty('--sx', vis ? ((tmp.v.x * .5 + .5) * 100).toFixed(2) + '%' : '-50%')
-      el.style.setProperty('--sy', vis ? ((-tmp.v.y * .5 + .5) * 100).toFixed(2) + '%' : '-50%')
-      el.style.setProperty('--hy', Math.min(100, Math.max(0, (-hz * .5 + .5) * 100)).toFixed(2) + '%')
-      el.style.setProperty('--top', '#' + tmp.top.getHexString())
-      el.style.setProperty('--hor', '#' + tmp.hor.getHexString())
-      el.style.setProperty('--glow', (k * .95 + .05).toFixed(3))
+  const st = mobile ? STATIONS_M : STATIONS_D
+  const S0 = useRef({ p: progress.get(), mx: 0, my: 0, t: 0 })
+  const tmp = useMemo(() => ({ o: { pos: [0, 0, 0] }, dir: new THREE.Vector3(), tgt: new THREE.Vector3(), sun: new THREE.Vector3(), tod: { top: new THREE.Color(), hor: new THREE.Color(), sun: new THREE.Color(), tint: new THREE.Color(), haze: new THREE.Color() } }), [])
+  useLayoutEffect(() => { camera.layers.enable(1); scene.fog = new THREE.Fog('#cfdde7', 120, 520) }, [camera, scene])
+  useFrame((state, dt) => {
+    const R = reg.current, s = S0.current
+    dt = Math.min(dt, .05); s.t += dt
+    s.p = window.__comoSnap ? progress.get() : THREE.MathUtils.damp(s.p, progress.get(), 3.4, dt)
+    s.mx = THREE.MathUtils.damp(s.mx, state.pointer.x, 2.2, dt); s.my = THREE.MathUtils.damp(s.my, state.pointer.y, 2.2, dt)
+    const p = s.p
+    const o = sampleStations(st, p, tmp.o)
+    // pointer parallax: strongest when the camera rests among the depth layers
+    const par = mobile ? 0 : (.6 + 1.4 * ss(.86, .95, p))
+    const yaw = o.yaw - s.mx * .035, pitch = o.pitch + s.my * .02
+    camera.position.set(o.pos[0], o.pos[1], o.pos[2])
+    tmp.dir.set(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch))
+    const right = new THREE.Vector3(-tmp.dir.z, 0, tmp.dir.x).normalize()
+    camera.position.addScaledVector(right, s.mx * par); camera.position.y += s.my * par * .5
+    tmp.tgt.copy(camera.position).add(tmp.dir)
+    camera.lookAt(tmp.tgt)
+    if (Math.abs(camera.fov - o.fov) > .01) { camera.fov = o.fov; camera.updateProjectionMatrix() }
+
+    // time of day follows the film
+    const tod = ss(0, .3, p) * .15 + ss(.3, .75, p) * .4 + ss(.75, .9, p) * .27 + ss(.9, 1, p) * .18
+    const T = todAt(tod, tmp.tod)
+    sunDir(T.el, tmp.sun)
+    if (clockRef?.current) clockRef.current.style.setProperty('--tod', tod.toFixed(3))
+    if (R.sky) { const u = R.sky.u; u.uTop.value.copy(T.top); u.uHor.value.copy(T.hor); u.uSunCol.value.copy(T.sun); u.uSun.value.copy(tmp.sun); u.uGlow.value = T.glow; u.uStars.value = T.stars; u.uTime.value = s.t; u.uSunI.value = 10 + 18 * (1 - T.stars) }
+    scene.fog.color.copy(T.haze).multiplyScalar(.9 + .1 * T.exp)
+    if (R.dir) { R.dir.position.copy(tmp.sun).multiplyScalar(200); R.dir.color.copy(T.sun); R.dir.intensity = 2.6 * T.exp }
+    if (R.hemi) { R.hemi.color.copy(T.top); R.hemi.groundColor.copy(T.haze).multiplyScalar(.5); R.hemi.intensity = .6 + .5 * T.exp }
+    if (R.water) { R.water.mat.color.copy(T.hor).lerp(T.top, .35).multiplyScalar(.75 + .25 * T.exp) }
+    if (R.word) R.word.mat.opacity = (1 - ss(.14, .26, p)) * .92, R.word.mat.color.copy(T.hor).lerp(new THREE.Color(1, 1, 1), .55)
+    if (R.mist) for (const u of R.mist) { u.uCol.value.copy(T.haze); u.uTime.value += dt; u.uAmt.value = u.uBase * (1 - .35 * T.stars) }
+    if (R.lights) { R.lights[0].uI.value = T.lights; R.lights[1].uI.value = T.lights * ss(.86, .95, p); R.lights.forEach(u => (u.uTime.value = s.t)) }
+    // grade every photo layer
+    const vis = {
+      far129: 1, band142: 1, band141: 1,
+      near129: ss(.855, .935, p), fg129: ss(.875, .95, p),
+      hill140: 1 - ss(.655, .72, p), terr5: ss(.64, .71, p) * (1 - ss(.8, .86, p)),
+    }
+    for (const k in vis) {
+      const L = R[k]; if (!L) continue
+      const u = L.u
+      u.uTint.value.copy(T.tint); u.uHaze.value.copy(T.haze); u.uExp.value = T.exp * (k === 'fg129' ? .82 : k === 'near129' ? .92 : 1)
+      u.uHazeAmt.value = T.hazeAmt * L.hazeScale; u.uDesat.value = .35 * T.stars
+      u.uLift.value = k === 'far129' || k.startsWith('band') ? .05 * T.stars : 0
+      const v = vis[k]
+      if (k === 'near129' || k === 'fg129' || k === 'hill140' || k === 'terr5') { u.uReveal.value = v; L.mesh.visible = v > .001 }
     }
   })
   return null
 }
 
-function Water({ water }) {
-  const uniforms = useMemo(() => ({
-    uTime: { value: 0 }, uDeep: { value: C('#5f8f9a') }, uSun: { value: SUN }, uSunCol: { value: C('#ffd59a') }, uFog: { value: C('#d8b4a4') }, uHor: { value: C('#e2b8a6') }, uFogNear: { value: 90 }, uFogFar: { value: 700 },
-  }), [])
+function Scene({ progress, mobile, labels, clockRef }) {
+  const reg = useRef({})
+  const dir = useRef(), hemi = useRef()
+  useLayoutEffect(() => { reg.current.dir = dir.current; reg.current.hemi = hemi.current }, [])
+  const segF = mobile ? 160 : 260
   return (
-    <mesh rotation-x={-Math.PI / 2} renderOrder={2}>
-      <planeGeometry args={[3000, 3000]} />
-      <shaderMaterial ref={water} vertexShader={waterVS} fragmentShader={waterFS} uniforms={uniforms} transparent depthWrite={false} />
-    </mesh>
-  )
-}
-function Dome({ dome }) {
-  const m = useRef()
-  const uniforms = useMemo(() => ({ uTop: { value: C('#56738a') }, uHor: { value: C('#e2b8a6') }, uSun: { value: SUN }, uSunCol: { value: C('#ffcf8a') } }), [])
-  useFrame(({ camera }) => m.current && m.current.position.copy(camera.position))
-  return (
-    <mesh ref={m} renderOrder={-10} frustumCulled={false}>
-      <sphereGeometry args={[1500, 32, 16]} />
-      <shaderMaterial ref={dome} vertexShader={domeVS} fragmentShader={domeFS} uniforms={uniforms} side={THREE.BackSide} depthWrite={false} fog={false} />
-    </mesh>
+    <>
+      <hemisphereLight ref={hemi} args={['#9fb7c6', '#4d4632', .9]} />
+      <directionalLight ref={dir} position={[100, 120, -170]} intensity={2.4} />
+      <Sky reg={reg} />
+      <ComoWord reg={reg} />
+      <Suspense fallback={null}>
+        {/* far mountains of #129 — plane at z = −150, shoreline row on the water line */}
+        <Layer name="far129" depthId={129} width={360} seg={segF} position={[0, (SHORE - 350.5) * S, ZF]} amount={14} hazeScale={1} reg={reg} renderOrder={0} opts={{ edgeX: .012, baseHaze: .55 }} />
+        {/* side ranges so the turn over the water never runs out of mountains */}
+        <Layer name="band142" depthId={142} width={420} seg={mobile ? 100 : 160} position={[-175, -14, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} opts={{ edgeX: .06, baseHaze: .6 }} />
+        <Layer name="band141" depthId={141} width={420} seg={mobile ? 100 : 160} position={[175, -12, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} opts={{ edgeX: .06, baseHaze: .6 }} />
+        {/* the hillside with the homes (#140, sky removed) across the water, east shore */}
+        <Layer name="hill140" depthId={140} width={HILL.w} seg={mobile ? 150 : 240} position={[HILL.pos[0], HILL.pos[1], HILL.pos[2]]} rotation={[0, PI, 0]} amount={-9} hazeScale={.35} reg={reg} renderOrder={1} opts={{ edgeX: .07, baseHaze: .2, reveal: 1 }} />
+        <Stage name="terr5" id={5} width={TERR.w} seg={mobile ? 150 : 230} position={TERR.pos} lookAt={TERR.look} amount={7} reg={reg} />
+        {/* near hill (Vezio, Varenna) and foreground trees — only for the main camera (layer 1), never mirrored */}
+        <Layer name="near129" depthId={129} width={360 * KN} seg={mobile ? 140 : 220} position={onPlane(900, 350.5, KN)} amount={3.5} hazeScale={.4} layer={1} renderOrder={10} depthTest={false} reg={reg} opts={{ edgeX: .005, baseHaze: 0, reveal: 0 }} />
+        <Layer name="fg129" depthId={129} width={360 * KFG} seg={mobile ? 120 : 200} position={onPlane(900, 350.5, KFG)} amount={2.2} hazeScale={.12} layer={1} renderOrder={11} depthTest={false} reg={reg} opts={{ edgeX: .004, baseHaze: 0, reveal: 0 }} />
+      </Suspense>
+      <Water mobile={mobile} reg={reg} />
+      <Mist reg={reg} />
+      <Lights reg={reg} mobile={mobile} />
+      <Triangle progress={progress} label={labels.triangle} />
+      {Object.keys(LBL).map(id => <Label key={id} id={id} text={labels[id][0]} sub={labels[id][1]} progress={progress} gold={id === 'home'} />)}
+      <Rig progress={progress} mobile={mobile} reg={reg} clockRef={clockRef} />
+    </>
   )
 }
 
-export default function ComoScene({ progress, skyRef, active, mobile, labels }) {
-  const water = useRef(), dome = useRef()
+export default function ComoScene({ progress, active, mobile, labels, clockRef }) {
   return (
     <Canvas
       frameloop={active ? 'always' : 'never'}
-      dpr={[1, mobile ? 1.3 : 1.6]}
-      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      camera={{ fov: mobile ? 66 : 50, near: .3, far: 3200, position: [-15, 52, -112] }}
-      onCreated={({ gl }) => { gl.localClippingEnabled = true; gl.setClearColor(0x000000, 0) }}
+      dpr={[1, mobile ? 1.25 : 1.5]}
+      gl={{ antialias: !mobile ? false : true, powerPreference: 'high-performance', stencil: false }}
+      camera={{ fov: 54, near: .5, far: 3000, position: [6, 30, -42] }}
       style={{ position: 'absolute', inset: 0 }}
     >
-      <hemisphereLight args={['#c4d3dc', '#4d4632', .9]} />
-      <directionalLight position={SUN.clone().multiplyScalar(100).toArray()} color="#ffc488" intensity={2.4} />
-      <Environment resolution={64} frames={1}>
-        <Lightformer form="rect" intensity={2.4} color="#ffcf9a" position={[-3, 1, -8]} scale={[12, 3, 1]} />
-        <Lightformer form="rect" intensity={1} color="#9fb7c6" position={[0, 8, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} />
-        <Lightformer form="rect" intensity={.5} color="#e2b8a6" position={[0, 1, 8]} scale={[16, 3, 1]} />
-      </Environment>
-      <Dome dome={dome} />
-      <Terrain seg={mobile ? 190 : 300} />
-      <Ridges />
-      <Water water={water} />
-      <Homes />
-      <Trees count={mobile ? 1400 : 3200} />
-      <Towns />
-      <Triangle progress={progress} label={labels.triangle} />
-      {LBL.map(([id, lift, win]) => <Label key={id} id={id} lift={lift} win={win} text={labels[id][0]} sub={labels[id][1]} progress={progress} gold={id === 'home'} />)}
-      <Rig progress={progress} skyRef={skyRef} mobile={mobile} water={water} dome={dome} />
+      <Scene progress={progress} mobile={mobile} labels={labels} clockRef={clockRef} />
+      {!mobile && (
+        <EffectComposer multisampling={4} disableNormalPass>
+          <Bloom mipmapBlur intensity={.85} luminanceThreshold={.92} luminanceSmoothing={.2} radius={.75} />
+          <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+          <Vignette offset={.22} darkness={.62} />
+          <Noise opacity={.035} premultiply />
+        </EffectComposer>
+      )}
     </Canvas>
   )
 }

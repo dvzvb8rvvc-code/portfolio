@@ -1,230 +1,291 @@
-import React, { useMemo, useRef, useEffect } from 'react'
+import React, { Suspense, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Environment, Lightformer, Html } from '@react-three/drei'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { Environment, Lightformer, Html, useTexture } from '@react-three/drei'
+import { EffectComposer, Bloom, DepthOfField, ChromaticAberration, ToneMapping, Noise, Vignette } from '@react-three/postprocessing'
+import { ToneMappingMode, BlendFunction } from 'postprocessing'
+import { buildModel, samplePoints, fillInstances, LEVELS, CENTER } from './heroBuild'
+import { buildParticleGeometry, Particles } from './heroParticles'
+import { PhotoSolid } from './heroPhoto'
 
-/* Procedural hillside terraces (after his Lake Como scheme): ink sketch → stone → exploded scales.
-   Scroll progress arrives as a framer MotionValue and is damped here — no React state per frame. */
+/* Hero film — one canvas, four beats, all driven by a damped scroll value (no React state per frame):
+   1 swirl → ink sketch   2 particles → solid PBR building, scan line, day → dusk, DOF pull
+   3 exploded floors with labels   4 building melts → photo-cloud of render 5 → solid depth-displaced photo, dolly in */
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const seg = (p, a, b) => clamp((p - a) / (b - a))
-const ease = t => 1 - Math.pow(1 - t, 3)
-const ease2 = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+const io = t => (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+const out3 = t => 1 - Math.pow(1 - t, 3)
+const lerp = THREE.MathUtils.lerp
 
-// deterministic random so the sketch looks the same every visit
-function rng(seed) { let s = seed; return () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646 }
+export const PHOTO = { c: [0, 1.7, -3.6], w: 8.6, aspect: 1800 / 1440, depth: 3.1 }
+const CUT_LO = -4.4, CUT_HI = 6.6
+const tex = n => `/portfolio/yts/tex/${n}.webp`
 
-const LEVELS = [
-  { y: 0, z: 0, x: 0, w: 6.4, pool: true },
-  { y: 1.05, z: -1.6, x: .45, w: 5.7 },
-  { y: 2.1, z: -3.2, x: -.25, w: 5.0, pool: true },
-]
-
-function box(w, h, d, x, y, z) { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); return g.toNonIndexed() }
-function bush(r, x, y, z, rnd) { const g = new THREE.IcosahedronGeometry(r, 0); g.scale(1, .75, 1); g.rotateY(rnd() * 3); g.translate(x, y, z); return g }
-
-/* collect edges of a geometry as overshooting, double-stroked "hand" segments */
-function edgesOf(geo, out, rnd, { thr = 20, hand = true, pri = 0 } = {}) {
-  const e = new THREE.EdgesGeometry(geo, thr).attributes.position.array
-  for (let i = 0; i < e.length; i += 6) {
-    const a = new THREE.Vector3(e[i], e[i + 1], e[i + 2]), b = new THREE.Vector3(e[i + 3], e[i + 4], e[i + 5])
-    const dir = b.clone().sub(a), len = dir.length(); if (len < 1e-4) continue
-    dir.normalize()
-    const strokes = hand ? 2 : 1
-    for (let s = 0; s < strokes; s++) {
-      const os = hand ? (.03 + rnd() * .09) * (s ? .6 : 1) : 0 // architect's overshoot past the corner
-      const j = () => (rnd() - .5) * (hand ? .022 : 0)
-      const A = a.clone().addScaledVector(dir, -os).add(new THREE.Vector3(j(), j(), j()))
-      const B = b.clone().addScaledVector(dir, os).add(new THREE.Vector3(j(), j(), j()))
-      out.push({ A, B, k: Math.min(A.y, B.y) + pri + rnd() * .35, len })
-    }
-  }
+/* camera keyframes (orbit around the building) */
+const DESK = {
+  A: { th: -.58, el: .30, R: 19.5, ty: 0, ly: -.2, sh: 2.5 },
+  B: { th: -.22, el: .25, R: 16.8, ty: 0, ly: 0, sh: 2.1 },
+  C: { th: .36, el: .21, R: 15.6, ty: 0, ly: 0, sh: 1.7 },
+  D: { th: .52, el: .17, R: 20.5, ty: 1.9, ly: 0, sh: .55 },
+  E: { th: .08, el: .1, R: 19, ty: .6, ly: 0, sh: 0 },
+}
+const MOB = {
+  A: { th: -.5, el: .3, R: 30, ty: 0, ly: -2.6, sh: 0 },
+  B: { th: -.2, el: .26, R: 29, ty: 0, ly: -2.2, sh: 0 },
+  C: { th: .3, el: .22, R: 28, ty: 0, ly: -2.0, sh: 0 },
+  D: { th: .45, el: .16, R: 33, ty: 2.0, ly: -1.2, sh: .9 },
+  E: { th: .05, el: .08, R: 30, ty: .6, ly: -.5, sh: 0 },
+}
+function lerpPose(a, b, k) { const o = {}; for (const key in a) o[key] = lerp(a[key], b[key], k); return o }
+const _r = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0)
+function orbit(o, pos, look) {
+  pos.set(CENTER.x + Math.sin(o.th) * Math.cos(o.el) * o.R, CENTER.y + o.ty + Math.sin(o.el) * o.R, CENTER.z + Math.cos(o.th) * Math.cos(o.el) * o.R)
+  look.set(CENTER.x, CENTER.y + o.ty + o.ly, CENTER.z)
+  _r.subVectors(look, pos).cross(_up).normalize()
+  look.addScaledVector(_r, -o.sh)
+}
+export function openingPose(mobile) {
+  const pos = new THREE.Vector3(), look = new THREE.Vector3()
+  orbit((mobile ? MOB : DESK).A, pos, look)
+  return { C0: pos, T0: CENTER.clone() }
 }
 
-function linesGeometry(list, order) {
-  const pos = new Float32Array(list.length * 6), d = new Float32Array(list.length * 2)
-  list.forEach((s, i) => {
-    pos.set([s.A.x, s.A.y, s.A.z, s.B.x, s.B.y, s.B.z], i * 6)
-    const st = order.get(s) * .86, w = .025 + Math.min(.08, s.len * .012)
-    d[i * 2] = st; d[i * 2 + 1] = st + w
+function computeBeats(film, raw, t, reduced) {
+  const b = film.b, p = film.p
+  b.intro = reduced ? 1 : Math.max(out3(clamp((t - .1) / 3.6)), seg(p, 0, .03))
+  b.morph = io(seg(p, .03, .16))
+  b.solid = io(seg(p, .13, .28))
+  b.dusk = io(seg(p, .27, .42))
+  b.exOpen = io(seg(p, .32, .44))
+  b.ex = b.exOpen * (1 - io(seg(p, .52, .58)))
+  b.melt = io(seg(p, .57, .655))
+  b.photo = io(seg(p, .625, .77))
+  b.pix = io(seg(p, .745, .835))
+  b.dolly = io(seg(p, .78, 1))
+  b.cut = b.melt > 0 ? lerp(CUT_HI, CUT_LO, b.melt) : lerp(CUT_LO, CUT_HI, b.solid)
+  b.scan = clamp(Math.sin(Math.PI * b.solid) * 1.6 + Math.sin(Math.PI * b.melt) * 1.6)
+  b.solidCut = b.melt === 0 && b.solid >= .999 ? 100 : b.cut
+}
+
+const _pos = new THREE.Vector3(), _look = new THREE.Vector3(), _p1 = new THREE.Vector3(), _l1 = new THREE.Vector3()
+function Director({ progress, film, mobile, reduced }) {
+  const { camera } = useThree()
+  useFrame((state, dt) => {
+    const f = film.current
+    dt = Math.min(dt, .05)
+    if (f.t0 === null) f.t0 = state.clock.elapsedTime
+    f.t = state.clock.elapsedTime - f.t0
+    const raw = reduced ? 1 : progress.get()
+    f.p = THREE.MathUtils.damp(f.p, raw, 3.4, dt)
+    f.v = THREE.MathUtils.damp(f.v, Math.abs(raw - f.last) / Math.max(dt, 1e-3), 5, dt)
+    f.last = raw
+    computeBeats(f, raw, f.t, reduced)
+    const b = f.b, K = mobile ? MOB : DESK
+    let o = lerpPose(K.A, K.B, b.morph)
+    o = lerpPose(o, K.C, b.solid)
+    o = lerpPose(o, K.D, b.exOpen)
+    o = lerpPose(o, K.E, b.melt)
+    o.th += Math.sin(f.t * .12) * .025 + state.pointer.x * .05 * (1 - b.photo)
+    o.el += state.pointer.y * .02 * (1 - b.photo)
+    orbit(o, _pos, _look)
+    // beat 4: square up to the photo, then dolly into the terraces
+    const [cx, cy, cz] = PHOTO.c
+    const back = mobile ? 17 : 12.4
+    _p1.set(cx, cy + .5, cz + back); _l1.set(cx, cy + .1, cz)
+    _pos.lerp(_p1, b.photo); _look.lerp(_l1, b.photo)
+    _p1.set(cx + .15 + state.pointer.x * .25, cy + .15 + state.pointer.y * .15, cz + (mobile ? 6.4 : 5.5)); _l1.set(cx - .1, cy - .55, cz - 1)
+    _pos.lerp(_p1, b.dolly); _look.lerp(_l1, b.dolly)
+    camera.position.copy(_pos)
+    camera.lookAt(_look)
+    f.look.copy(_look)
+  }, -1)
+  return null
+}
+
+/* ---------- the building ---------- */
+function useBuildingMats(plane, mobile) {
+  const t = useTexture({
+    wd: tex('hero_wood_diff'), wn: tex('hero_wood_nor'),
+    sd: tex('stone_diff'), sn: tex('stone_nor'), sa: tex('stone_arm'),
+    pd: tex('plaster_diff'), pn: tex('plaster_nor'),
   })
-  const g = new THREE.BufferGeometry()
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-  g.setAttribute('aD', new THREE.BufferAttribute(d, 1))
-  return g
-}
-
-function buildModel() {
-  const rnd = rng(7)
-  const all = []
-  const levels = LEVELS.map((L, i) => {
-    const { x, y, z, w } = L
-    const G = { stone: [], slab: [], glass: [], green: [], pool: [] }, segs = []
-    const add = (k, g, opt) => { G[k].push(g); edgesOf(g, segs, rnd, opt) }
-    add('slab', box(w + .3, .12, 2.7, x, y + .06, z + .25))
-    add('stone', box(w * .4, .84, 1.35, x - w * .3, y + .54, z - .38))
-    add('glass', box(w * .56, .8, 1.2, x + w * .2, y + .52, z - .32))
-    for (let m = 0; m < 6; m++) add('slab', box(.035, .8, .035, x + w * .2 - w * .26 + m * w * .104, y + .52, z + .29), { hand: false })
-    add('slab', box(w + .15, .1, 2.05, x + .05, y + 1.0, z - .12))
-    add('stone', box(w * .92, .2, .3, x, y + .22, z + 1.4))
-    const nb = 7
-    for (let b = 0; b < nb; b++) add('green', bush(.12 + rnd() * .1, x - w * .44 + (b + rnd() * .5) * (w * .88 / nb), y + .36, z + 1.4 + (rnd() - .5) * .1, rnd), { thr: 35, hand: false, pri: .1 })
-    if (L.pool) add('pool', box(1.9, .03, .8, x + w * .22, y + .135, z + .78), { hand: false })
-    // roof planters on the roof slab
-    for (let b = 0; b < 3; b++) add('green', bush(.1 + rnd() * .06, x - w * .35 + b * .32, y + 1.12, z - .9, rnd), { thr: 35, hand: false })
-    segs.forEach(s => (s.level = i))
-    all.push(...segs)
-    const fills = {}
-    for (const k in G) if (G[k].length) fills[k] = mergeGeometries(G[k])
-    return { fills, segs, L }
-  })
-  // hillside terrain (stepped earth blocks) + ground hatch
-  const T = [], tsegs = []
-  LEVELS.forEach((L, i) => {
-    const h = L.y + .4, g = box(L.w + 1.6, h, 3.1, L.x, -.4 + h / 2, L.z - .2)
-    T.push(g); edgesOf(g, tsegs, rnd, { pri: -.2 })
-  })
-  const back = box(7.4, 3.2, 1.6, 0, -.4 + 1.6, -5.4); T.push(back); edgesOf(back, tsegs, rnd, { pri: .2 })
-  for (let k = 0; k < 6; k++) { // ground strokes
-    const zz = 2.1 + k * .2, xx = -4.2 + rnd() * 2.5 + k * .4, ln = 1.2 + rnd() * 2.6
-    tsegs.push({ A: new THREE.Vector3(xx, -.4, zz), B: new THREE.Vector3(xx + ln, -.4, zz + (rnd() - .5) * .08), k: -1 + rnd() * .3, len: ln })
-  }
-  tsegs.forEach(s => (s.level = -1))
-  all.push(...tsegs)
-  // global drawing order: bottom up, like a hand building the drawing
-  const sorted = [...all].sort((a, b) => a.k - b.k), order = new Map()
-  sorted.forEach((s, i) => order.set(s, i / sorted.length))
-  levels.forEach(l => (l.lines = linesGeometry(l.segs, order)))
-  return { levels, terrain: { fill: mergeGeometries(T), lines: linesGeometry(tsegs, order) } }
-}
-
-const lineVS = `attribute float aD; varying float vD; void main(){ vD=aD; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`
-const lineFS = `uniform float uDraw; uniform float uOp; uniform vec3 uC; varying float vD; void main(){ if(vD>uDraw) discard; float tip=smoothstep(uDraw, uDraw-.012, vD); gl_FragColor=vec4(uC, uOp*(.55+.45*tip)); }`
-function lineMat() {
-  return new THREE.ShaderMaterial({ vertexShader: lineVS, fragmentShader: lineFS, transparent: true, depthWrite: false, uniforms: { uDraw: { value: 0 }, uOp: { value: .9 }, uC: { value: new THREE.Color('#151412') } } })
-}
-
-function useMats(plane) {
   return useMemo(() => {
-    const base = { clippingPlanes: [plane], polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }
+    Object.values(t).forEach(x => { x.wrapS = x.wrapT = THREE.RepeatWrapping; x.anisotropy = 4 })
+    t.wd.colorSpace = t.sd.colorSpace = t.pd.colorSpace = THREE.SRGBColorSpace
+    const base = { clippingPlanes: [plane], clipShadows: false }
     return {
-      stone: new THREE.MeshStandardMaterial({ ...base, color: '#d9cdb9', roughness: .92 }),
-      slab: new THREE.MeshStandardMaterial({ ...base, color: '#f4f0e8', roughness: .7 }),
-      glass: new THREE.MeshStandardMaterial({ ...base, color: '#3f5a64', roughness: .18, metalness: .35, envMapIntensity: 2.2 }),
-      green: new THREE.MeshStandardMaterial({ ...base, color: '#7b8656', roughness: .95, flatShading: true }),
-      pool: new THREE.MeshStandardMaterial({ ...base, color: '#6e9aa2', roughness: .15, metalness: .2 }),
-      terrain: new THREE.MeshStandardMaterial({ ...base, color: '#e4ddd0', roughness: 1 }),
+      plaster: new THREE.MeshStandardMaterial({ ...base, map: t.pd, normalMap: t.pn, normalScale: new THREE.Vector2(.35, .35), color: '#fbf6ee', roughness: .82 }),
+      stone: new THREE.MeshStandardMaterial({ ...base, map: t.sd, normalMap: t.sn, roughnessMap: t.sa, aoMap: null, color: '#e6dccb', roughness: 1, normalScale: new THREE.Vector2(1.1, 1.1) }),
+      wood: new THREE.MeshStandardMaterial({ ...base, map: t.wd, normalMap: t.wn, color: '#d9a674', roughness: .62 }),
+      glass: new THREE.MeshStandardMaterial({ ...base, color: '#1b262b', metalness: 1, roughness: .05, envMapIntensity: 1.6, transparent: true, opacity: .62 }),
+      frame: new THREE.MeshStandardMaterial({ ...base, color: '#2a2724', metalness: .7, roughness: .38 }),
+      interior: new THREE.MeshStandardMaterial({ ...base, color: '#3a2a1c', emissive: '#ffb066', emissiveIntensity: .3, roughness: .9 }),
+      green: new THREE.MeshStandardMaterial({ ...base, color: '#ffffff', roughness: .92 }),
+      hill: new THREE.MeshStandardMaterial({ ...base, vertexColors: true, roughness: 1, alphaHash: true }),
     }
-  }, [plane])
+  }, [t, plane])
 }
 
-function shadowTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 128
-  const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 4, 64, 64, 64)
-  g.addColorStop(0, 'rgba(21,20,18,.55)'); g.addColorStop(1, 'rgba(21,20,18,0)')
-  x.fillStyle = g; x.fillRect(0, 0, 128, 128)
-  return new THREE.CanvasTexture(c)
+function Instanced({ geo, list, mat }) {
+  const ref = useRef()
+  useEffect(() => { ref.current && fillInstances(ref.current, list) }, [list])
+  return <instancedMesh ref={ref} args={[geo, mat, list.length]} frustumCulled={false} />
 }
 
-function Label({ i, text, n, groupRef }) {
+function Label({ L, i, text, refFn }) {
   return (
-    <Html position={[LEVELS[i].x + LEVELS[i].w / 2 + .2, LEVELS[i].y + .55, LEVELS[i].z - .3]} zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
-      <div className="-translate-y-1/2"><div ref={groupRef} data-i={i} style={{ opacity: 0, transform: 'translateX(-10px)', transition: `opacity .5s cubic-bezier(.16,1,.3,1) ${i * 100}ms, transform .7s cubic-bezier(.16,1,.3,1) ${i * 100}ms` }} className="flex items-center whitespace-nowrap font-['Inter_Tight',sans-serif]">
-        <span className="h-[7px] w-[7px] rounded-full border border-[#151412] bg-[#ece7df]" />
-        <span className="h-px w-[56px] bg-[#151412]/70 md:w-[110px]" />
-        <span className="ml-3 text-[11px] font-semibold tabular-nums tracking-[.14em] text-[#b06a35]">{n}</span>
-        <span className="ml-2 font-['Instrument_Serif',serif] text-[26px] leading-none text-[#151412] md:text-[34px]">{text}</span>
-      </div></div>
+    <Html position={[L.x + L.w / 2 + .25, L.y + .62, L.z + .3]} zIndexRange={[25, 0]} style={{ pointerEvents: 'none' }}>
+      <div className="-translate-y-1/2">
+        <div ref={refFn} style={{ opacity: 0, transform: 'translateX(-14px)', transition: `opacity .6s cubic-bezier(.16,1,.3,1) ${i * 110}ms, transform .8s cubic-bezier(.16,1,.3,1) ${i * 110}ms` }} className="flex items-center whitespace-nowrap font-['Inter_Tight',sans-serif]">
+          <span className="h-[7px] w-[7px] rounded-full bg-[#c3a15e] shadow-[0_0_12px_#c3a15e]" />
+          <span data-line className="h-px w-[40px] origin-left bg-gradient-to-r from-[#c3a15e] to-white/50 md:w-[120px]" style={{ transform: 'scaleX(0)', transition: `transform .9s cubic-bezier(.16,1,.3,1) ${i * 110 + 80}ms` }} />
+          <span className="ml-3 text-[10px] font-semibold tabular-nums tracking-[.18em] text-[#c3a15e] md:text-[11px]">0{i + 1}</span>
+          <span className="ml-2 font-['Instrument_Serif',serif] text-[24px] leading-none text-white md:text-[40px]">{text}</span>
+        </div>
+      </div>
     </Html>
   )
 }
 
-function Model({ progress, labels }) {
-  const data = useMemo(buildModel, [])
-  const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, -1, 0), -1), [])
-  const mats = useMats(plane)
-  const lmats = useMemo(() => [lineMat(), lineMat(), lineMat(), lineMat()], [])
-  const sh = useMemo(shadowTex, [])
-  const lv = useRef([]), terr = useRef(), shadow = useRef(), root = useRef(), lab = useRef([])
-  const st = useRef({ p: 0, t0: null, on: false })
-  const { camera, size, gl } = useThree()
+function Building({ model, film, labels, mobile }) {
+  const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, -1, 0), CUT_LO), [])
+  const mats = useBuildingMats(plane, mobile)
+  const lv = useRef([]), hill = useRef(), grid = useRef(), lab = useRef([]), on = useRef(false)
+  const { gl } = useThree()
   useEffect(() => { gl.localClippingEnabled = true }, [gl])
-
-  useFrame((state, dt) => {
-    const s = st.current
-    if (s.t0 === null) s.t0 = state.clock.elapsedTime
-    const raw = progress.get()
-    s.p = THREE.MathUtils.damp(s.p, raw, 5, Math.min(dt, .05))
-    const p = s.p, t = state.clock.elapsedTime - s.t0
-    const draw = Math.max(ease(clamp((t - .1) / 2.8)), seg(p, 0, .06))
-    const fill = ease2(seg(p, .1, .36))
-    const ex = ease2(seg(p, .42, .62))
-    const wide = size.width / size.height > 1.1
-
-    // ink → stone
-    lmats.forEach(m => { m.uniforms.uDraw.value = draw * 1.0 + (draw >= 1 ? .2 : 0); m.uniforms.uOp.value = .92 - fill * .5 })
-    plane.constant = fill >= .999 ? 100 : -.45 + fill * 4.2
-    shadow.current.material.opacity = .5 * fill
-    // exploded axonometric: floors lift apart with a HALVES-style twist
+  useFrame(() => {
+    const b = film.current.b
+    plane.constant = b.solidCut
+    const vis = b.solidCut > CUT_LO + .01
     lv.current.forEach((g, i) => {
       if (!g) return
-      g.position.y = i * ex * 1.15 + ex * .5
-      g.position.z = -LEVELS[i].z * .45 * ex
-      g.rotation.y = (i - 1) * .16 * ex
+      g.visible = vis
+      const e = b.ex
+      g.position.set(0, (i * 1.25 + .45) * e, LEVELS[i].z * -.28 * e)
+      g.rotation.y = (i - 1) * .13 * e
     })
-    terr.current.scale.y = Math.max(.001, 1 - ex * .985)
-    terr.current.position.y = -.4 * ex * 0
-    lmats[3].uniforms.uOp.value = (.92 - fill * .5) * (1 - ex)
-    const on = ex > .55
-    if (on !== s.on) { s.on = on; lab.current.forEach(el => { if (el) { el.style.opacity = on ? 1 : 0; el.style.transform = on ? 'translateX(0)' : 'translateX(-10px)' } }) }
-
-    // camera: slow orbit with scroll + subtle pointer parallax
-    const th = -.62 + p * 1.05 + state.pointer.x * .07
-    const R = (wide ? 19 : 28) + ex * 1.6 - seg(p, .7, .95) * 3
-    const tx = wide ? -2.3 * (1 - ex) - .8 * ex : 0
-    const ty = 1.05 + ex * 1.35 + (wide ? 0 : -1.4)
-    const tz = -1.5 + ex * .8
-    camera.position.set(tx + Math.sin(th) * R, ty + 4.3 + state.pointer.y * .35 - ex * 1.2, tz + Math.cos(th) * R)
-    camera.lookAt(tx, ty, tz)
-    root.current.rotation.y = Math.sin(t * .25) * .015
+    hill.current.visible = vis
+    hill.current.position.y = -8 * io(clamp(b.ex * 1.25))
+    mats.interior.emissiveIntensity = lerp(.25, 4.2, b.dusk)
+    mats.glass.envMapIntensity = lerp(1.6, .9, b.dusk)
+    grid.current.material.opacity = .32 * b.ex
+    grid.current.visible = b.ex > .01
+    const show = b.ex > .62
+    if (show !== on.current) {
+      on.current = show
+      lab.current.forEach(el => { if (!el) return; el.style.opacity = show ? 1 : 0; el.style.transform = show ? 'translateX(0)' : 'translateX(-14px)'; const ln = el.querySelector('[data-line]'); if (ln) ln.style.transform = show ? 'scaleX(1)' : 'scaleX(0)' })
+    }
   })
-
+  const gridGeo = useMemo(() => {
+    const pts = []
+    for (let k = -10; k <= 10; k++) { pts.push(k, 0, -10, k, 0, 10, -10, 0, k, 10, 0, k) }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); return g
+  }, [])
   return (
-    <group ref={root}>
-      <group ref={terr} position={[0, -.4, 0]}>
-        <group position={[0, .4, 0]}>
-          <mesh geometry={data.terrain.fill} material={mats.terrain} />
-          <lineSegments geometry={data.terrain.lines} material={lmats[3]} />
-        </group>
+    <group>
+      <group ref={hill}>
+        <mesh geometry={model.hill} material={mats.hill} />
+        <Instanced geo={model.geoms.cypress} list={model.cypress} mat={mats.green} />
+        <Instanced geo={model.geoms.crown} list={model.crowns} mat={mats.green} />
       </group>
-      {data.levels.map((l, i) => (
+      {model.levels.map((l, i) => (
         <group key={i} ref={el => (lv.current[i] = el)}>
-          {Object.entries(l.fills).map(([k, g]) => <mesh key={k} geometry={g} material={mats[k]} />)}
-          <lineSegments geometry={l.lines} material={lmats[i]} />
-          <Label i={i} n={'0' + (i + 1)} text={labels[i]} groupRef={el => (lab.current[i] = el)} />
+          {Object.entries(l.fills).map(([k, g]) => <mesh key={k} geometry={g} material={mats[k]} renderOrder={k === 'glass' ? 1 : 0} />)}
+          <Instanced geo={model.geoms.bush} list={l.bushes} mat={mats.green} />
+          <Label L={l.L} i={i} text={labels[i]} refFn={el => (lab.current[i] = el)} />
         </group>
       ))}
-      <mesh ref={shadow} rotation-x={-Math.PI / 2} position={[0, -.39, -1.2]} scale={[11, 8, 1]}>
-        <planeGeometry />
-        <meshBasicMaterial map={sh} transparent depthWrite={false} opacity={0} />
-      </mesh>
+      <lineSegments ref={grid} geometry={gridGeo} position={[0, -1.2, -2]} scale={.9}>
+        <lineBasicMaterial color="#c3a15e" transparent opacity={0} depthWrite={false} />
+      </lineSegments>
     </group>
   )
 }
 
-export default function Hero3D({ progress, labels, active = true }) {
+/* lights: day → golden hour → dusk */
+function Lights({ film, mobile }) {
+  const key = useRef(), hemi = useRef(), { scene } = useThree()
+  const cDay = useMemo(() => new THREE.Color('#fff1dc'), []), cDusk = useMemo(() => new THREE.Color('#ff8f4d'), [])
+  useFrame(() => {
+    const d = film.current.b.dusk
+    key.current.color.copy(cDay).lerp(cDusk, d)
+    key.current.intensity = lerp(2.4, .9, d)
+    key.current.position.set(lerp(-7, 9, d), lerp(10, 3.2, d), lerp(6, 3, d))
+    hemi.current.intensity = lerp(.55, .12, d)
+    scene.environmentIntensity = lerp(1, .32, d)
+  })
   return (
-    <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, 1.6]} gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }} camera={{ fov: 30, near: .1, far: 80, position: [-8, 6, 11] }} style={{ position: 'absolute', inset: 0 }}>
-      <ambientLight intensity={.5} />
-      <hemisphereLight args={['#fff8ee', '#b8ab96', .55]} />
-      <directionalLight position={[-6, 9, 6]} intensity={1.9} color="#fff3e2" />
-      <Environment resolution={128} frames={1}>
-        <Lightformer intensity={2.2} position={[0, 6, 4]} scale={[12, 4, 1]} />
-        <Lightformer intensity={1.2} position={[-8, 2, 0]} rotation-y={Math.PI / 2} scale={[8, 3, 1]} color="#ffe6c8" />
-        <Lightformer intensity={.8} position={[8, 3, -2]} rotation-y={-Math.PI / 2} scale={[8, 3, 1]} color="#cfe0e6" />
-      </Environment>
-      <Model progress={progress} labels={labels} />
+    <>
+      <directionalLight ref={key} position={[-7, 10, 6]} intensity={2.4} />
+      <hemisphereLight ref={hemi} args={['#fff6ea', '#7f8a6a', .55]} />
+      {mobile ? (
+        <Environment resolution={64} frames={1}>
+          <Lightformer intensity={2.4} position={[0, 7, 4]} scale={[14, 5, 1]} color="#fff2df" />
+          <Lightformer intensity={1.4} position={[-9, 2, 0]} rotation-y={Math.PI / 2} scale={[9, 3, 1]} color="#ffbf80" />
+          <Lightformer intensity={.9} position={[9, 3, -2]} rotation-y={-Math.PI / 2} scale={[9, 3, 1]} color="#bcd3df" />
+        </Environment>
+      ) : <Environment files="/portfolio/yts/hdr/venice_sunset.hdr" />}
+    </>
+  )
+}
+
+function World({ film, labels, mobile }) {
+  const N = mobile ? 24000 : 96000
+  const [sketch, photoS, depth] = useLoader(THREE.TextureLoader, ['/portfolio/yts/img/30-s.webp', '/portfolio/yts/img/5-s.webp', '/portfolio/yts/depth/5.webp'])
+  photoS.colorSpace = THREE.SRGBColorSpace
+  const model = useMemo(buildModel, [])
+  const pose = useMemo(() => openingPose(mobile), [mobile])
+  const geometry = useMemo(() => buildParticleGeometry({ N, build: samplePoints(model, N), sketchImage: sketch.image, pose, sketchH: mobile ? 9.6 : 8.4, photoAspect: PHOTO.aspect }), [model, sketch, pose, N])
+  return (
+    <>
+      <Building model={model} film={film} labels={labels} mobile={mobile} />
+      <Particles geometry={geometry} film={film} photoMap={photoS} depthMap={depth} photo={PHOTO} swirlC={CENTER} size={mobile ? .05 : .036} />
+      <PhotoSolid film={film} photo={PHOTO} depthMap={depth} mobile={mobile} />
+    </>
+  )
+}
+
+const _focus = new THREE.Vector3()
+function Post({ film }) {
+  const dof = useRef(), ca = useRef()
+  const target = useMemo(() => new THREE.Vector3(), [])
+  useFrame(() => {
+    const f = film.current, b = f.b
+    if (dof.current) {
+      // focus pull: front terrace → top terrace while the stone forms; terraces of the photo on the dolly
+      _focus.set(0, .4, 1.3).lerp(new THREE.Vector3(.2, 3.1, -4.1), seg(f.p, .16, .3))
+      _focus.lerp(f.look, b.exOpen)
+      _focus.lerp(new THREE.Vector3(PHOTO.c[0], PHOTO.c[1] - .6, PHOTO.c[2] + 1.2), b.dolly)
+      target.copy(_focus)
+      dof.current.target = target
+      dof.current.bokehScale = lerp(0, 3.2, b.solid) * (1 - b.photo * .7) + b.dolly * 2.4
+    }
+    if (ca.current) { const k = Math.min(.006, f.v * .016); ca.current.offset.set(k, k * .6) }
+  })
+  return (
+    <EffectComposer multisampling={0} disableNormalPass>
+      <DepthOfField ref={dof} focusRange={.03} bokehScale={0} resolutionScale={.5} />
+      <Bloom mipmapBlur luminanceThreshold={1} luminanceSmoothing={.2} intensity={.85} radius={.7} />
+      <ChromaticAberration ref={ca} offset={[0, 0]} radialModulation modulationOffset={.15} />
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      <Vignette offset={.28} darkness={.5} />
+      <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={.35} />
+    </EffectComposer>
+  )
+}
+
+export default function Hero3D({ progress, labels, active = true, mobile = false, reduced = false }) {
+  const film = useRef({ p: 0, v: 0, last: 0, t: 0, t0: null, look: new THREE.Vector3(), b: { intro: 0, morph: 0, solid: 0, dusk: 0, ex: 0, exOpen: 0, melt: 0, photo: 0, pix: 0, dolly: 0, cut: CUT_LO, scan: 0, solidCut: CUT_LO } })
+  return (
+    <Canvas frameloop={active ? 'always' : 'never'} dpr={mobile ? [1, 1.5] : [1, 1.5]} gl={{ antialias: mobile, alpha: true, powerPreference: 'high-performance', stencil: false }}
+      camera={{ fov: 30, near: .1, far: 120, position: [-8, 6, 14] }} style={{ position: 'absolute', inset: 0 }}>
+      <Director progress={progress} film={film} mobile={mobile} reduced={reduced} />
+      <Suspense fallback={null}>
+        <Lights film={film} mobile={mobile} />
+        <World film={film} labels={labels} mobile={mobile} />
+      </Suspense>
+      {!mobile && <Post film={film} />}
     </Canvas>
   )
 }

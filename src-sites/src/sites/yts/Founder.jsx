@@ -139,10 +139,10 @@ function Motto() {
   const b = useTransform(scrollYProgress, [0, 1], ['14%', '-10%'])
   const words = t(PERSON.motto).split(' ')
   return (
-    <div ref={ref} className="relative overflow-hidden py-10 md:py-14">
-      <div className="mx-auto max-w-[1440px] px-5 md:px-10"><Eyebrow className="text-[#ece7df]/45">{t({ en: 'The studio’s motto', it: 'Il motto dello studio' })}</Eyebrow></div>
+    <div ref={ref} className="relative overflow-hidden bg-[#b06a35] py-10 text-[#151412] md:py-14">
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10"><Eyebrow className="text-[#151412]/60">{t({ en: 'The studio’s motto', it: 'Il motto dello studio' })}</Eyebrow></div>
       <motion.div style={{ x: a }} className={`${T.serif} mt-3 whitespace-nowrap pl-[6vw] text-[19vw] leading-[.82] tracking-[-.02em] md:text-[14vw]`}>{words[0]}</motion.div>
-      <motion.div style={{ x: b }} className={`${T.serif} whitespace-nowrap pl-[20vw] text-[19vw] italic leading-[.9] tracking-[-.02em] text-transparent [-webkit-text-stroke:1px_#c3a15e] md:text-[14vw]`}>{words.slice(1).join(' ')}.</motion.div>
+      <motion.div style={{ x: b }} className={`${T.serif} whitespace-nowrap pl-[20vw] text-[19vw] italic leading-[.9] tracking-[-.02em] text-[#ece7df] md:text-[14vw]`}>{words.slice(1).join(' ')}.</motion.div>
     </div>
   )
 }

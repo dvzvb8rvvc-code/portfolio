@@ -144,8 +144,7 @@ const LOOK = new THREE.Vector3()
 export function Journey({ S, drag, mob }) {
   const dust = useRef(), root = useRef()
   const beamTex = useMemo(beamTexture, [])
-  const tEnd = ROOMS.length - 1 + 0.6
-  const zEnd = D0 - (tEnd + 0.0955) * L
+  const zEnd = D0 - roomTime(TL.rooms[1]) * L
   const yaw = useRef(0)
   useFrame((st, dt) => {
     dt = Math.min(dt, 0.05)
