@@ -73,7 +73,7 @@ function Rail({ p }) {
   )
 }
 function RailItem({ p, i, label }) {
-  const c = [[0, .16], [.16, .45], [.45, .78], [.78, 1.01]][i]
+  const c = [[0, .2], [.2, .47], [.47, .84], [.84, 1.01]][i]
   const o = useTransform(p, v => (v >= c[0] && v < c[1] ? 1 : .38))
   return <motion.span style={{ opacity: o }}>{String(i + 1).padStart(2, '0')} · {label}</motion.span>
 }
@@ -106,57 +106,59 @@ function FilmTitle({ className = '' }) {
   )
 }
 
+const TODS = [{ en: 'Afternoon', it: 'Pomeriggio' }, { en: 'Golden hour', it: 'Ora dorata' }, { en: 'Blue hour', it: 'Ora blu' }]
+function TodDial({ p }) {
+  const { t } = useLang()
+  const x = useTransform(p, [0, .3, .75, .92, 1], ['0%', '8%', '50%', '78%', '100%'])
+  return (
+    <div className="pointer-events-none absolute left-5 top-[86px] z-10 w-[min(300px,60vw)] md:left-10 md:top-[96px]">
+      <div className="flex justify-between text-[10px] font-semibold uppercase tracking-[.2em] text-white/75">{TODS.map((d, i) => <span key={i}>{t(d)}</span>)}</div>
+      <div className="relative mt-2 h-px bg-gradient-to-r from-[#e3ebef]/70 via-[#f3b46e] to-[#3d4a86]">
+        <motion.div style={{ left: x }} className="absolute top-1/2 -ml-[6px] -mt-[6px] h-3 w-3 rounded-full bg-[#ffd9a0] shadow-[0_0_16px_4px_rgba(255,200,130,.75)]" />
+      </div>
+    </div>
+  )
+}
+
 function Film() {
   const { t } = useLang()
-  const ref = useRef(), skyRef = useRef()
+  const ref = useRef()
   const lite = useLite(), mobile = useIsMobile()
   const [near, vis] = useNear(ref)
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const wordY = useTransform(p, [0, .2], ['0vh', '-28vh'])
-  const wordO = useTransform(p, [0, .14, .22], [1, 1, 0])
-  const vistaO = useTransform(p, [.84, .95], [0, 1])
-  const vistaY = useTransform(p, [.84, 1], ['8vh', '0vh'])
   const labels = useMemo(() => ({
     triangle: t({ en: 'The Golden Triangle', it: 'Il Triangolo d’Oro' }),
     varenna: ['Varenna', t({ en: '7–10 min', it: '7–10 min' })],
     vezio: ['Castello di Vezio', ''], bellagio: ['Bellagio', ''], menaggio: ['Menaggio', ''], cadenabbia: ['Cadenabbia', ''],
-    home: ['Il Giardino di Teodolinda', 'Perledo'],
+    home: ['Il Giardino di Teodolinda', 'Perledo · SP65'],
   }), [t])
   if (lite) return <FilmStatic />
   return (
-    <div ref={ref} className="relative h-[480vh] md:h-[560vh]">
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
-        <div ref={skyRef} className="absolute inset-0" style={{
-          background: 'radial-gradient(circle at var(--sx,-50%) var(--sy,-50%), rgba(255,244,214,var(--glow,0)) 0, rgba(255,214,150,calc(var(--glow,0)*.7)) 5%, rgba(255,190,120,calc(var(--glow,0)*.3)) 20%, rgba(255,186,118,0) 48%), linear-gradient(180deg, var(--top,#56738a) 0%, var(--hor,#e2b8a6) var(--hy,55%), var(--hor,#e2b8a6) 100%)',
-        }} />
-        {/* giant type that the mountains cut through */}
-        <motion.div aria-hidden style={{ y: wordY, opacity: wordO }} className="pointer-events-none absolute inset-x-0 top-[16%] select-none text-center md:top-[13%]">
-          <span className={`${T.sans} block text-[34vw] font-black leading-[.8] tracking-[-.06em] text-white/90 md:text-[27vw]`}>COMO</span>
-        </motion.div>
-        <motion.div aria-hidden style={{ opacity: vistaO, y: vistaY }} className="pointer-events-none absolute inset-x-0 top-[18%] select-none text-center md:top-[13%]">
-          <span className={`${T.serif} block text-[30vw] italic leading-[.8] tracking-[-.03em] text-[#fff3dc]/85 md:text-[22vw]`}>Vista</span>
-        </motion.div>
+    <div ref={ref} className="relative h-[460vh] md:h-[540vh]">
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#1b2a35]">
         <div className="absolute inset-0">
-          {near && <Suspense fallback={null}><ComoScene progress={p} skyRef={skyRef} active={vis} mobile={mobile} labels={labels} /></Suspense>}
+          {near && <Suspense fallback={null}><ComoScene progress={p} active={vis} mobile={mobile} labels={labels} /></Suspense>}
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-[#151412]/55 via-[#151412]/15 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-[#0e1418]/60 via-[#0e1418]/15 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[22%] bg-gradient-to-b from-[#0e1418]/35 to-transparent" />
+        <TodDial p={p} />
 
         {/* chapters */}
-        <Chapter p={p} range={[-1, -.5, .1, .16]} className="bottom-[13%] left-5 right-5 md:bottom-[11%] md:left-10">
+        <Chapter p={p} range={[-1, -.5, .12, .18]} className="bottom-[12%] left-5 right-5 md:bottom-[10%] md:left-10">
           <FilmTitle />
         </Chapter>
-        <Chapter p={p} range={[.2, .26, .42, .47]} className="bottom-[12%] left-5 right-5 max-w-[520px] md:left-10">
+        <Chapter p={p} range={[.2, .25, .41, .46]} className="bottom-[12%] left-5 right-5 max-w-[540px] md:left-10">
           <Eyebrow className="mb-4 text-white/85">{t({ en: 'The view', it: 'La vista' })}</Eyebrow>
-          <p className={`${T.serif} text-[clamp(30px,3.6vw,52px)] leading-[1.02] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,.25)]`}>{t(COMO.views)}</p>
+          <p className={`${T.serif} text-[clamp(30px,3.6vw,52px)] leading-[1.02] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,.35)]`}>{t(COMO.views)}</p>
         </Chapter>
-        <Chapter p={p} range={[.48, .53, .74, .79]} className="bottom-[12%] left-5 right-5 max-w-[560px] md:left-auto md:right-24">
+        <Chapter p={p} range={[.5, .55, .76, .81]} className="bottom-[12%] left-5 right-5 max-w-[560px] md:left-auto md:right-24">
           <Eyebrow className="mb-4 text-white/85">{t({ en: 'Perledo · SP65 Scenic Route', it: 'Perledo · Strada panoramica SP65' })}</Eyebrow>
-          <p className={`${T.serif} text-[clamp(28px,3.1vw,46px)] leading-[1.04] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,.3)]`}>{t(COMO.lead)}</p>
+          <p className={`${T.serif} text-[clamp(28px,3.1vw,46px)] leading-[1.04] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,.4)]`}>{t(COMO.lead)}</p>
         </Chapter>
-        <Chapter p={p} range={[.82, .88, 1.1, 1.2]} className="bottom-[12%] left-5 right-5 md:left-10">
+        <Chapter p={p} range={[.88, .92, 1.1, 1.2]} className="bottom-[12%] left-5 right-5 md:left-10">
           <Eyebrow className="mb-4 text-white/85">{t({ en: 'From every garden', it: 'Da ogni giardino' })}</Eyebrow>
-          <h3 className={`${T.serif} text-[clamp(40px,6vw,96px)] leading-[.92] text-white drop-shadow-[0_2px_30px_rgba(0,0,0,.25)]`}>
-            <KineticWords p={p} from={.84} to={.95} text={t({ en: 'The lake, framed as your own.', it: 'Il lago, incorniciato come fosse tuo.' })} />
+          <h3 className={`${T.serif} text-[clamp(40px,6vw,96px)] leading-[.92] text-white drop-shadow-[0_2px_30px_rgba(0,0,0,.35)]`}>
+            <KineticWords p={p} from={.9} to={.97} text={t({ en: 'The lake, framed as your own.', it: 'Il lago, incorniciato come fosse tuo.' })} />
           </h3>
         </Chapter>
         <Rail p={p} />
@@ -168,92 +170,10 @@ function Film() {
   )
 }
 
-/* ───────────── 2. UNIT EXPLORER: isometric home that grows from the smallest to the largest ───────────── */
+/* ───────────── 2. UNIT EXPLORER: a PBR home on its plinth, morphing between the two real ends ───────────── */
+const UnitScene = lazy(() => import('./comounit3d'))
 const lerp = (a, b, t) => a + (b - a) * t
-const C30 = Math.cos(Math.PI / 6), S30 = .5
-const iso = (x, y, z, s) => [(x - y) * C30 * s, (x + y) * S30 * s - z * s]
-const poly = (pts, s) => 'M' + pts.map(([x, y, z]) => iso(x, y, z, s).map(v => v.toFixed(1)).join(',')).join('L') + 'Z'
-const seg = (a, b, s) => { const p = iso(...a, s), q = iso(...b, s); return `M${p[0].toFixed(1)},${p[1].toFixed(1)}L${q[0].toFixed(1)},${q[1].toFixed(1)}` }
-function unitGeom(t) {
-  const A = lerp(35, 95, t), G = lerp(25, 160, t)
-  const w = Math.sqrt(A * 1.6), d = A / w, H = 3.3
-  const gw = Math.max(w + 1, Math.sqrt(G * 1.25)), gd = G / gw
-  const s = 15
-  const x0 = -w / 2, x1 = w / 2, gx0 = -gw / 2, gx1 = gw / 2
-  const out = {}
-  out.garden = poly([[gx0, 0, 0], [gx1, 0, 0], [gx1, gd, 0], [gx0, gd, 0]], s)
-  out.gardenEdge = poly([[gx0, gd, 0], [gx1, gd, 0], [gx1, gd, -.8], [gx0, gd, -.8]], s) + poly([[gx1, 0, 0], [gx1, gd, 0], [gx1, gd, -.8], [gx1, 0, -.8]], s)
-  let hatch = ''
-  for (let i = 1; i < 14; i++) { const yy = gd * i / 14; hatch += seg([gx0 + .5, yy, 0], [gx0 + .5 + Math.min(gw - 1, 1.2 + (i % 3) * .8), yy, 0], s) }
-  out.hatch = hatch
-  out.side = poly([[x1, -d, 0], [x1, 0, 0], [x1, 0, H], [x1, -d, H]], s)
-  out.front = poly([[x0, 0, 0], [x1, 0, 0], [x1, 0, H], [x0, 0, H]], s)
-  out.roof = poly([[x0 - .3, -d - .2, H], [x1 + .3, -d - .2, H], [x1 + .3, .5, H], [x0 - .3, .5, H]], s)
-  out.roofEdge = poly([[x0 - .3, .5, H], [x1 + .3, .5, H], [x1 + .3, .5, H - .25], [x0 - .3, .5, H - .25]], s) + poly([[x1 + .3, -d - .2, H], [x1 + .3, .5, H], [x1 + .3, .5, H - .25], [x1 + .3, -d - .2, H - .25]], s)
-  let mull = ''; const n = Math.max(3, Math.round(w / 1.6))
-  for (let i = 1; i < n; i++) { const xx = lerp(x0, x1, i / n); mull += seg([xx, 0, .05], [xx, 0, H - .05], s) }
-  mull += seg([x0, 0, H * .52], [x1, 0, H * .52], s)
-  out.mull = mull
-  const tx = gx1 - 2.8, ty = gd - 2.9
-  out.tub = poly([[tx, ty, .02], [tx + 2.2, ty, .02], [tx + 2.2, ty + 2.2, .02], [tx, ty + 2.2, .02]], s)
-  out.tubIn = poly([[tx + .35, ty + .35, .03], [tx + 1.85, ty + .35, .03], [tx + 1.85, ty + 1.85, .03], [tx + .35, ty + 1.85, .03]], s)
-  const px = x1 + 1.2
-  out.park = poly([[px, -6, 0], [px + 2.6, -6, 0], [px + 2.6, -.8, 0], [px, -.8, 0]], s)
-  out.parkP = iso(px + 1.3, -3.4, 0, s)
-  out.pool = poly([[-21, -3, 0], [-13.5, -3, 0], [-13.5, 2, 0], [-21, 2, 0]], s)
-  out.poolIn = poly([[-20.2, -2.2, .02], [-14.3, -2.2, .02], [-14.3, 1.2, .02], [-20.2, 1.2, .02]], s)
-  out.poolL = iso(-17.2, 3.7, 0, s)
-  out.heat = poly([[x0 + .6, -d + .4, H], [x0 + 2, -d + .4, H], [x0 + 2, -d + 1.6, H], [x0 + .6, -d + 1.6, H]], s) + poly([[x0 + .6, -d + 1.6, H], [x0 + 2, -d + 1.6, H], [x0 + 2, -d + 1.6, H + .7], [x0 + .6, -d + 1.6, H + .7]], s)
-  // dimension line along the front of the garden
-  out.dimA = seg([gx0, gd + 2, 0], [gx1, gd + 2, 0], s)
-  out.dimL = iso(0, gd + 3.6, 0, s)
-  out.houseL = iso(x1 + .2, -d / 2, H + 1.6, s)
-  out.lake = iso(6, gd + 5.5, 0, s)
-  return out
-}
 const PARTS = ['garden', 'heat', 'park', 'tub', 'pool'] // maps to COMO.every order
-
-function UnitSvg({ t, hi }) {
-  const { t: tr } = useLang()
-  const g = k => useTransform(t, v => unitGeom(v)[k]) // eslint-disable-line react-hooks/rules-of-hooks
-  const P = {}
-  ;['garden', 'gardenEdge', 'hatch', 'side', 'front', 'roof', 'roofEdge', 'mull', 'tub', 'tubIn', 'park', 'pool', 'poolIn', 'heat', 'dimA'].forEach(k => { P[k] = g(k) })
-  const pT = useTransform(t, v => { const q = unitGeom(v).parkP; return `translate(${q[0]}px, ${q[1]}px)` })
-  const dT = useTransform(t, v => { const q = unitGeom(v).dimL; return `translate(${q[0]}px, ${q[1]}px)` })
-  const gT = useTransform(t, v => Math.round(lerp(25, 160, v)) + ' m²')
-  const on = k => hi === k
-  const stroke = k => (on(k) ? OCHRE : INK)
-  const pl = unitGeom(0).poolL, lk = unitGeom(1).lake
-  return (
-    <svg viewBox="-290 -175 570 400" className="h-auto w-full overflow-visible" role="img" aria-label={tr({ en: 'Isometric drawing of a home with its garden', it: 'Disegno isometrico di una casa con il suo giardino' })}>
-      <defs>
-        <pattern id="como-glass" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><path d="M0 0v6" stroke="#27414f" strokeOpacity=".35" strokeWidth="1" /></pattern>
-      </defs>
-      <text x={lk[0]} y={lk[1]} className={`${T.serif}`} fontSize="20" fontStyle="italic" fill={LAKE} opacity=".55" textAnchor="middle">↙ {tr({ en: 'towards the lake', it: 'verso il lago' })}</text>
-      <motion.path d={P.pool} fill="#dfe6e3" stroke={stroke('pool')} strokeWidth={on('pool') ? 1.8 : 1} strokeDasharray={on('pool') ? '0' : '4 3'} />
-      <motion.path d={P.poolIn} fill={on('pool') ? '#9fd3da' : '#c4dde0'} stroke="none" />
-      <text x={pl[0]} y={pl[1]} fontSize="10.5" letterSpacing="1.6" fill={stroke('pool')} textAnchor="middle" fontWeight="600">{tr({ en: 'SHARED POOL', it: 'PISCINA COMUNE' })}</text>
-      <motion.path d={P.gardenEdge} fill="#cfc6b6" stroke={INK} strokeWidth=".8" />
-      <motion.path d={P.garden} fill={on('garden') ? '#cbd8a6' : '#dfe3c9'} stroke={stroke('garden')} strokeWidth={on('garden') ? 1.8 : 1} />
-      <motion.path d={P.hatch} stroke="#6f7f3a" strokeOpacity=".45" strokeWidth=".9" fill="none" />
-      <motion.path d={P.tub} fill="#f1ede6" stroke={stroke('tub')} strokeWidth={on('tub') ? 1.8 : .9} strokeDasharray={on('tub') ? '0' : '3 2'} />
-      <motion.path d={P.tubIn} fill={on('tub') ? '#9fd3da' : 'none'} stroke={stroke('tub')} strokeWidth=".7" strokeDasharray="2 2" />
-      <motion.path d={P.park} fill={on('park') ? '#f3dcc6' : 'none'} stroke={stroke('park')} strokeWidth={on('park') ? 1.8 : 1} strokeDasharray="5 3" />
-      <motion.text style={{ transform: pT }} fontSize="15" fontWeight="800" fill={stroke('park')} textAnchor="middle" dy="5">P</motion.text>
-      <motion.path d={P.side} fill="#e6dccb" stroke={INK} strokeWidth="1" />
-      <motion.path d={P.front} fill="#b9c6c9" stroke={INK} strokeWidth="1" />
-      <motion.path d={P.front} fill="url(#como-glass)" stroke="none" />
-      <motion.path d={P.mull} stroke={INK} strokeWidth=".8" />
-      <motion.path d={P.roofEdge} fill="#d5cbb9" stroke={INK} strokeWidth=".9" />
-      <motion.path d={P.roof} fill="#a9b77c" stroke={INK} strokeWidth="1" />
-      <motion.path d={P.heat} fill={on('heat') ? OCHRE : '#efe9de'} fillOpacity={on('heat') ? .5 : 1} stroke={stroke('heat')} strokeWidth={on('heat') ? 1.6 : .8} />
-      <motion.path d={P.dimA} stroke={INK} strokeWidth=".8" markerEnd="" />
-      <motion.g style={{ transform: dT }}>
-        <motion.text fontSize="12" letterSpacing="1.4" fill={INK} textAnchor="middle" fontWeight="600">{gT}</motion.text>
-      </motion.g>
-    </svg>
-  )
-}
 
 function Num({ t, a, b, className = '' }) {
   const v = useTransform(t, x => Math.round(lerp(a, b, x)))
@@ -266,40 +186,42 @@ function Units() {
   const sp = useSpring(raw, { stiffness: 90, damping: 20, mass: .8 })
   const [end, setEnd] = useState(0)
   const [hi, setHi] = useState(null)
-  const track = useRef(), drag = useRef(false)
-  const reduce = useReducedMotion()
-  const go = v => { setEnd(v); animate(raw, v, { duration: reduce ? 0 : .9, ease: EASE }) }
+  const track = useRef(), drag = useRef(false), stage = useRef()
+  const reduce = useReducedMotion(), mobile = useIsMobile()
+  const [near, vis] = useNear(stage, '60% 0px')
+  const go = v => { setEnd(v); animate(raw, v, { duration: reduce ? 0 : 1.1, ease: EASE }) }
   const fromPointer = e => { const r = track.current.getBoundingClientRect(); raw.set(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width))) }
   const knob = useTransform(sp, v => `${v * 100}%`)
   const ref = useRef(); const inView = useInView(ref, { once: true, margin: '-30% 0px' })
-  useEffect(() => { if (inView && !reduce) { const id = setTimeout(() => go(1), 700); return () => clearTimeout(id) } }, [inView])
+  useEffect(() => { if (inView && !reduce) { const id = setTimeout(() => go(1), 900); return () => clearTimeout(id) } }, [inView])
+  const bigScale = useTransform(sp, [0, 1], [.86, 1.06])
   return (
-    <div id="como-units" ref={ref} className="relative bg-[#ece7df] text-[#151412]">
-      <div className="mx-auto grid max-w-[1440px] grid-cols-12 gap-x-5 px-5 pb-24 pt-24 md:px-10 md:pb-36 md:pt-36">
-        <div className="col-span-12 lg:col-span-5">
-          <Eyebrow className="text-[#151412]/70">{t({ en: 'The homes', it: 'Le case' })}</Eyebrow>
+    <div id="como-units" ref={ref} className="relative overflow-hidden bg-[#b06a35] text-[#151412]">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-12 gap-x-5 px-5 pb-16 pt-20 md:px-10 md:pb-24 md:pt-28">
+        <div className="relative z-10 col-span-12 lg:col-span-5">
+          <Eyebrow className="text-[#151412]/75">{t({ en: 'The homes', it: 'Le case' })}</Eyebrow>
           <h3 className={`${T.serif} mt-6 text-[clamp(44px,6vw,92px)] leading-[.92] tracking-[-.01em]`}>
             <Mask>{t({ en: 'One home,', it: 'Una casa,' })}</Mask>
-            <Mask delay={.07}><em className="text-[#27414f]">{t({ en: 'one garden.', it: 'un giardino.' })}</em></Mask>
+            <Mask delay={.07}><em className="text-[#ece7df]">{t({ en: 'one garden.', it: 'un giardino.' })}</em></Mask>
           </h3>
-          <p className="mt-6 max-w-[440px] text-[16px] leading-[1.6] text-[#151412]/70">{t({ en: 'Homes range from 35 m² with a 25 m² garden to 95 m² with a 160 m² garden. Drag between the two ends of the range.', it: 'Le case vanno da 35 m² con 25 m² di giardino fino a 95 m² con 160 m² di giardino. Trascina tra i due estremi della gamma.' })}</p>
+          <p className="mt-6 max-w-[440px] text-[16px] leading-[1.6] text-[#151412]/80">{t({ en: 'Homes range from 35 m² with a 25 m² garden to 95 m² with a 160 m² garden. Drag between the two ends of the range — and turn the model.', it: 'Le case vanno da 35 m² con 25 m² di giardino fino a 95 m² con 160 m² di giardino. Trascina tra i due estremi della gamma — e ruota il modello.' })}</p>
 
-          <div className="mt-10 grid grid-cols-2 gap-6 border-t border-[#151412]/15 pt-8">
+          <div className="mt-9 grid grid-cols-2 gap-6 border-t border-[#151412]/20 pt-7">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[.2em] text-[#151412]/55">{t({ en: 'Built area', it: 'Superficie' })}</div>
-              <div className={`${T.serif} mt-2 text-[clamp(64px,7vw,108px)] leading-[.85]`}><Num t={sp} a={35} b={95} /><span className="ml-1 text-[.36em] align-top">m²</span></div>
+              <div className="text-[11px] font-semibold uppercase tracking-[.2em] text-[#151412]/65">{t({ en: 'Built area', it: 'Superficie' })}</div>
+              <div className={`${T.serif} mt-2 text-[clamp(60px,6.4vw,100px)] leading-[.85] text-[#151412]`}><Num t={sp} a={35} b={95} /><span className="ml-1 align-top text-[.36em]">m²</span></div>
             </div>
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[.2em] text-[#151412]/55">{t({ en: 'Private garden', it: 'Giardino privato' })}</div>
-              <div className={`${T.serif} mt-2 text-[clamp(64px,7vw,108px)] leading-[.85] text-[#27414f]`}><Num t={sp} a={25} b={160} /><span className="ml-1 text-[.36em] align-top">m²</span></div>
+              <div className="text-[11px] font-semibold uppercase tracking-[.2em] text-[#151412]/65">{t({ en: 'Private garden', it: 'Giardino privato' })}</div>
+              <div className={`${T.serif} mt-2 text-[clamp(60px,6.4vw,100px)] leading-[.85] text-[#ece7df]`}><Num t={sp} a={25} b={160} /><span className="ml-1 align-top text-[.36em]">m²</span></div>
             </div>
           </div>
 
           {/* range slider — two real ends only */}
-          <div className="mt-10 select-none">
+          <div className="mt-9 select-none">
             <div className="mb-3 flex justify-between text-[11px] font-semibold uppercase tracking-[.2em]">
-              <button onClick={() => go(0)} className={end === 0 ? 'text-[#151412]' : 'text-[#151412]/45'}>{t({ en: 'From', it: 'Da' })} · 35 + 25 m²</button>
-              <button onClick={() => go(1)} className={end === 1 ? 'text-[#151412]' : 'text-[#151412]/45'}>{t({ en: 'To', it: 'A' })} · 95 + 160 m²</button>
+              <button onClick={() => go(0)} className={end === 0 ? 'text-[#151412]' : 'text-[#151412]/50'}>{t({ en: 'From', it: 'Da' })} · 35 + 25 m²</button>
+              <button onClick={() => go(1)} className={end === 1 ? 'text-[#151412]' : 'text-[#151412]/50'}>{t({ en: 'To', it: 'A' })} · 95 + 160 m²</button>
             </div>
             <div
               ref={track} role="slider" tabIndex={0} aria-valuemin={0} aria-valuemax={1} aria-valuenow={end}
@@ -309,9 +231,9 @@ function Units() {
               onPointerDown={e => { drag.current = true; e.currentTarget.setPointerCapture(e.pointerId); fromPointer(e) }}
               onPointerMove={e => drag.current && fromPointer(e)}
               onPointerUp={() => { drag.current = false; go(raw.get() > .5 ? 1 : 0) }}
-              className="relative mx-6 h-12 cursor-grab touch-none outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[#27414f]/40 rounded-full"
+              className="relative mx-6 h-12 cursor-grab touch-none rounded-full outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[#151412]/40"
             >
-              <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[#151412]/25" />
+              <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[#151412]/30" />
               <motion.div className="absolute left-0 top-1/2 h-[2px] -translate-y-1/2 bg-[#151412]" style={{ width: knob }} />
               <div className="absolute left-0 top-1/2 h-3 w-px -translate-y-1/2 bg-[#151412]" /><div className="absolute right-0 top-1/2 h-3 w-px -translate-y-1/2 bg-[#151412]" />
               <motion.div className="absolute top-1/2 -ml-6 -mt-6 grid h-12 w-12 place-items-center rounded-full bg-[#151412] text-[#ece7df] shadow-[0_10px_30px_-10px_rgba(0,0,0,.5)]" style={{ left: knob }}>
@@ -319,25 +241,32 @@ function Units() {
               </motion.div>
             </div>
           </div>
-        </div>
 
-        <div className="col-span-12 mt-14 lg:col-span-7 lg:mt-0">
-          <div className="relative rounded-[28px] bg-[#e2dcd2] p-4 md:p-8">
-            <div className="absolute left-6 top-5 text-[10.5px] font-semibold uppercase tracking-[.22em] text-[#151412]/50 md:left-8 md:top-7">{t({ en: 'Axonometric · not to scale', it: 'Assonometria · non in scala' })}</div>
-            <div className="pt-6"><UnitSvg t={sp} hi={hi} /></div>
-          </div>
-          <div className="mt-8">
-            <div className="mb-4 text-[11px] font-semibold uppercase tracking-[.2em] text-[#151412]/55">{t({ en: 'Every home includes', it: 'Ogni casa include' })}</div>
-            <ul className="divide-y divide-[#151412]/12 border-y border-[#151412]/12">
+          <div className="mt-9">
+            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[.2em] text-[#151412]/65">{t({ en: 'Every home includes', it: 'Ogni casa include' })}</div>
+            <ul className="divide-y divide-[#151412]/15 border-y border-[#151412]/15">
               {t(COMO.every).map((x, i) => (
-                <li key={i} onMouseEnter={() => setHi(PARTS[i])} onMouseLeave={() => setHi(null)} onFocus={() => setHi(PARTS[i])} onBlur={() => setHi(null)} tabIndex={0}
-                  className="group flex cursor-default items-baseline gap-5 py-4 outline-none">
-                  <span className="w-6 text-[11px] font-semibold tabular-nums text-[#151412]/40">{String(i + 1).padStart(2, '0')}</span>
-                  <span className={`${T.serif} flex-1 text-[22px] leading-tight transition-colors duration-300 md:text-[26px] ${hi === PARTS[i] ? 'text-[#b06a35]' : ''}`}>{x}</span>
-                  <span className={`h-px transition-all duration-500 ${hi === PARTS[i] ? 'w-14 bg-[#b06a35]' : 'w-6 bg-[#151412]/25'}`} />
+                <li key={i} onMouseEnter={() => setHi(PARTS[i])} onMouseLeave={() => setHi(null)} onFocus={() => setHi(PARTS[i])} onBlur={() => setHi(null)} onClick={() => setHi(hi === PARTS[i] ? null : PARTS[i])} tabIndex={0}
+                  className="group flex cursor-default items-baseline gap-5 py-3 outline-none">
+                  <span className="w-6 text-[11px] font-semibold tabular-nums text-[#151412]/55">{String(i + 1).padStart(2, '0')}</span>
+                  <span className={`${T.serif} flex-1 text-[21px] leading-tight transition-colors duration-300 md:text-[24px] ${hi === PARTS[i] ? 'text-[#ece7df]' : ''}`}>{x}</span>
+                  <span className={`h-px transition-all duration-500 ${hi === PARTS[i] ? 'w-14 bg-[#ece7df]' : 'w-6 bg-[#151412]/30'}`} />
                 </li>
               ))}
             </ul>
+          </div>
+        </div>
+
+        <div ref={stage} className="relative col-span-12 mt-10 h-[62svh] min-h-[420px] lg:col-span-7 lg:mt-0 lg:h-auto lg:min-h-[760px]">
+          {/* giant live numeral behind the model */}
+          <motion.div aria-hidden style={{ scale: bigScale }} className={`${T.sans} pointer-events-none absolute inset-x-0 top-[6%] select-none text-center text-[38vw] font-black leading-[.8] tracking-[-.07em] text-[#ece7df]/[.16] lg:text-[21vw]`}>
+            <Num t={sp} a={35} b={95} />
+          </motion.div>
+          <div className="absolute inset-0">
+            {near && <Suspense fallback={null}><UnitScene t={sp} hi={hi} active={vis} mobile={mobile} /></Suspense>}
+          </div>
+          <div className="pointer-events-none absolute bottom-3 left-0 right-0 flex justify-between text-[10.5px] font-semibold uppercase tracking-[.22em] text-[#151412]/60">
+            <span>{t({ en: 'Diagram · not to scale', it: 'Schema · non in scala' })}</span><span>{t({ en: 'Drag to turn', it: 'Trascina per ruotare' })}</span>
           </div>
         </div>
       </div>
@@ -386,7 +315,9 @@ function Facts() {
 /* ───────────── 4. BUILD PROGRESS: horizontal pinned timeline ───────────── */
 const PH_IMG = [[30, 'sketch'], [85, 'sketch'], [138, 'site'], [130, 'site'], [132, 'site'], [134, 'site'], [140, 'render']]
 const KIND = { sketch: { en: 'Sketch', it: 'Schizzo' }, site: { en: 'Site photo', it: 'Foto di cantiere' }, render: { en: 'Render', it: 'Render' } }
-function PhaseCard({ i, name, id, kind }) {
+const BuildDepth = lazy(() => import('./comobuild3d'))
+const DEPTH_IDS = [138, 130, 132, 134, 140, 104]
+function PhaseCard({ i, name, id, kind, boxRef }) {
   const { t } = useLang()
   const tall = id === 132 || kind === 'sketch'
   return (
@@ -395,7 +326,7 @@ function PhaseCard({ i, name, id, kind }) {
         <span className="text-[11px] font-semibold tabular-nums tracking-[.2em] text-[#c3a15e]">{String(i + 1).padStart(2, '0')} / 07</span>
       </div>
       <div className={`${T.serif} mt-2 text-[clamp(34px,3.4vw,54px)] leading-none text-[#ece7df]`}>{name}</div>
-      <div className={`mt-6 overflow-hidden rounded-[18px] ${kind === 'sketch' ? 'bg-[#ece7df]' : 'bg-black/20'}`}>
+      <div ref={boxRef} className={`mt-6 overflow-hidden rounded-[18px] ${kind === 'sketch' ? 'bg-[#ece7df]' : 'bg-black/20'}`}>
         <img src={img(id, true)} alt={`${name} — ${t(KIND[kind])}`} loading="lazy" decoding="async"
           className={`w-full ${tall ? 'aspect-[4/5] object-contain' : 'aspect-[4/3] object-cover'} ${kind === 'sketch' ? 'p-4 mix-blend-multiply' : ''} ${id === 132 ? '!object-cover' : ''}`} />
       </div>
@@ -403,12 +334,12 @@ function PhaseCard({ i, name, id, kind }) {
     </figure>
   )
 }
-function FounderCard() {
+function FounderCard({ boxRef }) {
   const { t } = useLang()
   return (
     <figure className="relative w-[86vw] shrink-0 sm:w-[64vw] lg:w-[46vw] lg:max-w-[720px]">
-      <div className="overflow-hidden rounded-[22px]">
-        <img src={img(104)} alt={t({ en: 'Yehiel Tsubery on site above Lake Como', it: 'Yehiel Tsubery in cantiere sopra il Lago di Como' })} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover grayscale" />
+      <div ref={boxRef} className="overflow-hidden rounded-[22px]">
+        <img src={img(104)} alt={t({ en: 'Yehiel Tsubery on site above Lake Como', it: 'Yehiel Tsubery in cantiere sopra il Lago di Como' })} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
       </div>
       <figcaption className="mt-4 flex items-baseline justify-between gap-4">
         <span className={`${T.serif} text-[28px] italic text-[#ece7df]`}>{t({ en: 'Yehiel Tsubery on site', it: 'Yehiel Tsubery in cantiere' })}</span>
@@ -433,6 +364,10 @@ function Build() {
   const x = useTransform([p, distMV], ([v, d]) => -v * d)
   const fill = useTransform(p, [0, 1], ['0%', '100%'])
   const phases = t(COMO.phases)
+  const boxRefs = useRef({})
+  DEPTH_IDS.forEach(id => { if (!boxRefs.current[id]) boxRefs.current[id] = React.createRef() })
+  const [near, vis] = useNear(ref, '50% 0px')
+  const lite = useLite()
   const head = (
     <div className="flex w-[86vw] shrink-0 flex-col justify-between pr-6 sm:w-[60vw] lg:w-[34vw] lg:max-w-[520px]">
       <div>
@@ -446,10 +381,11 @@ function Build() {
     </div>
   )
   const items = []
-  phases.forEach((n, i) => { items.push(<PhaseCard key={i} i={i} name={n} id={PH_IMG[i][0]} kind={PH_IMG[i][1]} />); if (i === 2) items.push(<FounderCard key="f" />) })
+  phases.forEach((n, i) => { const id = PH_IMG[i][0]; items.push(<PhaseCard key={i} i={i} name={n} id={id} kind={PH_IMG[i][1]} boxRef={boxRefs.current[id]} />); if (i === 2) items.push(<FounderCard key="f" boxRef={boxRefs.current[104]} />) })
+  const depthItems = DEPTH_IDS.map(id => ({ id, ref: boxRefs.current[id] }))
   return (
     <div ref={ref} className="relative bg-[#27414f]" style={pinned ? { height: `calc(100vh + ${dist}px)` } : undefined}>
-      <div className={pinned ? 'sticky top-0 flex h-screen flex-col justify-center overflow-hidden' : 'overflow-hidden py-24'}>
+      <div className={pinned ? 'sticky top-0 flex h-screen flex-col justify-center overflow-hidden' : 'relative overflow-hidden py-20'}>
         {pinned && (
           <div className="absolute inset-x-10 top-24 flex items-center gap-4">
             <div className="relative h-px flex-1 bg-white/15"><motion.div className="absolute inset-y-0 left-0 bg-[#c3a15e]" style={{ width: fill }} /></div>
@@ -463,6 +399,7 @@ function Build() {
           {head}{items}
           <div className="w-[10vw] shrink-0" />
         </motion.div>
+        {near && !lite && <Suspense fallback={null}><BuildDepth items={depthItems} active={vis} /></Suspense>}
       </div>
     </div>
   )

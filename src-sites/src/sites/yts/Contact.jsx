@@ -160,12 +160,12 @@ export default function Contact() {
   return (
     <section id="contact" className={`relative bg-[#14161d] text-[#ece7df] ${T.sans}`}>
       <div ref={ref} className="relative overflow-hidden">
-        <div aria-hidden className="absolute inset-0">
+        <div aria-hidden className="absolute inset-0"><div className="sticky top-0 h-[100svh] w-full overflow-hidden">
           {near && !lite && <Suspense fallback={null}><Lake3D active={vis} mobile={mobile} /></Suspense>}
           {lite && <img src={img(129)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover [filter:brightness(.55)_saturate(.7)_hue-rotate(-8deg)]" />}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,22,29,.35)_0%,rgba(20,22,29,0)_25%,rgba(20,22,29,0)_70%,rgba(20,22,29,.8)_100%)]" />
           <div className="absolute inset-y-0 left-0 hidden w-[50%] bg-gradient-to-r from-[#14161d]/60 to-transparent lg:block" />
-        </div>
+        </div></div>
         <div className="relative mx-auto grid max-w-[1440px] gap-12 px-5 py-20 md:px-10 md:py-28 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">
             <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#e9a25c]"><span className="h-px w-8 bg-current opacity-60" />{t({ en: '07 — Private inquiry', it: '07 — Richiesta privata' })}</div>

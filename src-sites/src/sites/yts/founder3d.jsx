@@ -33,12 +33,12 @@ void main(){
   float storm = sin(m * 3.14159);
   vec3 p = mix(pA, pB, m);
   float ph = aR.y * 6.2831 + uTime * .6;
-  p += storm * vec3(sin(ph + p.y * 2.) * 1.1, cos(ph * .8 + p.x * 3.) * .6 + .5, sin(ph * 1.3) * 1.4) * (.6 + aR.w);
+  p += storm * vec3(sin(ph + p.y * 2.) * .7 + .35, cos(ph * .8 + p.x * 3.) * .5 + .35, sin(ph * 1.3) * .45 - .3) * (.5 + aR.w * .6);
   // forming: scattered → assembled
   float f = clamp(uForm * 1.6 - aR.x * .6, 0., 1.); f = 1. - pow(1. - f, 3.);
   p += (1. - f) * (aR.xyz - .5) * vec3(9., 7., 6.);
   // pointer pushes particles a little (feels touchable)
-  vec2 dm = p.xy - uMouse; float pm = exp(-dot(dm, dm) * 5.) * .28;
+  vec2 dm = p.xy - uMouse; float pm = exp(-dot(dm, dm) * 9.) * .16;
   p.z += pm; p.xy += normalize(dm + 1e-4) * pm * .4;
   // light: studio rim that sweeps around the head
   vec3 n = normalize(mix(nrm(uAD, aUv, .004), nrm(uBD, uvB, .006), m));
@@ -55,7 +55,7 @@ void main(){
   vCol = col;
   vA = mix(.07, 1., mask) * (.25 + .75 * f) + storm * .25;
   vec4 mv = modelViewMatrix * vec4(p, 1.);
-  gl_PointSize = uSize * (1. + storm * .8 + (1. - mask) * .4) / -mv.z;
+  gl_PointSize = uSize * (1. + storm * .35 + (1. - mask) * .3) / -mv.z;
   gl_Position = projectionMatrix * mv;
 }`
 const frag = /* glsl */`
@@ -98,7 +98,8 @@ function Portrait({ progress, mobile }) {
     uM: { value: 0 }, uForm: { value: 0 }, uTime: { value: 0 }, uSweep: { value: 2.6 },
     uSize: { value: 1 }, uWH: { value: new THREE.Vector2(H / 1.5, H) }, uDepth: { value: .9 }, uMouse: { value: new THREE.Vector2(9, 9) },
   }), [A, AD, B, BD])
-  const pts = useRef(), mouse = useRef(new THREE.Vector2(9, 9))
+  const pts = useRef(), mouse = useRef(new THREE.Vector2(9, 9)), moved = useRef(false)
+  React.useEffect(() => { const f = e => { if (e.pointerType === 'mouse') moved.current = true }; addEventListener('pointermove', f); return () => removeEventListener('pointermove', f) }, [])
   useFrame((st, dt) => {
     const u = uniforms, p = progress.get()
     u.uTime.value += dt
@@ -109,7 +110,7 @@ function Portrait({ progress, mobile }) {
     u.uSize.value = (H / rows) * size.height * st.viewport.dpr / .689 * 2.15
     // pointer in model space (approximate: plane at z≈0)
     const tx = st.pointer.x * viewport.width / 2 - (pts.current?.position.x || 0), ty = st.pointer.y * viewport.height / 2
-    mouse.current.set(THREE.MathUtils.damp(mouse.current.x, tx, 6, dt), THREE.MathUtils.damp(mouse.current.y, ty, 6, dt))
+    if (moved.current) mouse.current.set(THREE.MathUtils.damp(mouse.current.x, tx, 6, dt), THREE.MathUtils.damp(mouse.current.y, ty, 6, dt))
     u.uMouse.value.copy(mouse.current)
   })
   return (

@@ -89,7 +89,7 @@ function Tree({ hot, grow, labels, mobile }) {
   })
   const isBranch = b => h => h >= 0 && LEAF_BRANCH[h] === b
   return (
-    <group ref={g} scale={mobile ? .78 : 1}>
+    <group ref={g} scale={mobile ? .64 : 1}>
       <Node p={L.root} r={.16} kind="root" hot={hot} hotTest={h => h >= 0} label={labels.root} grow={grow} delay={0} />
       {L.br.map((b, i) => (
         <group key={i}>

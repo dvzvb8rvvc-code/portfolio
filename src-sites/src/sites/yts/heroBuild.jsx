@@ -194,7 +194,7 @@ export function samplePoints(model, N) {
   model.levels.forEach(l => { for (const k in l.fills) if (k !== 'interior') geos.push(l.fills[k].index ? l.fills[k].toNonIndexed() : l.fills[k]) })
   const bmesh = new THREE.Mesh(mergeGeometries(geos.map(g => { const c = g.clone(); c.deleteAttribute('uv'); return c })))
   const sampler = new MeshSurfaceSampler(bmesh).setRandomGenerator(rnd).build()
-  const nB = Math.floor(N * .58), nG = Math.floor(N * .2)
+  const nB = Math.floor(N * .66), nG = Math.floor(N * .22)
   let o = 0
   for (let i = 0; i < nB; i++, o++) { sampler.sample(tmp); out.set([tmp.x, tmp.y, tmp.z], o * 3) }
   // 2) planting + trees (ellipsoid surfaces)
@@ -206,8 +206,8 @@ export function samplePoints(model, N) {
   }
   // 3) the slope around it
   while (o < N) {
-    const hx = (rnd() - .5) * 22, hz = -3 + (rnd() - .5) * 16
-    const dx = hx / 11, dz = (hz + 3) / 8
+    const hx = (rnd() - .5) * 16, hz = -3 + (rnd() - .5) * 13
+    const dx = hx / 8, dz = (hz + 3) / 6.5
     if (dx * dx + dz * dz > 1 || rnd() > 1 - Math.sqrt(dx * dx + dz * dz) * .7) continue
     out.set([hx, hillY(hx, hz) + .02, hz], o * 3); o++
   }

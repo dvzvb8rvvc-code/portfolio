@@ -12,10 +12,11 @@ import { img } from './data'
    depth from its depth map. Click: the card flies to the camera and becomes the lightbox. */
 
 const R = 11
-const WALL_H = 4.7
 const GAP = 0.24
-const FLOOR_Y = -2.95
 const LAYOUT = { all: 3, render: 3, sketch: 2, build: 2 }
+const LAYOUT_M = { all: 5, render: 5, sketch: 4, build: 4 }
+const wallH = m => (m ? 9 : 4.7)
+const floorY = m => -wallH(m) / 2 - 0.6
 const DEPTH = new Set([1, 3, 4, 5, 7, 8, 10, 11, 12, 13, 17, 18, 20, 24, 25, 26, 33, 34, 38, 40, 42, 43, 45, 46, 47, 49, 50, 53, 57, 62, 65, 73, 78, 82, 83, 84, 88, 89, 90, 91, 95, 97, 98, 99, 101, 102, 103, 104, 107, 108, 111, 112, 113, 120, 124, 125, 126, 127, 128, 129, 130, 131, 132, 134, 135, 136, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158])
 const { damp, clamp, lerp } = THREE.MathUtils
 
@@ -103,8 +104,9 @@ function pump() {
 }
 function requestTex(id, done, opt = {}) { const job = { id, done, cancelled: false, ...opt }; queue.push(job); pump(); return job }
 
-function layout(items, filter) {
-  const rows = LAYOUT[filter] || 3
+function layout(items, filter, mobile) {
+  const WALL_H = wallH(mobile)
+  const rows = (mobile ? LAYOUT_M : LAYOUT)[filter] || 3
   const list = items.filter(it => filter === 'all' || it.kind === filter)
   const rowH = (WALL_H - GAP * (rows - 1)) / rows
   const cellW = rowH * 1.46
@@ -175,7 +177,7 @@ function Plane({ it, L, state, onHover, dragState, onPick, segs }) {
     u.uPlaneA.value = w / h
     const away = THREE.MathUtils.smoothstep(Math.abs(world), 0.5, 1.6)
     u.uDim.value = away * 0.85 * (1 - fe) + S.flyAmt * 0.82 * (1 - fe)
-    u.uBlur.value = (away * 3.2 + Math.min(Math.abs(S.vel) * 1.5, 2.5)) * (1 - c.hov) * (1 - fe)
+    u.uBlur.value = (away * 2.4 + Math.min(Math.abs(S.vel) * 0.9, 1.5)) * (1 - c.hov) * (1 - fe)
     // lazy textures: thumbnail when near the front; depth map on first hover
     if (!job.current && p && Math.abs(world) < 1.25) {
       job.current = requestTex(it.id, (t, a) => { tex.current = t; u.map.value = t; u.uImgA.value = a })
@@ -202,7 +204,7 @@ function Plane({ it, L, state, onHover, dragState, onPick, segs }) {
 }
 
 function Rig({ items, filter, progress, dragState, onHover, onOpen, lbOpen, onFly, mobile }) {
-  const L = useMemo(() => layout(items, filter), [items, filter])
+  const L = useMemo(() => layout(items, filter, mobile), [items, filter, mobile])
   const state = useRef({ rot: 0, bend: 0, vel: 0, fly: null, flyT: 0, opened: false, flyAmt: 0, item: null })
   const { camera } = useThree()
   useEffect(() => { dragState.current.offset = 0; dragState.current.target = 0 }, [filter])
@@ -210,6 +212,7 @@ function Rig({ items, filter, progress, dragState, onHover, onOpen, lbOpen, onFl
   const pick = it => {
     const S = state.current; if (S.fly) return
     S.fly = it.id; S.item = it; S.flyT = 0; S.opened = false; onFly(true); onHover(null); document.body.style.cursor = ''
+    setTimeout(() => { if (S.fly === it.id && !S.opened) { S.opened = true; onOpen(it) } }, 640)
   }
   useFrame((st, dt) => {
     const d = Math.min(dt, 0.05)
@@ -225,11 +228,10 @@ function Rig({ items, filter, progress, dragState, onHover, onOpen, lbOpen, onFl
     S.vel = damp(S.vel, vel, 8, d)
     S.bend = damp(S.bend, clamp(vel * 1.1, -1.4, 1.4), 8, d)
     S.flyAmt = damp(S.flyAmt, S.fly ? 1 : 0, 6, d)
-    if (S.fly && !S.opened) { S.flyT += d; if (S.flyT > 0.62) { S.opened = true; onOpen(S.item) } }
     const px = S.fly ? 0 : st.pointer.x, py = S.fly ? 0 : st.pointer.y
     camera.position.x = damp(camera.position.x, px * 0.6, 3, d)
     camera.position.y = damp(camera.position.y, py * 0.35 + 0.15, 3, d)
-    camera.lookAt(0, -0.1, -R)
+    camera.lookAt(0, mobile ? 0.4 : -0.1, -R)
   })
   return items.map(it => <Plane key={it.id} it={it} L={L} state={state} onHover={onHover} onPick={pick} dragState={dragState} segs={mobile ? 24 : 40} />)
 }
@@ -248,20 +250,10 @@ function Fov({ mobile }) {
 
 function Floor({ mobile }) {
   return (
-    <mesh rotation-x={-Math.PI / 2} position={[0, FLOOR_Y, -4]}>
+    <mesh rotation-x={-Math.PI / 2} position={[0, floorY(mobile), -4]}>
       <planeGeometry args={[60, 40]} />
-      <MeshReflectorMaterial blur={mobile ? [120, 40] : [400, 120]} resolution={mobile ? 256 : 768} mixBlur={0.9} mixStrength={mobile ? 3 : 4.5} mixContrast={1.1}
+      <MeshReflectorMaterial blur={mobile ? [80, 30] : [240, 80]} resolution={mobile ? 256 : 768} mixBlur={0.9} mixStrength={mobile ? 5 : 9} mixContrast={1.1}
         roughness={0.85} depthScale={1.1} minDepthThreshold={0.35} maxDepthThreshold={1.4} color="#1b1916" metalness={0.55} mirror={0.75} />
-    </mesh>
-  )
-}
-
-/* thin warm light strip on the floor along the ring — gives the bloom something to catch */
-function Rim() {
-  const geo = useMemo(() => new THREE.RingGeometry(R - 0.02, R + 0.02, 160, 1, Math.PI * 0.55, Math.PI * 0.9), [])
-  return (
-    <mesh geometry={geo} rotation-x={-Math.PI / 2} rotation-z={0} position={[0, FLOOR_Y + 0.01, 0]}>
-      <meshBasicMaterial color={[2.2, 1.6, 0.9]} toneMapped={false} transparent opacity={0.55} />
     </mesh>
   )
 }
@@ -276,7 +268,6 @@ export default function WorksWall({ items, filter, progress, dragState, onHover,
       <Fov mobile={mobile} />
       <Rig items={items} filter={filter} progress={progress} dragState={dragState} onHover={onHover} onOpen={onOpen} lbOpen={lbOpen} onFly={onFly} mobile={mobile} />
       <Floor mobile={mobile} />
-      <Rim />
       {!mobile && (
         <EffectComposer multisampling={4} disableNormalPass>
           <Bloom mipmapBlur intensity={0.7} luminanceThreshold={0.82} luminanceSmoothing={0.18} />

@@ -52,7 +52,7 @@ void main(){
   float below = smoothstep(uCut + .03, uCut - .1, aBuild.y);
   float band = smoothstep(.45, 0., abs(aBuild.y - uCut)) * uScan * inB;
   col = mix(col, uGold * 3.2, band);
-  float a = mix(.62, .8, km) * (1. - below * inB);
+  float a = mix(.5, .7, km) * (1. - below * inB);
   a = mix(a, 1., kp);
   a *= 1. - sm((uPix - rw * .55) / .45);
   a *= mix(.25, 1., ki); // swirl is faint, condenses into ink
@@ -108,8 +108,8 @@ function rng(seed) { let s = seed; return () => ((s = (s * 16807) % 2147483647) 
 
 export function buildParticleGeometry({ N, build, sketchImage, pose, sketchH, photoAspect }) {
   const rnd = rng(5)
-  const { C0, T0 } = pose
-  const F = T0.clone().sub(C0).normalize(), R = new THREE.Vector3().crossVectors(F, new THREE.Vector3(0, 1, 0)).normalize(), U = new THREE.Vector3().crossVectors(R, F)
+  const { C0, T0, L0 } = pose
+  const F = L0.clone().sub(C0).normalize(), R = new THREE.Vector3().crossVectors(F, new THREE.Vector3(0, 1, 0)).normalize(), U = new THREE.Vector3().crossVectors(R, F)
   // order building points by screen position seen from the opening camera
   const bs = new Float32Array(N), bx = new Float32Array(N), tmp = new THREE.Vector3()
   for (let i = 0; i < N; i++) {

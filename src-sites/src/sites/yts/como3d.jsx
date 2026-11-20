@@ -27,12 +27,12 @@ const photoUrl = id => `/portfolio/yts/img/${id}.webp`
 /* ───────────── time of day: afternoon → golden hour → sunset → blue hour ───────────── */
 const TOD = {
   k: [0, .5, .8, 1],
-  top: ['#5f8ab4', '#6f82a6', '#43507a', '#141d38'].map(C),
+  top: ['#3f72a8', '#5f77a3', '#3f4a78', '#121a35'].map(C),
   hor: ['#e3ebef', '#f4d5a8', '#f3a774', '#6d6688'].map(C),
   sun: ['#fff3dc', '#ffd59e', '#ff9b52', '#ff6a3c'].map(C),
   tint: ['#ffffff', '#ffe6c8', '#f2b896', '#5c6c9c'].map(C),
   haze: ['#cfdde7', '#efd3ab', '#e9a982', '#3d4870'].map(C),
-  exp: [1, 1, .86, .4], el: [.6, .28, .12, .02], glow: [.15, .55, 1, .5], lights: [0, 0, .25, 1], stars: [0, 0, 0, 1], hazeAmt: [.55, .6, .65, .55],
+  exp: [1, 1, .86, .4], el: [.6, .28, .12, .02], glow: [.15, .55, 1, .5], lights: [0, 0, .25, 1], stars: [0, 0, 0, 1], hazeAmt: [.32, .4, .48, .45],
 }
 function todAt(t, out) {
   const k = TOD.k; let i = 0; while (i < k.length - 2 && t > k[i + 1]) i++
@@ -184,7 +184,7 @@ function ComoWord({ reg }) {
   useLayoutEffect(() => { if (tex) reg.current.word = { mat: mat.current } }, [tex])
   if (!tex) return null
   return (
-    <mesh position={[18, 64, -330]} renderOrder={-5}>
+    <mesh position={[14, 70, -330]} renderOrder={-5}>
       <planeGeometry args={[560, 560 * 620 / 2048]} />
       <meshBasicMaterial ref={mat} map={tex} transparent depthWrite={false} toneMapped={false} fog={false} color="#ffffff" />
     </mesh>
@@ -199,7 +199,7 @@ function useWaterNormals() {
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
       let dx = 0, dy = 0
       for (const [kx, ky, a, ph] of W) { const s = Math.cos(TAU * (kx * x + ky * y) / N + ph) * a; dx += s * kx; dy += s * ky }
-      const nx = -dx * .045, ny = -dy * .045, l = Math.hypot(nx, ny, 1)
+      const nx = -dx * .016, ny = -dy * .016, l = Math.hypot(nx, ny, 1)
       const i = (y * N + x) * 4
       data[i] = (nx / l * .5 + .5) * 255; data[i + 1] = (ny / l * .5 + .5) * 255; data[i + 2] = (1 / l * .5 + .5) * 255; data[i + 3] = 255
     }
@@ -215,12 +215,24 @@ function Water({ mobile, reg }) {
     return g
   }, [])
   const m = useRef(), mat = useRef()
-  useLayoutEffect(() => { reg.current.water = { mat: mat.current } }, [])
+  const tint = useMemo(() => ({ value: new THREE.Color(1, 1, 1) }), [])
+  useLayoutEffect(() => {
+    const m = mat.current, orig = m.onBeforeCompile.bind(m)
+    m.onBeforeCompile = (sh, r) => {
+      orig(sh, r)
+      sh.uniforms.uReflTint = tint
+      sh.fragmentShader = 'uniform vec3 uReflTint;\n' + sh.fragmentShader.replace('vec3 outgoingLight =', `float frs = .3 + .7 * pow(1. - clamp(dot(normalize(vViewPosition), normal), 0., 1.), 4.);
+      vec3 outgoingLight = newMerge.rgb * uReflTint * frs +`)
+    }
+    m.customProgramCacheKey = () => 'como-water'
+    m.needsUpdate = true
+    reg.current.water = { mat: m, tint: tint.value }
+  }, [])
   useFrame((_, dt) => { if (m.current) { m.current.position.x = (m.current.position.x + dt * .35) % 100; m.current.position.z = 0 } })
   return (
     <mesh ref={m} geometry={geo} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-      <MeshReflectorMaterial ref={mat} resolution={mobile ? 320 : 768} blur={mobile ? [0, 0] : [140, 40]} mixBlur={.9} mixStrength={1.15} mixContrast={1.05} mirror={1}
-        depthScale={0} roughness={.42} metalness={0} color="#9fb3bb" normalMap={nrm} normalScale={[.35, .35]} envMapIntensity={0} />
+      <MeshReflectorMaterial ref={mat} resolution={mobile ? 320 : 768} blur={mobile ? [0, 0] : [140, 40]} mixBlur={.8} mixStrength={1} mixContrast={1} mirror={0}
+        depthScale={0} roughness={.38} metalness={0} color="#22343f" normalMap={nrm} normalScale={[1.1, 1.1]} envMapIntensity={0} />
     </mesh>
   )
 }
@@ -362,7 +374,7 @@ const STATIONS_D = [
   [.17, [0, 21, -50], 0, -.1, 50],
   [.31, [-12, 4.2, -62], .14, -.015, 46],
   [.42, [-17, 3.6, -68], .32, 0, 46],
-  [.53, [-8, 8, -60], PI - .04, .02, 46],
+  [.5, [-8, 8, -58], PI - .04, .02, 46],
   [.62, [0, 18, -14], PI, .04, 44],
   [.7, [0, 34.9, -.1], PI, -.42, 46],
   [.79, [0, 44, 4], PI, -.42, 46],
@@ -416,8 +428,8 @@ function Rig({ progress, mobile, reg, clockRef }) {
     scene.fog.color.copy(T.haze).multiplyScalar(.9 + .1 * T.exp)
     if (R.dir) { R.dir.position.copy(tmp.sun).multiplyScalar(200); R.dir.color.copy(T.sun); R.dir.intensity = 2.6 * T.exp }
     if (R.hemi) { R.hemi.color.copy(T.top); R.hemi.groundColor.copy(T.haze).multiplyScalar(.5); R.hemi.intensity = .6 + .5 * T.exp }
-    if (R.water) { R.water.mat.color.copy(T.hor).lerp(T.top, .35).multiplyScalar(.75 + .25 * T.exp) }
-    if (R.word) R.word.mat.opacity = (1 - ss(.14, .26, p)) * .92, R.word.mat.color.copy(T.hor).lerp(new THREE.Color(1, 1, 1), .55)
+    if (R.water) { R.water.mat.color.copy(T.top).multiplyScalar(.18 * T.exp); R.water.tint.copy(T.haze).lerp(new THREE.Color(1, 1, 1), .55).multiplyScalar(.82) }
+    if (R.word) R.word.mat.opacity = 1 - ss(.14, .26, p)
     if (R.mist) for (const u of R.mist) { u.uCol.value.copy(T.haze); u.uTime.value += dt; u.uAmt.value = u.uBase * (1 - .35 * T.stars) }
     if (R.lights) { R.lights[0].uI.value = T.lights; R.lights[1].uI.value = T.lights * ss(.86, .95, p); R.lights.forEach(u => (u.uTime.value = s.t)) }
     // grade every photo layer

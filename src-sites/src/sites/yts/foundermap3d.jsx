@@ -192,7 +192,7 @@ function Rig({ progress, prog, mobile }) {
     const a = ease(clamp(p / .42)), b = ease(clamp((p - .45) / .4))
     v.tp.fromArray(CAM[0].p).lerp(new THREE.Vector3(...CAM[1].p), a).lerp(new THREE.Vector3(...CAM[2].p), b)
     v.tl.fromArray(CAM[0].l).lerp(new THREE.Vector3(...CAM[1].l), a).lerp(new THREE.Vector3(...CAM[2].l), b)
-    if (mobile) { v.tp.y += 1.6; v.tp.z += 1.6 }
+    if (mobile) { v.tp.y += 1.6; v.tp.z += 1.6; v.tp.x -= .2; v.tl.x += .45 * (1 - b) }
     v.tp.x += pointer.x * .35; v.tp.y += pointer.y * .2
     v.p.x = THREE.MathUtils.damp(v.p.x, v.tp.x, 3, dt); v.p.y = THREE.MathUtils.damp(v.p.y, v.tp.y, 3, dt); v.p.z = THREE.MathUtils.damp(v.p.z, v.tp.z, 3, dt)
     v.l.lerp(v.tl, 1 - Math.exp(-3 * dt))

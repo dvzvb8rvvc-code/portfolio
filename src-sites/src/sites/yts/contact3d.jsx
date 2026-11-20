@@ -24,7 +24,7 @@ void main(){
   vec3 c = texture2D(uMap, vUv).rgb;
   float l = dot(c, vec3(.299,.587,.114));
   float l2 = smoothstep(.04, .96, l);
-  vec3 g = mix(vec3(.025,.04,.09), vec3(.3,.34,.48), smoothstep(0., .6, l2));
+  vec3 g = mix(vec3(.025,.04,.09), vec3(.2,.24,.38), smoothstep(0., .62, l2));
   g = mix(g, vec3(1.,.68,.45), smoothstep(.6, 1., l2) * .85);
   vec3 col = mix(c, g, uDusk);
   float far = 1. - smoothstep(.04, .22, vD);
@@ -44,6 +44,7 @@ void main(){
   float tw = .65 + .35 * sin(uT * (1. + r * 3.) + r * 40.);
   float light = step(.975, r) * band * smoothstep(.3, 0., length(f)) * tw;
   col += vec3(1., .72, .4) * light * 2.6 * uDusk;
+  col *= mix(1., .85, uDusk);
   // vignette
   vec2 q = vUv - .5; col *= 1. - dot(q, q) * .9;
   gl_FragColor = vec4(col, 1.);
@@ -55,12 +56,12 @@ function Lake({ mobile }) {
   map.colorSpace = THREE.SRGBColorSpace
   const W = 12, Hh = W * 701 / 1800
   const geo = useMemo(() => new THREE.PlaneGeometry(W, Hh, mobile ? 160 : 300, mobile ? 64 : 118), [mobile])
-  const u = useMemo(() => ({ uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: 1.6 }, uT: { value: 0 }, uDusk: { value: 0 } }), [map, dmap])
+  const u = useMemo(() => ({ uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: 1.6 }, uT: { value: 0 }, uDusk: { value: .55 } }), [map, dmap])
   const { camera, size } = useThree()
   useFrame(({ clock, pointer }, dt) => {
     const t = clock.elapsedTime
     u.uT.value = t
-    u.uDusk.value = THREE.MathUtils.damp(u.uDusk.value, 1, .8, dt)
+    u.uDusk.value = THREE.MathUtils.damp(u.uDusk.value, 1, .5, dt)
     // frame the photo so it always covers the viewport (with room for drift)
     const a = size.width / size.height, tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))
     const z = Math.min((W * .78) / (2 * tan * a), (Hh * .78) / (2 * tan))

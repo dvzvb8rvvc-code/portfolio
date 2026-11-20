@@ -187,15 +187,18 @@ function ProcessFilm() {
   const [step, setStep] = useState(0)
   useMotionValueEvent(scrollYProgress, 'change', v => { const s = Math.min(4, Math.max(0, Math.floor(v * 5))); setStep(o => (o === s ? o : s)) })
   const bar = useTransform(scrollYProgress, [0, 1], [0, 1])
+  // full-bleed colour chapters (kept in sync with CHAPTER in studio3d)
+  const bg = useTransform(scrollYProgress, [0, .16, .25, .36, .45, .56, .65, 1], ['#100f0e', '#100f0e', '#1f3a47', '#1f3a47', '#a35d2c', '#a35d2c', '#121110', '#121110'])
+  const shade = useTransform(bg, c => mobile ? `linear-gradient(0deg, ${c} 0%, ${c}cc 28%, ${c}00 62%)` : `linear-gradient(90deg, ${c}f0 0%, ${c}99 28%, ${c}00 58%)`)
   const to = y => (window.__lenis ? window.__lenis.scrollTo(y) : window.scrollTo({ top: y, behavior: 'smooth' }))
   const goStep = i => { const el = ref.current; const top = el.getBoundingClientRect().top + window.scrollY; to(top + (el.offsetHeight - window.innerHeight) * (i + .5) / 5) }
   const skip = () => { const el = ref.current; to(el.getBoundingClientRect().top + window.scrollY + el.offsetHeight) }
   const s = SERVICES[step]
   return (
-    <div ref={ref} className="relative h-[560vh] bg-[#100f0e] text-[#ece7df]">
+    <motion.div ref={ref} style={{ backgroundColor: bg }} className="relative h-[560vh] text-[#ece7df]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {mounted && <Suspense fallback={null}><StudioFilm progress={scrollYProgress} active={active} mobile={mobile} words={WORDS[lang] || WORDS.en} /></Suspense>}
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#100f0e] via-[#100f0e]/30 to-transparent md:bg-gradient-to-r md:from-[#100f0e]/90 md:via-[#100f0e]/35 md:to-transparent" />
+        <motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: shade }} />
         {/* top */}
         <div className="pointer-events-none absolute inset-x-0 top-0 pt-[84px] md:pt-[104px]">
           <div className="mx-auto flex max-w-[1440px] items-start justify-between gap-6 px-5 md:px-10">
@@ -218,12 +221,12 @@ function ProcessFilm() {
           <div className="mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 md:px-10">
             <div className="max-w-[560px]">
               <div className="flex items-end gap-4 md:gap-6">
-                <div className={`${T.sans} relative h-[1em] overflow-hidden text-[72px] font-black leading-none tracking-[-.06em] tabular-nums md:text-[clamp(120px,11vw,190px)]`} aria-hidden="true">
+                <div className={`${T.sans} relative flex h-[1em] shrink-0 overflow-hidden whitespace-nowrap text-[72px] font-black leading-none tracking-[-.06em] tabular-nums md:text-[clamp(120px,11vw,190px)]`} aria-hidden="true">
                   <span className="text-[#ece7df]/20">0</span>
-                  <span className="relative inline-block h-[1em] overflow-hidden align-top">
-                    <motion.span className="flex flex-col" animate={{ y: `${-step}em` }} transition={{ duration: .9, ease: E }}>
-                      {SERVICES.map((_, i) => <span key={i} className="block h-[1em] text-[#c3a15e]">{i + 1}</span>)}
-                    </motion.span>
+                  <span className="relative inline-block h-[1em] w-[.62em] overflow-hidden align-top">
+                    <AnimatePresence initial={false}>
+                      <motion.span key={step} className="absolute inset-0 block text-[#c3a15e]" initial={{ y: '100%' }} animate={{ y: '0%' }} exit={{ y: '-100%' }} transition={{ duration: .8, ease: E }}>{step + 1}</motion.span>
+                    </AnimatePresence>
                   </span>
                 </div>
                 <div className="pb-1 md:pb-4">
@@ -247,7 +250,7 @@ function ProcessFilm() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

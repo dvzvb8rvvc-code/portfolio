@@ -19,14 +19,15 @@ const out3 = t => 1 - Math.pow(1 - t, 3)
 const lerp = THREE.MathUtils.lerp
 
 export const PHOTO = { c: [0, 1.7, -3.6], w: 8.6, aspect: 1800 / 1440, depth: 3.1 }
+const SNAP = typeof location !== 'undefined' && /herosnap/.test(location.search) // test hook: no scroll damping
 const CUT_LO = -4.4, CUT_HI = 6.6
 const tex = n => `/portfolio/yts/tex/${n}.webp`
 
 /* camera keyframes (orbit around the building) */
 const DESK = {
-  A: { th: -.58, el: .30, R: 19.5, ty: 0, ly: -.2, sh: 2.5 },
-  B: { th: -.22, el: .25, R: 16.8, ty: 0, ly: 0, sh: 2.1 },
-  C: { th: .36, el: .21, R: 15.6, ty: 0, ly: 0, sh: 1.7 },
+  A: { th: -.58, el: .30, R: 21, ty: 0, ly: -.2, sh: 2.5 },
+  B: { th: -.22, el: .25, R: 19, ty: 0, ly: 0, sh: 2.1 },
+  C: { th: .36, el: .21, R: 17.6, ty: 0, ly: 0, sh: 1.7 },
   D: { th: .52, el: .17, R: 20.5, ty: 1.9, ly: 0, sh: .55 },
   E: { th: .08, el: .1, R: 19, ty: .6, ly: 0, sh: 0 },
 }
@@ -48,7 +49,7 @@ function orbit(o, pos, look) {
 export function openingPose(mobile) {
   const pos = new THREE.Vector3(), look = new THREE.Vector3()
   orbit((mobile ? MOB : DESK).A, pos, look)
-  return { C0: pos, T0: CENTER.clone() }
+  return { C0: pos, T0: CENTER.clone(), L0: look }
 }
 
 function computeBeats(film, raw, t, reduced) {
@@ -77,7 +78,7 @@ function Director({ progress, film, mobile, reduced }) {
     if (f.t0 === null) f.t0 = state.clock.elapsedTime
     f.t = state.clock.elapsedTime - f.t0
     const raw = reduced ? 1 : progress.get()
-    f.p = THREE.MathUtils.damp(f.p, raw, 3.4, dt)
+    f.p = SNAP ? raw : THREE.MathUtils.damp(f.p, raw, 3.4, dt)
     f.v = THREE.MathUtils.damp(f.v, Math.abs(raw - f.last) / Math.max(dt, 1e-3), 5, dt)
     f.last = raw
     computeBeats(f, raw, f.t, reduced)
@@ -240,7 +241,7 @@ function World({ film, labels, mobile }) {
   return (
     <>
       <Building model={model} film={film} labels={labels} mobile={mobile} />
-      <Particles geometry={geometry} film={film} photoMap={photoS} depthMap={depth} photo={PHOTO} swirlC={CENTER} size={mobile ? .05 : .036} />
+      <Particles geometry={geometry} film={film} photoMap={photoS} depthMap={depth} photo={PHOTO} swirlC={CENTER} size={mobile ? .04 : .024} />
       <PhotoSolid film={film} photo={PHOTO} depthMap={depth} mobile={mobile} />
     </>
   )
@@ -250,6 +251,7 @@ const _focus = new THREE.Vector3()
 function Post({ film }) {
   const dof = useRef(), ca = useRef()
   const target = useMemo(() => new THREE.Vector3(), [])
+  const caOff = useMemo(() => new THREE.Vector2(), [])
   useFrame(() => {
     const f = film.current, b = f.b
     if (dof.current) {
@@ -261,13 +263,13 @@ function Post({ film }) {
       dof.current.target = target
       dof.current.bokehScale = lerp(0, 3.2, b.solid) * (1 - b.photo * .7) + b.dolly * 2.4
     }
-    if (ca.current) { const k = Math.min(.006, f.v * .016); ca.current.offset.set(k, k * .6) }
+    if (ca.current) { const k = Math.min(.006, f.v * .016); caOff.set(k, k * .6) }
   })
   return (
     <EffectComposer multisampling={0} disableNormalPass>
       <DepthOfField ref={dof} focusRange={.03} bokehScale={0} resolutionScale={.5} />
       <Bloom mipmapBlur luminanceThreshold={1} luminanceSmoothing={.2} intensity={.85} radius={.7} />
-      <ChromaticAberration ref={ca} offset={[0, 0]} radialModulation modulationOffset={.15} />
+      <ChromaticAberration ref={ca} offset={caOff} radialModulation modulationOffset={.15} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
       <Vignette offset={.28} darkness={.5} />
       <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={.35} />

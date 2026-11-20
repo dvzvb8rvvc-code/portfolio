@@ -1,16 +1,15 @@
-import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useScroll, useTransform, useSpring, useMotionValue, useMotionValueEvent, useReducedMotion, animate, useInView } from 'framer-motion'
 import { useLite, useIsMobile } from '../../lib/kit'
 import { useLang } from './i18n'
 import { T, PALAZZO, img } from './data'
+import { TL, ROOMS, roomP, clamp, smooth, explodeOf } from './palazzoTL'
 
-const Exploded = lazy(() => import('./palazzo3d'))
-const Vault = lazy(() => import('./palazzo3d').then(m => ({ default: m.Vault })))
+const Film3D = lazy(() => import('./palazzo3d'))
+const OpeningCanvas = lazy(() => import('./palazzoFx').then(m => ({ default: m.OpeningCanvas })))
+const CardsCanvas = lazy(() => import('./palazzoFx').then(m => ({ default: m.CardsCanvas })))
 
 const E = [0.16, 1, 0.3, 1]
-const FRESCO = '#1c2f4d'
-const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
-const smooth = (a, b, v) => { const x = clamp((v - a) / (b - a)); return x * x * (3 - 2 * x) }
 const LEVEL = ['−1', '0', '1', '2']
 const FLOOR_M2 = PALAZZO.floors.map(f => f.units.reduce((a, u) => a + u.m2, 0))
 const UNITS = PALAZZO.floors.flatMap((f, fi) => f.units.map(u => ({ ...u, fi, floor: f })))
@@ -23,6 +22,14 @@ const ISO_PLAN = [
   [{ a: 0, b: 0.82, u: 6 }, { a: 0.82, b: 1, core: 1 }],
 ]
 const ISO_H = [0.62, 1.0, 1.22, 0.72].map(h => h * 0.55)
+// what each room photo shows (descriptive only — photos are illustrative, not tied to a residence)
+const ROOM_TXT = {
+  148: { k: { en: 'Grotesques', it: 'Grottesche' }, t: { en: 'Painted vaults, room after room.', it: 'Volte dipinte, stanza dopo stanza.' } },
+  156: { k: { en: 'Arched windows', it: 'Finestre ad arco' }, t: { en: 'Tuscan light through deep stone reveals.', it: 'Luce toscana tra profondi sguinci di pietra.' } },
+  157: { k: { en: 'Salon', it: 'Salotto' }, t: { en: 'Coffered ceilings over quiet salons.', it: 'Soffitti decorati su salotti silenziosi.' } },
+  152: { k: { en: 'Bedroom', it: 'Camera' }, t: { en: 'Sleeping beneath original frescoes.', it: 'Dormire sotto affreschi originali.' } },
+  143: { k: { en: 'Terracotta & paint', it: 'Cotto e decori' }, t: { en: 'Terracotta floors, painted walls.', it: 'Pavimenti in cotto, pareti dipinte.' } },
+}
 
 function useNear(ref, margin = '100% 0px') {
   const [near, setNear] = useState(false), [vis, setVis] = useState(false)
@@ -47,34 +54,38 @@ function Kicker({ children, className = '' }) {
   return <div className={`text-[11px] font-semibold uppercase tracking-[.24em] ${className}`}>{children}</div>
 }
 
-/* ---------------- 1. Opening ---------------- */
+/* ---------------- 1. Opening: Volterra rooftops in real depth ---------------- */
 function Opening() {
   const { t } = useLang()
+  const lite = useLite(), mob = useIsMobile()
   const ref = useRef()
+  const [near, vis] = useNear(ref)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], ['-12%', '12%'])
-  const sc = useTransform(scrollYProgress, [0, 1], [1.18, 1.04])
-  const x1 = useTransform(scrollYProgress, [0, 1], ['6%', '-8%'])
-  const x2 = useTransform(scrollYProgress, [0, 1], ['-4%', '10%'])
+  const p2 = useTransform(scrollYProgress, [0.3, 1], [0, 1])
+  const x1 = useTransform(scrollYProgress, [0, 1], ['8%', '-10%'])
+  const x2 = useTransform(scrollYProgress, [0, 1], ['-6%', '12%'])
+  const sc = useTransform(scrollYProgress, [0, 1], [1.15, 1])
   return (
     <div ref={ref} className="relative min-h-[100svh] overflow-hidden bg-[#151412] text-[#ece7df]">
-      <motion.div className="absolute inset-0" style={{ y, scale: sc }}>
-        <img src={img(145)} srcSet={`${img(145, 1)} 720w, ${img(145)} 1800w`} sizes="100vw" alt={t({ en: 'Rooftops of Volterra', it: 'I tetti di Volterra' })} className="h-full w-full object-cover" loading="lazy" decoding="async" width="1920" height="1716" />
-      </motion.div>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,#151412_0%,rgba(21,20,18,.35)_30%,rgba(21,20,18,.25)_55%,#151412_100%)]" />
-      <div className="relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-between px-5 pb-12 pt-28 md:px-10 md:pb-16">
+      {lite ? (
+        <motion.img style={{ scale: sc }} src={img(145)} srcSet={`${img(145, 1)} 720w, ${img(145)} 1800w`} sizes="100vw" alt={t({ en: 'Rooftops of Volterra', it: 'I tetti di Volterra' })} className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" width="1800" height="1609" />
+      ) : (
+        <div className="absolute inset-0" role="img" aria-label={t({ en: 'Rooftops of Volterra', it: 'I tetti di Volterra' })}>{near && <Suspense fallback={null}><OpeningCanvas progress={p2} active={vis} mob={mob} /></Suspense>}</div>
+      )}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#151412_0%,rgba(21,20,18,.25)_28%,rgba(21,20,18,.1)_55%,#151412_100%)]" />
+      <div className="pointer-events-none relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-between px-5 pb-12 pt-28 md:px-10 md:pb-16">
         <div className="flex items-start justify-between gap-6">
-          <Kicker className="text-[#ece7df]/70">{t({ en: 'Residences · Tuscany', it: 'Residenze · Toscana' })}</Kicker>
-          <Kicker className="text-right text-[#ece7df]/70">{PALAZZO.place}</Kicker>
+          <Kicker className="text-[#ece7df]/75">{t({ en: 'Residences · Tuscany', it: 'Residenze · Toscana' })}</Kicker>
+          <Kicker className="text-right text-[#ece7df]/75">{PALAZZO.place}</Kicker>
         </div>
-        <h2 className={`${T.serif} pointer-events-none select-none leading-[.82] tracking-[-.02em]`}>
+        <h2 className={`${T.serif} select-none leading-[.82] tracking-[-.02em] drop-shadow-[0_8px_40px_rgba(0,0,0,.35)]`}>
           <motion.span className="block text-[23vw] md:text-[15.5vw]" style={{ x: x1 }}><Mask>Palazzo</Mask></motion.span>
-          <motion.span className="block pl-[8vw] text-[23vw] italic text-[#e9c48f] md:text-[15.5vw]" style={{ x: x2 }}><Mask delay={0.12}>Campani</Mask></motion.span>
+          <motion.span className="block pl-[8vw] text-[23vw] italic text-[#f0c88f] md:text-[15.5vw]" style={{ x: x2 }}><Mask delay={0.12}>Campani</Mask></motion.span>
         </h2>
         <div className="grid gap-8 md:grid-cols-12">
           <p className={`${T.serif} text-[24px] leading-[1.15] md:col-span-6 md:text-[34px]`}>{t(PALAZZO.lead)}</p>
-          <div className="flex flex-col justify-end gap-3 text-[13px] leading-relaxed text-[#ece7df]/70 md:col-span-4 md:col-start-9">
-            <span className="h-px w-16 bg-[#e9c48f]" />
+          <div className="flex flex-col justify-end gap-3 text-[13px] leading-relaxed text-[#ece7df]/75 md:col-span-4 md:col-start-9">
+            <span className="h-px w-16 bg-[#f0c88f]" />
             {t(PALAZZO.credit)}
           </div>
         </div>
@@ -143,26 +154,57 @@ function IsoStack({ e, activeFloor = null, activeUnit = null, onPick, dark, clas
   )
 }
 
-/* ---------------- 2. Exploded film ---------------- */
+/* ---------------- 2. The film: explode → dusk → through the window → rooms → look up ---------------- */
 function FloorLabel({ i, f, hud, flow }) {
   const { t } = useLang()
   return (
     <div ref={el => { hud.current.labels[i] = el }} className={`${flow ? 'relative' : 'absolute left-0 top-0 will-change-transform'} w-[44vw] max-w-[330px] opacity-0 md:w-[30vw]`}>
       <div className="flex items-baseline gap-3">
-        <span className="text-[9px] font-semibold uppercase tracking-[.2em] text-white/60 md:text-[10px] md:tracking-[.22em]">{t({ en: 'Level', it: 'Livello' })} {LEVEL[i]}</span>
-        <span className="h-px flex-1 bg-white/25" />
+        <span className="text-[9px] font-semibold uppercase tracking-[.2em] text-white/70 md:text-[10px] md:tracking-[.22em]">{t({ en: 'Level', it: 'Livello' })} {LEVEL[i]}</span>
+        <span className="h-px flex-1 bg-white/30" />
       </div>
       <div className="mt-1 flex items-baseline justify-between gap-3">
         <span className={`${T.serif} text-[19px] leading-none md:text-[34px]`}>{t(f.t)}</span>
         {FLOOR_M2[i] > 0 && <span className="whitespace-nowrap text-[13px] font-semibold tabular-nums md:text-[20px]"><span ref={el => { hud.current.nums[`f${i}`] = el }}>0</span> m²</span>}
       </div>
-      <div className="mt-1.5 hidden text-[12.5px] leading-snug text-white/70 md:block">
-        {f.units.length ? f.units.map((u, k) => (
+      <div className="mt-1.5 hidden text-[12.5px] leading-snug text-white/75 md:block">
+        {f.units.length ? f.units.map(u => (
           <span key={u.n} className="mr-3 inline-block whitespace-nowrap tabular-nums">Ap.{u.n} <b className="font-semibold text-white"><span ref={el => { hud.current.nums[`u${u.n}`] = el }}>0</span> m²</b></span>
         )) : t(f.d)}
       </div>
-      <div className="mt-0.5 text-[10.5px] leading-snug text-white/65 md:hidden">{f.units.length ? f.units.map(u => 'Ap.' + u.n).join(' · ') : t(f.d)}</div>
+      <div className="mt-0.5 text-[10.5px] leading-snug text-white/70 md:hidden">{f.units.length ? f.units.map(u => 'Ap.' + u.n).join(' · ') : t(f.d)}</div>
     </div>
+  )
+}
+
+function Chapter({ progress, r, children, className = '' }) {
+  // r[0] < 0: visible from the start; r[3] > 1: stays to the end
+  const pick = (a, b, c, d) => r[0] < 0 ? [[r[2], r[3]], [c, d]] : r[3] > 1 ? [[r[0], r[1]], [a, b]] : [r, [a, b, c, d]]
+  const [ri, ro] = pick(0, 1, 1, 0), [, yo] = pick(50, 0, 0, -50), [, fo] = pick('blur(10px)', 'blur(0px)', 'blur(0px)', 'blur(8px)')
+  const o = useTransform(progress, ri, ro)
+  const y = useTransform(progress, ri, yo)
+  const f = useTransform(progress, ri, fo)
+  return <motion.div style={{ opacity: o, y, filter: f }} className={`absolute inset-x-0 top-0 ${className}`}>{children}</motion.div>
+}
+
+function RoomCaption({ progress, k, id }) {
+  const { t } = useLang()
+  const c = roomP(k), w = 0.03
+  const r = k === 0 ? [TL.enter + 0.006, TL.enter + 0.02, c + w, c + w * 2] : [c - w * 2, c - w, c + w, c + w * 2]
+  const o = useTransform(progress, r, [0, 1, 1, 0])
+  const y = useTransform(progress, r, [60, 0, 0, -40])
+  const word = useTransform(progress, [r[0], r[3]], ['14%', '-14%'])
+  return (
+    <motion.div style={{ opacity: o }} className="pointer-events-none absolute inset-0">
+      {/* giant outlined kinetic word behind the caption */}
+      <motion.div aria-hidden style={{ x: word, WebkitTextStroke: '1.2px rgba(255,236,210,.35)' }} className={`${T.serif} absolute bottom-[14vh] left-0 whitespace-nowrap text-[30vw] italic leading-none text-transparent md:bottom-[6vh] md:text-[17vw]`}>{t(ROOM_TXT[id].k)}</motion.div>
+      <motion.div style={{ y }} className="absolute inset-x-0 bottom-24 mx-auto max-w-[1440px] px-5 md:bottom-28 md:px-10">
+        <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.24em] text-[#f0c88f]">
+          <span className="tabular-nums">{String(k + 1).padStart(2, '0')} / {String(ROOMS.length).padStart(2, '0')}</span><span className="h-px w-10 bg-[#f0c88f]/60" />{t(ROOM_TXT[id].k)}
+        </div>
+        <p className={`${T.serif} mt-3 max-w-[16ch] text-[38px] leading-[.98] drop-shadow-[0_4px_30px_rgba(0,0,0,.6)] md:text-[68px]`}>{t(ROOM_TXT[id].t)}</p>
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -176,98 +218,142 @@ function Film({ pickerRef }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const still = useMotionValue(1)
   const progress = reduce ? still : scrollYProgress
-  const bg = useTransform(progress, [0, 0.16, 0.4, 0.6, 0.7, 0.9], [T.ink, T.ink, '#a5612f', '#9a5a2c', '#16171b', FRESCO])
-  const word = useTransform(progress, [0, 1], ['8%', '-38%'])
   const bar = useTransform(progress, [0, 1], [0, 1])
-  const c0 = useTransform(progress, [0, 0.16, 0.24], [1, 1, 0])
-  const c1 = useTransform(progress, [0.2, 0.3, 0.52, 0.6], [0, 1, 1, 0])
-  const c2 = useTransform(progress, [0.56, 0.66], [0, 1])
-  const c0y = useTransform(progress, [0, 0.24], [0, -40])
-  const c1y = useTransform(progress, [0.2, 0.3, 0.52, 0.6], [40, 0, 0, -40])
-  const c2y = useTransform(progress, [0.56, 0.66], [40, 0])
-  const isoE = useTransform(progress, v => smooth(0.14, 0.56, v))
+  const flash = useTransform(progress, [TL.enter - 0.03, TL.enter - 0.004, TL.enter + 0.004, TL.enter + 0.03], [0, 1, 1, 0])
+  const flashS = useTransform(progress, [TL.enter - 0.03, TL.enter], [0.2, 1.6])
+  const noteA = useTransform(progress, [0.47, 0.5], [1, 0])
+  const noteB = useTransform(progress, [0.5, 0.53], [0, 1])
+  const drag = useRef({ yaw: 0, x: null })
 
   const hud = useRef({ labels: [], lines: [], nums: {}, total: null, last: {} })
-  hud.current.update = (e, pRaw) => {
+  hud.current.update = (e, pRaw, focusIdx) => {
     const H = hud.current, p = pRaw ?? progress.get()
     PALAZZO.floors.forEach((f, i) => {
-      const L = H.labels[i]; if (L) L.style.opacity = clamp((e - 0.5 - (3 - i) * 0.08) / 0.16)
-      const k = smooth(0.36 + (3 - i) * 0.04, 0.72 + (3 - i) * 0.03, p)
+      const L = H.labels[i]
+      if (L) {
+        const base = clamp((e - 0.5 - (3 - i) * 0.08) / 0.16)
+        const foc = focusIdx == null ? 1 : 1 - Math.min(1, Math.abs(focusIdx - i))
+        L.style.opacity = base * (0.42 + 0.58 * foc)
+      }
+      const k = smooth(0.17 + (3 - i) * 0.02, 0.3 + (3 - i) * 0.02, p)
       const set = (key, v) => { const el = H.nums[key]; if (el && H.last[key] !== v) { el.textContent = v; H.last[key] = v } }
       set('f' + i, Math.round(FLOOR_M2[i] * k))
       f.units.forEach(u => set('u' + u.n, Math.round(u.m2 * k)))
     })
-    const tv = Math.round(PALAZZO.total * smooth(0.56, 0.8, p))
+    const tv = Math.round(PALAZZO.total * smooth(TL.total[0], TL.total[1] - 0.03, p))
     if (H.total && H.last.total !== tv) { H.total.textContent = tv; H.last.total = tv }
   }
   const use3d = !lite
-  useMotionValueEvent(progress, 'change', v => { if (!use3d) hud.current.update(smooth(0.14, 0.56, v), v) })
-  useEffect(() => { if (!use3d || reduce) hud.current.update(smooth(0.14, 0.56, progress.get()), progress.get()) }, [use3d, reduce, lang])
+  useMotionValueEvent(progress, 'change', v => { if (!use3d) hud.current.update(explodeOf(v * 0.39), v * 0.39) })
+  useEffect(() => { if (!use3d) hud.current.update(explodeOf(progress.get() * 0.39), progress.get() * 0.39) }, [use3d, reduce, lang])
 
   const skip = () => { const el = pickerRef.current; if (!el) return; window.__lenis ? window.__lenis.scrollTo(el, { offset: -64 }) : el.scrollIntoView({ behavior: 'smooth' }) }
+  const onDown = ev => { drag.current.x = ev.clientX }
+  const onMove = ev => { if (drag.current.x == null) return; drag.current.yaw += (ev.clientX - drag.current.x) * 0.004; drag.current.x = ev.clientX }
+  const onUp = () => { drag.current.x = null }
+
+  if (!use3d) return <FilmLite progress={progress} reduce={reduce} hud={hud} skip={skip} innerRef={ref} />
 
   return (
-    <div ref={ref} className="relative" style={{ height: reduce ? '100svh' : '420vh' }}>
-      <motion.div className="sticky top-0 h-[100svh] overflow-hidden text-[#ece7df]" style={{ backgroundColor: bg }}>
-        {/* giant outlined word behind the object */}
-        <motion.div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 flex items-center whitespace-nowrap font-['Inter_Tight',sans-serif] text-[34vw] font-black uppercase leading-none tracking-[-.04em] text-transparent md:text-[24vw]" style={{ x: word, WebkitTextStroke: '1.5px rgba(236,231,223,.22)' }}>
-          Campani
-        </motion.div>
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_40%_55%,rgba(255,220,170,.12),transparent_60%)]" />
+    <div ref={ref} className="relative bg-[#0b0a09]" style={{ height: mob ? '880vh' : '1000vh' }}>
+      <div className="sticky top-0 h-[100svh] touch-pan-y overflow-hidden text-[#ece7df]" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
+        <div className="absolute inset-0">{near && <Suspense fallback={null}><Film3D progress={progress} hud={hud} lang={lang} active={vis} lite={mob} drag={drag} /></Suspense>}</div>
 
-        {use3d ? (
-          <>
-            <div className="absolute inset-0">{near && <Suspense fallback={null}><Exploded progress={progress} hud={hud} lang={lang} active={vis} lite={mob} /></Suspense>}</div>
-            <div className="pointer-events-none absolute inset-0">
-              {PALAZZO.floors.map((f, i) => (
-                <React.Fragment key={f.id}>
-                  <div ref={el => { hud.current.lines[i] = el }} className="absolute left-0 top-0 h-px origin-left bg-[#ece7df]/70 will-change-transform" style={{ transform: 'scaleX(0)' }}>
-                    <span className="absolute -left-[3px] -top-[3px] h-[7px] w-[7px] rounded-full border border-[#ece7df] bg-[#ece7df]/30" />
-                  </div>
-                  <FloorLabel i={i} f={f} hud={hud} />
-                </React.Fragment>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="absolute inset-0 mx-auto grid max-w-[1440px] grid-rows-[1fr_auto] items-center gap-4 px-5 pb-24 pt-44 md:grid-cols-12 md:grid-rows-1 md:px-10 md:pt-24">
-            <IsoStack e={isoE} dark className="mx-auto h-full max-h-[62vh] w-full md:col-span-6 md:col-start-2" />
-            <div className="grid grid-cols-2 gap-x-4 gap-y-4 md:col-span-4 md:col-start-9 md:grid-cols-1 md:gap-7">
-              {[3, 2, 1, 0].map(i => <FloorLabel key={i} i={i} f={PALAZZO.floors[i]} hud={hud} flow />)}
-            </div>
-          </div>
-        )}
-
-        {/* chapters */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto max-w-[1440px] px-5 pt-20 md:px-10 md:pt-28">
-          <div className="relative md:w-[38%]">
-            <motion.div style={{ opacity: c0, y: c0y }} className="absolute inset-x-0 top-0">
-              <Kicker className="text-white/60">{t({ en: 'Exploded section · 01', it: 'Spaccato assonometrico · 01' })}</Kicker>
-              <h3 className={`${T.serif} mt-3 text-[40px] leading-[.95] md:text-[64px]`}>{t({ en: 'Four floors,', it: 'Quattro piani,' })}<br /><i className="text-[#e9c48f]">{t({ en: 'one palazzo.', it: 'un palazzo.' })}</i></h3>
-              <p className="mt-4 hidden max-w-[34ch] text-[14px] leading-relaxed text-white/70 md:block">{t({ en: 'Keep scrolling — the building opens floor by floor, from the cellars to the attic loft.', it: 'Continua a scorrere — l’edificio si apre piano per piano, dalle cantine al loft mansardato.' })}</p>
-            </motion.div>
-            <motion.div style={{ opacity: c1, y: c1y }} className="absolute inset-x-0 top-0">
-              <Kicker className="text-white/60">{t({ en: 'Cut open · 02', it: 'In sezione · 02' })}</Kicker>
-              <h3 className={`${T.serif} mt-3 text-[40px] leading-[.95] md:text-[64px]`}>{t({ en: 'From the cellars', it: 'Dalle cantine' })}<br /><i className="text-[#f3d6a8]">{t({ en: 'to the attic loft.', it: 'al loft mansardato.' })}</i></h3>
-            </motion.div>
-            <motion.div style={{ opacity: c2, y: c2y }} className="absolute inset-x-0 top-0">
-              <Kicker className="text-white/60">{t({ en: 'Six residences · 03', it: 'Sei residenze · 03' })}</Kicker>
-              <div className="mt-2 flex items-baseline gap-2 font-['Inter_Tight',sans-serif] font-black leading-[.85] tracking-[-.04em] tabular-nums">
-                <span ref={el => { hud.current.total = el }} className="text-[72px] md:text-[132px]">0</span>
-                <span className="text-[28px] md:text-[48px]">m²</span>
+        {/* HUD: leader lines + floor labels */}
+        <div className="pointer-events-none absolute inset-0">
+          {PALAZZO.floors.map((f, i) => (
+            <React.Fragment key={f.id}>
+              <div ref={el => { hud.current.lines[i] = el }} className="absolute left-0 top-0 h-px origin-left bg-[#ece7df]/80 will-change-transform" style={{ transform: 'scaleX(0)' }}>
+                <span className="absolute -left-[3px] -top-[3px] h-[7px] w-[7px] rounded-full border border-[#ece7df] bg-[#ece7df]/30" />
               </div>
-              <p className="mt-2 max-w-[30ch] text-[13px] leading-relaxed text-white/70 md:text-[14px]">{t({ en: 'Total area of the six residences, across three floors above the cellars and spa.', it: 'Superficie totale delle sei residenze, su tre piani sopra cantine e spa.' })}</p>
-            </motion.div>
+              <FloorLabel i={i} f={f} hud={hud} />
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* building chapters */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto max-w-[1440px] px-5 pt-20 md:px-10 md:pt-28">
+          <div className="relative md:w-[40%] [text-shadow:0_2px_30px_rgba(40,20,5,.35)]">
+            <Chapter progress={progress} r={[-1, 0, 0.06, 0.1]}>
+              <Kicker className="text-white/80">{t({ en: 'Exploded section · 01', it: 'Spaccato assonometrico · 01' })}</Kicker>
+              <h3 className={`${T.serif} mt-3 text-[44px] leading-[.92] md:text-[78px]`}>{t({ en: 'Four floors,', it: 'Quattro piani,' })}<br /><i className="text-[#ffe0b0]">{t({ en: 'one palazzo.', it: 'un palazzo.' })}</i></h3>
+              <p className="mt-4 hidden max-w-[34ch] text-[14px] leading-relaxed text-white/80 md:block">{t({ en: 'Scroll — the building opens floor by floor, the sun sets over Volterra, and then we go inside.', it: 'Scorri — l’edificio si apre piano per piano, il sole tramonta su Volterra, e poi entriamo.' })}</p>
+            </Chapter>
+            <Chapter progress={progress} r={[0.1, 0.14, 0.24, 0.28]}>
+              <Kicker className="text-white/80">{t({ en: 'Cut open · 02', it: 'In sezione · 02' })}</Kicker>
+              <h3 className={`${T.serif} mt-3 text-[44px] leading-[.92] md:text-[78px]`}>{t({ en: 'From the cellars', it: 'Dalle cantine' })}<br /><i className="text-[#ffe0b0]">{t({ en: 'to the attic loft.', it: 'al loft mansardato.' })}</i></h3>
+            </Chapter>
+            <Chapter progress={progress} r={[0.26, 0.29, 0.38, 0.41]}>
+              <Kicker className="text-white/80">{t({ en: 'Six residences · 03', it: 'Sei residenze · 03' })}</Kicker>
+              <div className="mt-2 flex items-baseline gap-2 font-['Inter_Tight',sans-serif] font-black leading-[.85] tracking-[-.04em] tabular-nums">
+                <span ref={el => { hud.current.total = el }} className="text-[84px] md:text-[150px]">0</span>
+                <span className="text-[30px] md:text-[52px]">m²</span>
+              </div>
+              <p className="mt-2 max-w-[30ch] text-[13px] leading-relaxed text-white/80 md:text-[14px]">{t({ en: 'Total area of the six residences, across three floors above the cellars and spa.', it: 'Superficie totale delle sei residenze, su tre piani sopra cantine e spa.' })}</p>
+            </Chapter>
+            <Chapter progress={progress} r={[0.4, 0.425, 0.47, 0.495]}>
+              <Kicker className="text-[#ffcf8f]">{t({ en: 'Dusk in Volterra · 04', it: 'Sera a Volterra · 04' })}</Kicker>
+              <h3 className={`${T.serif} mt-3 text-[44px] leading-[.92] md:text-[78px]`}>{t({ en: 'The lights come on.', it: 'Si accendono le luci.' })}<br /><i className="text-[#ffcf8f]">{t({ en: 'Step inside.', it: 'Entriamo.' })}</i></h3>
+            </Chapter>
           </div>
         </div>
 
-        {/* footer: skip + progress */}
+        {/* through the window: warm flash */}
+        <motion.div aria-hidden className="pointer-events-none absolute inset-0" style={{ opacity: flash, background: 'radial-gradient(circle at 50% 50%, #fff4dc 0%, #ffcf8a 35%, #c46a2c 75%, #3a1a08 100%)' }} />
+        <motion.div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-[60vmin] w-[60vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/70 blur-3xl" style={{ opacity: flash, scale: flashS }} />
+
+        {/* rooms */}
+        {ROOMS.map((id, k) => <RoomCaption key={id} progress={progress} k={k} id={id} />)}
+        <Chapter progress={progress} r={[0.87, 0.9, 0.95, 0.975]} className="!top-auto bottom-[16vh] text-center">
+          <Kicker className="text-[#f0c88f]">{t({ en: 'Original frescoes', it: 'Affreschi originali' })}</Kicker>
+          <div className={`${T.serif} mt-3 text-[22vw] italic leading-[.8] drop-shadow-[0_6px_40px_rgba(0,0,0,.6)] md:text-[13vw]`}>{t({ en: 'Look up.', it: 'Alza lo sguardo.' })}</div>
+          <p className="mx-auto mt-5 max-w-[40ch] px-5 text-[14px] leading-relaxed text-white/80">{t({ en: 'Drag to turn beneath the vault.', it: 'Trascina per girare sotto la volta.' })}</p>
+        </Chapter>
+        <Chapter progress={progress} r={[0.955, 0.98, 1.5, 2]} className="!top-auto bottom-20 md:bottom-24">
+          <div className="mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 md:px-10">
+            <p className={`${T.serif} max-w-[18ch] text-[32px] leading-[1.02] drop-shadow-[0_4px_30px_rgba(0,0,0,.7)] md:text-[56px]`}>{t({ en: 'Original frescoes beneath vaulted ceilings.', it: 'Affreschi originali sotto soffitti a volta.' })}</p>
+            <span className="hidden text-[11px] uppercase tracking-[.2em] text-white/70 md:block">Palazzo Campani · Volterra</span>
+          </div>
+        </Chapter>
+
+        {/* footer: skip + progress + honesty */}
         <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[1440px] items-center gap-5 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:px-10 md:pb-8">
-          {!reduce && <button onClick={skip} className="pointer-events-auto rounded-full border border-white/30 px-4 py-2 text-[12px] font-semibold uppercase tracking-[.16em] text-white/85 backdrop-blur transition-colors hover:bg-white hover:text-[#151412]">{t('skip')} ↓</button>}
-          <div className="relative h-px flex-1 bg-white/20"><motion.div className="absolute inset-0 origin-left bg-white" style={{ scaleX: bar }} /></div>
-          <span className="hidden text-[11px] uppercase tracking-[.2em] text-white/55 md:block">{t({ en: 'Schematic layout · not to scale', it: 'Schema indicativo · non in scala' })}</span>
+          <button onClick={skip} className="pointer-events-auto rounded-full border border-white/35 bg-black/15 px-4 py-2 text-[12px] font-semibold uppercase tracking-[.16em] text-white/90 backdrop-blur transition-colors hover:bg-white hover:text-[#151412]">{t('skip')} ↓</button>
+          <div className="relative h-px flex-1 bg-white/25"><motion.div className="absolute inset-0 origin-left bg-white" style={{ scaleX: bar }} /></div>
+          <span className="relative hidden h-4 w-[300px] text-right text-[11px] uppercase tracking-[.2em] text-white/70 md:block">
+            <motion.span style={{ opacity: noteA }} className="absolute inset-0">{t({ en: 'Schematic layout · not to scale', it: 'Schema indicativo · non in scala' })}</motion.span>
+            <motion.span style={{ opacity: noteB }} className="absolute inset-0">{t({ en: 'Interior photos · illustrative', it: 'Foto degli interni · indicative' })}</motion.span>
+          </span>
         </div>
-      </motion.div>
+      </div>
+    </div>
+  )
+}
+
+/* lite / reduced motion: the v1 2D exploded stack + a still of the rooms */
+function FilmLite({ progress, reduce, hud, skip, innerRef }) {
+  const { t } = useLang()
+  const isoE = useTransform(progress, v => explodeOf(v * 0.39))
+  const bar = useTransform(progress, [0, 1], [0, 1])
+  return (
+    <div ref={innerRef} className="relative" style={{ height: reduce ? '100svh' : '420vh' }}>
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-[#7a3f1d] text-[#ece7df]">
+        <div className="absolute inset-0 mx-auto grid max-w-[1440px] grid-rows-[1fr_auto] items-center gap-4 px-5 pb-24 pt-44 md:grid-cols-12 md:grid-rows-1 md:px-10 md:pt-24">
+          <IsoStack e={isoE} dark className="mx-auto h-full max-h-[62vh] w-full md:col-span-6 md:col-start-2" />
+          <div className="grid grid-cols-2 gap-x-4 gap-y-4 md:col-span-4 md:col-start-9 md:grid-cols-1 md:gap-7">
+            {[3, 2, 1, 0].map(i => <FloorLabel key={i} i={i} f={PALAZZO.floors[i]} hud={hud} flow />)}
+          </div>
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 top-0 mx-auto max-w-[1440px] px-5 pt-20 md:px-10 md:pt-28">
+          <Kicker className="text-white/70">{t({ en: 'Six residences', it: 'Sei residenze' })}</Kicker>
+          <div className="mt-2 flex items-baseline gap-2 font-black leading-[.85] tracking-[-.04em] tabular-nums"><span ref={el => { hud.current.total = el }} className="text-[64px] md:text-[110px]">0</span><span className="text-[26px] md:text-[42px]">m²</span></div>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-[1440px] items-center gap-5 px-5 pb-6 md:px-10 md:pb-8">
+          {!reduce && <button onClick={skip} className="pointer-events-auto rounded-full border border-white/30 px-4 py-2 text-[12px] font-semibold uppercase tracking-[.16em] text-white/85">{t('skip')} ↓</button>}
+          <div className="relative h-px flex-1 bg-white/20"><motion.div className="absolute inset-0 origin-left bg-white" style={{ scaleX: bar }} /></div>
+          <span className="hidden text-[11px] uppercase tracking-[.2em] text-white/60 md:block">{t({ en: 'Schematic layout · not to scale', it: 'Schema indicativo · non in scala' })}</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -342,80 +428,72 @@ function Picker({ innerRef }) {
   )
 }
 
-/* ---------------- 4. Look up ---------------- */
-function LookUp() {
-  const { t } = useLang()
-  const lite = useLite()
-  const reduce = useReducedMotion()
-  const ref = useRef()
-  const [near, vis] = useNear(ref)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const still = useMotionValue(0.85)
-  const progress = reduce ? still : scrollYProgress
-  const drag = useRef({ yaw: 0, pitch: 0, x: null })
-  const o1 = useTransform(progress, [0, 0.2, 0.4], [1, 1, 0])
-  const y1 = useTransform(progress, [0, 0.4], [0, -80])
-  const o2 = useTransform(progress, [0.6, 0.8], [0, 1])
-  const imgScale = useTransform(progress, [0, 1], [1.35, 1])
-  const imgRot = useTransform(progress, [0, 1], [-8, 0])
-  const onDown = ev => { drag.current.x = ev.clientX }
-  const onMove = ev => { if (drag.current.x == null) return; drag.current.yaw += (ev.clientX - drag.current.x) * 0.004; drag.current.x = ev.clientX }
-  const onUp = () => { drag.current.x = null }
-  return (
-    <div ref={ref} className="relative bg-[#07090f]" style={{ height: reduce ? '100svh' : '280vh' }}>
-      <div className="sticky top-0 h-[100svh] touch-pan-y overflow-hidden text-[#ece7df]" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
-        {lite ? (
-          <motion.img src={img(154)} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" style={{ scale: imgScale, rotate: imgRot }} />
-        ) : (
-          <div className="absolute inset-0 cursor-grab active:cursor-grabbing">{near && <Suspense fallback={null}><Vault progress={progress} drag={drag} active={vis} /></Suspense>}</div>
-        )}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(7,9,15,.7)_100%)]" />
-        <motion.div style={{ opacity: o1, y: y1 }} className="pointer-events-none absolute inset-x-0 bottom-[12vh] mx-auto max-w-[1440px] px-5 text-center md:px-10">
-          <Kicker className="text-[#e9c48f]">{t({ en: 'Original frescoes', it: 'Affreschi originali' })}</Kicker>
-          <div className={`${T.serif} mt-3 text-[22vw] italic leading-[.8] md:text-[13vw]`}>{t({ en: 'Look up.', it: 'Alza lo sguardo.' })}</div>
-          <p className="mx-auto mt-5 max-w-[40ch] text-[14px] leading-relaxed text-white/70">{t({ en: 'Scroll slowly. Drag to turn beneath the vault.', it: 'Scorri piano. Trascina per girare sotto la volta.' })}</p>
-        </motion.div>
-        <motion.div style={{ opacity: o2 }} className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 pb-10 md:px-10">
-          <p className={`${T.serif} max-w-[18ch] text-[28px] leading-[1.05] md:text-[44px]`}>{t({ en: 'Original frescoes beneath vaulted ceilings.', it: 'Affreschi originali sotto soffitti a volta.' })}</p>
-          <span className="hidden text-[11px] uppercase tracking-[.2em] text-white/55 md:block">Palazzo Campani · Volterra</span>
-        </motion.div>
-      </div>
-    </div>
-  )
-}
-
-/* ---------------- 5. Amenities + gallery ---------------- */
-const AMEN_IMG = [155, 149, 143, 147, 153, 151, 157]
-function AmenityRow({ i, label, active, setActive }) {
-  return (
-    <motion.li onViewportEnter={() => setActive(i)} viewport={{ margin: '-45% 0px -45% 0px' }} onMouseEnter={() => setActive(i)}
-      className={`group flex items-center gap-4 border-t border-white/12 py-5 transition-colors duration-500 md:py-7 ${active ? 'text-[#ece7df]' : 'text-[#ece7df]/35'}`}>
-      <span className="w-8 text-[11px] font-semibold tabular-nums tracking-[.1em] text-[#e9c48f]">{String(i + 1).padStart(2, '0')}</span>
-      <img src={img(AMEN_IMG[i], 1)} alt="" loading="lazy" decoding="async" className="h-14 w-14 rounded-[3px] object-cover md:hidden" />
-      <span className={`${T.serif} flex-1 text-[30px] leading-none transition-transform duration-700 md:text-[60px] ${active ? 'md:translate-x-3' : ''}`}>{label}</span>
-    </motion.li>
-  )
-}
+/* ---------------- 5. Amenities: depth cards that tilt toward the pointer ---------------- */
+const CARDS = [
+  { id: 149, k: 1, t: { en: 'Private wine cellars', it: 'Cantine private' }, s: { en: 'Level −1', it: 'Livello −1' } },
+  { id: 155, k: 0, t: { en: 'Spa suites', it: 'Suite spa' }, s: { en: 'Level −1', it: 'Livello −1' } },
+  { id: 153, k: 4, t: { en: 'Cigar lounge', it: 'Cigar lounge' }, s: { en: 'Attic', it: 'Mansarda' } },
+  { id: 150, k: null, t: { en: 'The Tuscan table', it: 'La tavola toscana' }, s: { en: 'Volterra', it: 'Volterra' } },
+]
 function Amenities() {
   const { t, lang } = useLang()
-  const [active, setActive] = useState(0)
+  const lite = useLite(), mob = useIsMobile()
+  const box = useRef(), cards = useRef([]), rects = useRef([]), ptr = useRef([])
+  const [near, vis] = useNear(box, '60% 0px')
   const list = PALAZZO.extras[lang] || PALAZZO.extras.en
+  useEffect(() => {
+    const measure = () => {
+      const b = box.current?.getBoundingClientRect(); if (!b) return
+      rects.current = cards.current.map(el => { if (!el) return null; const r = el.getBoundingClientRect(); return { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height } })
+    }
+    measure()
+    const ro = new ResizeObserver(measure); if (box.current) ro.observe(box.current)
+    return () => ro.disconnect()
+  }, [])
+  const onMove = ev => {
+    cards.current.forEach((el, i) => {
+      if (!el) return
+      const r = el.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height
+      const inside = x >= 0 && x <= 1 && y >= 0 && y <= 1
+      ptr.current[i] = inside ? { x: x * 2 - 1, y: -(y * 2 - 1), h: 1 } : { x: 0, y: 0, h: 0 }
+    })
+  }
+  const onLeave = () => { ptr.current = [] }
   return (
-    <div className="bg-[#151412] py-24 text-[#ece7df] md:py-36">
-      <div className="mx-auto grid max-w-[1440px] gap-12 px-5 md:grid-cols-12 md:px-10">
-        <div className="hidden md:col-span-5 md:block">
-          <div className="sticky top-24 aspect-[4/5] overflow-hidden rounded-[4px]">
-            <AnimatePresence initial={false}>
-              <motion.img key={active} src={img(AMEN_IMG[active])} alt={list[active]} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover"
-                initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.1, ease: E }} />
-            </AnimatePresence>
+    <div className="relative overflow-hidden bg-[#1b2a33] py-24 text-[#ece7df] md:py-32">
+      <div aria-hidden className="pointer-events-none absolute -top-[4vw] left-0 whitespace-nowrap font-['Inter_Tight',sans-serif] text-[22vw] font-black uppercase leading-none tracking-[-.05em] text-white/[.04]">Vivere</div>
+      <div className="relative mx-auto max-w-[1440px] px-5 md:px-10">
+        <div className="grid gap-6 md:grid-cols-12">
+          <div className="md:col-span-7">
+            <Kicker className="text-[#e9c48f]">{t({ en: 'Life in the palazzo', it: 'Vivere il palazzo' })}</Kicker>
+            <h3 className={`${T.serif} mt-4 text-[48px] leading-[.92] md:text-[96px]`}><Mask>{t({ en: 'Shared rooms,', it: 'Spazi comuni,' })}</Mask><Mask delay={0.1} className="italic text-[#e9c48f]">{t({ en: 'private pleasures.', it: 'piaceri privati.' })}</Mask></h3>
           </div>
+          <p className="self-end text-[14px] leading-relaxed text-white/65 md:col-span-4 md:col-start-9">{t({ en: 'Move over a photograph — it is real depth, not a flat image.', it: 'Passa sopra una fotografia — è profondità reale, non un’immagine piatta.' })}</p>
         </div>
-        <div className="md:col-span-6 md:col-start-7">
-          <Kicker className="text-[#e9c48f]">{t({ en: 'Life in the palazzo', it: 'Vivere il palazzo' })}</Kicker>
-          <h3 className={`${T.serif} mt-4 text-[44px] leading-[.95] md:text-[72px]`}><Mask>{t({ en: 'Shared rooms,', it: 'Spazi comuni,' })}</Mask><Mask delay={0.1} className="italic text-[#e9c48f]">{t({ en: 'private pleasures.', it: 'piaceri privati.' })}</Mask></h3>
-          <ul className="mt-12">{list.map((l, i) => <AmenityRow key={i} i={i} label={l} active={active === i} setActive={setActive} />)}</ul>
+
+        <div ref={box} onPointerMove={onMove} onPointerLeave={onLeave} className="relative mt-12 grid grid-cols-2 gap-3 md:mt-16 md:grid-cols-4 md:gap-5">
+          {CARDS.map((c, i) => (
+            <motion.figure key={c.id} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-10% 0px' }} transition={{ duration: 1.1, ease: E, delay: i * 0.08 }} className={`relative ${i % 2 ? 'md:mt-16' : ''}`}>
+              <div ref={el => { cards.current[i] = el }} className="relative aspect-[4/5] overflow-hidden rounded-[8px] bg-white/[.04]">
+                {lite && <img src={img(c.id, 1)} alt={t(c.t)} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />}
+              </div>
+              <figcaption className="relative z-10 mt-3 flex items-baseline justify-between gap-3">
+                <span className={`${T.serif} text-[22px] leading-none md:text-[30px]`}>{t(c.t)}</span>
+                <span className="text-[10px] uppercase tracking-[.18em] text-white/50">{t(c.s)}</span>
+              </figcaption>
+            </motion.figure>
+          ))}
+          {!lite && near && <Suspense fallback={null}><CardsCanvas ids={CARDS.map(c => c.id)} rects={rects} ptr={ptr} active={vis} mob={mob} /></Suspense>}
         </div>
+
+        <ul className="mt-16 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/12 pt-8 md:mt-24 md:gap-x-10">
+          {list.map((l, i) => (
+            <motion.li key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: E, delay: i * 0.05 }} className={`${T.serif} flex items-baseline gap-2 text-[24px] leading-tight md:text-[40px]`}>
+              <span className={`${T.sans} text-[10px] font-semibold tabular-nums text-[#e9c48f]`}>{String(i + 1).padStart(2, '0')}</span>{l}
+            </motion.li>
+          ))}
+        </ul>
+        <p className="mt-6 text-[11px] text-white/45">{t({ en: 'Lifestyle photographs are illustrative.', it: 'Le fotografie lifestyle sono indicative.' })}</p>
       </div>
     </div>
   )
@@ -468,7 +546,6 @@ export default function Palazzo() {
       <Opening />
       <Film pickerRef={pickerRef} />
       <Picker innerRef={pickerRef} />
-      <LookUp />
       <Amenities />
       <Gallery />
     </section>

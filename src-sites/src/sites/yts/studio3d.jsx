@@ -142,7 +142,7 @@ function Building({ pd, words, mobile }) {
   const winMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2b3236', roughness: 0.12, metalness: 0.7, emissive: '#ffb066', emissiveMap: winTex, emissiveIntensity: 0, transparent: true }), [winTex])
   const concrete = useMemo(() => new THREE.MeshStandardMaterial({ color: '#ebe6dd', roughness: 0.9, transparent: true }), [])
   const colMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#b9b2a6', roughness: 0.6, metalness: 0.1, transparent: true }), [])
-  const finMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#9a5f33', roughness: 0.55, metalness: 0.05, transparent: true }), [])
+  const finMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2c221c', roughness: 0.5, metalness: 0.05, transparent: true }), [])
   const glassMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2a3a44', roughness: 0.08, metalness: 0.9, emissive: '#ffb469', emissiveIntensity: 0, transparent: true }), [])
   const envMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#d58a4c', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }), [])
   const envLine = useMemo(() => {
@@ -305,7 +305,7 @@ function Photos({ pd, mobile }) {
 const KEYS = [
   { p: [10.5, 6.6, 13.5], t: [0.2, 1.8, 0], o: 0.35 },
   { p: [-9.2, 9.6, 12.2], t: [0.2, 1.9, 0], o: -0.25 },
-  { p: [12.2, 4.6, 11.4], t: [0.2, 2.6, 0], o: 0.3 },
+  { p: [13.4, 6.2, 12.6], t: [0.2, 3.3, 0], o: 0.3 },
   { p: [0, 2.3, -2.0], t: [0, 2.3, -13], o: 0, dolly: 2.6 },
   { p: [-0.6, 2.5, -1.6], t: [0, 2.2, -13], o: 0, swing: 2.0 },
 ]
@@ -329,7 +329,7 @@ function Rig({ progress, pd, mobile }) {
     pd.current = damp(pd.current, target, 5, d)
     const p = pd.current
     const x = clamp(p - 0.5, 0, 3.999), i = Math.floor(x), f = x - i
-    const m = ease(seg(f, 0.55, 1))
+    const m = ease(seg(f, 0.3, 0.75))
     keyAt(i, clamp(p - i, 0, 1), A.p, A.t)
     keyAt(Math.min(4, i + 1), clamp(p - i - 1, 0, 1), A.q, A.r)
     if (p < 0.5) { keyAt(0, p, A.p, A.t); A.q.copy(A.p); A.r.copy(A.t) }
@@ -369,9 +369,20 @@ function Lights({ pd }) {
   )
 }
 
-function Fog() {
+/* full-bleed colour chapters: ink → lake → ochre → ink (photos) */
+export const CHAPTER = ['#100f0e', '#1f3a47', '#a35d2c', '#121110', '#121110']
+function Fog({ pd }) {
   const { scene } = useThree()
-  useLayoutEffect(() => { scene.fog = new THREE.Fog('#100f0e', 14, 40); return () => { scene.fog = null } }, [scene])
+  const cols = useMemo(() => CHAPTER.map(c => new THREE.Color(c)), [])
+  useLayoutEffect(() => {
+    scene.fog = new THREE.Fog('#100f0e', 16, 44); scene.background = new THREE.Color('#100f0e')
+    return () => { scene.fog = null; scene.background = null }
+  }, [scene])
+  useFrame(() => {
+    const p = pd.current, x = clamp(p - 0.5, 0, 3.999), i = Math.floor(x), m = ease(seg(x - i, 0.3, 0.75))
+    scene.background.copy(cols[i]).lerp(cols[Math.min(4, i + 1)], p < 0.5 ? 0 : m)
+    scene.fog.color.copy(scene.background)
+  })
   return null
 }
 
@@ -380,8 +391,7 @@ export default function StudioFilm({ progress, active, mobile, words }) {
   return (
     <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, mobile ? 1.5 : 1.6]} gl={{ antialias: !mobile ? false : true, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping }}
       camera={{ position: [7.5, 5.2, 9.5], fov: 38, near: 0.1, far: 80 }} style={{ position: 'absolute', inset: 0 }}>
-      <color attach="background" args={['#100f0e']} />
-      <Fog />
+      <Fog pd={pd} />
       <Rig progress={progress} pd={pd} mobile={mobile} />
       <Lights pd={pd} />
       <Environment resolution={128} frames={1}>
