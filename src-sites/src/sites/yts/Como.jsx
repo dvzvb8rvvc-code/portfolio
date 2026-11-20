@@ -309,7 +309,7 @@ function Units() {
               onPointerDown={e => { drag.current = true; e.currentTarget.setPointerCapture(e.pointerId); fromPointer(e) }}
               onPointerMove={e => drag.current && fromPointer(e)}
               onPointerUp={() => { drag.current = false; go(raw.get() > .5 ? 1 : 0) }}
-              className="relative h-12 cursor-grab touch-none outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[#27414f]/40 rounded-full"
+              className="relative mx-6 h-12 cursor-grab touch-none outline-none active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-[#27414f]/40 rounded-full"
             >
               <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[#151412]/25" />
               <motion.div className="absolute left-0 top-1/2 h-[2px] -translate-y-1/2 bg-[#151412]" style={{ width: knob }} />
