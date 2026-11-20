@@ -147,21 +147,21 @@ function IsoStack({ e, activeFloor = null, activeUnit = null, onPick, dark, clas
 function FloorLabel({ i, f, hud, flow }) {
   const { t } = useLang()
   return (
-    <div ref={el => { hud.current.labels[i] = el }} className={`${flow ? 'relative' : 'absolute left-0 top-0 will-change-transform'} w-[42vw] max-w-[330px] opacity-0 md:w-[30vw]`}>
+    <div ref={el => { hud.current.labels[i] = el }} className={`${flow ? 'relative' : 'absolute left-0 top-0 will-change-transform'} w-[44vw] max-w-[330px] opacity-0 md:w-[30vw]`}>
       <div className="flex items-baseline gap-3">
-        <span className="text-[10px] font-semibold uppercase tracking-[.22em] text-white/60">{t({ en: 'Level', it: 'Livello' })} {LEVEL[i]}</span>
+        <span className="text-[9px] font-semibold uppercase tracking-[.2em] text-white/60 md:text-[10px] md:tracking-[.22em]">{t({ en: 'Level', it: 'Livello' })} {LEVEL[i]}</span>
         <span className="h-px flex-1 bg-white/25" />
       </div>
       <div className="mt-1 flex items-baseline justify-between gap-3">
-        <span className={`${T.serif} text-[22px] leading-none md:text-[34px]`}>{t(f.t)}</span>
-        {FLOOR_M2[i] > 0 && <span className="whitespace-nowrap text-[15px] font-semibold tabular-nums md:text-[20px]"><span ref={el => { hud.current.nums[`f${i}`] = el }}>0</span> m²</span>}
+        <span className={`${T.serif} text-[19px] leading-none md:text-[34px]`}>{t(f.t)}</span>
+        {FLOOR_M2[i] > 0 && <span className="whitespace-nowrap text-[13px] font-semibold tabular-nums md:text-[20px]"><span ref={el => { hud.current.nums[`f${i}`] = el }}>0</span> m²</span>}
       </div>
       <div className="mt-1.5 hidden text-[12.5px] leading-snug text-white/70 md:block">
         {f.units.length ? f.units.map((u, k) => (
           <span key={u.n} className="mr-3 inline-block whitespace-nowrap tabular-nums">Ap.{u.n} <b className="font-semibold text-white"><span ref={el => { hud.current.nums[`u${u.n}`] = el }}>0</span> m²</b></span>
         )) : t(f.d)}
       </div>
-      <div className="mt-1 text-[11px] leading-snug text-white/65 md:hidden">{f.units.length ? f.units.map(u => 'Ap.' + u.n).join(' · ') : t(f.d)}</div>
+      <div className="mt-0.5 text-[10.5px] leading-snug text-white/65 md:hidden">{f.units.length ? f.units.map(u => 'Ap.' + u.n).join(' · ') : t(f.d)}</div>
     </div>
   )
 }
@@ -318,7 +318,7 @@ function Picker({ innerRef }) {
           </div>
           {/* photo + facts */}
           <div className="md:col-span-3">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[4px] bg-[#151412]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[4px] bg-[#151412] md:aspect-[4/5]">
               <AnimatePresence initial={false}>
                 <motion.img key={sel} src={img(UNIT_IMG[sel], 1)} alt={t({ en: 'Interior of Palazzo Campani', it: 'Interno di Palazzo Campani' })} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover"
                   initial={{ clipPath: 'inset(100% 0 0 0)', scale: 1.15 }} animate={{ clipPath: 'inset(0% 0 0 0)', scale: 1 }} exit={{ opacity: 0.6 }} transition={{ duration: 1, ease: E }} />

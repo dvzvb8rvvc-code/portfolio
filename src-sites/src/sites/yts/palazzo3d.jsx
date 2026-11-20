@@ -17,7 +17,7 @@ export const PLAN = [
   { id: 'nobile', h: 1.22, bays: 7, rooms: [{ a: 0, b: 0.33, u: 3, m2: 68 }, { a: 0.33, b: 0.45, core: 1 }, { a: 0.45, b: 0.7, u: 4, m2: 58 }, { a: 0.7, b: 1, u: 5, m2: 79 }] },
   { id: 'attic', h: 0.72, bays: 7, rooms: [{ a: 0, b: 0.82, u: 6, m2: 102 }, { a: 0.82, b: 1, core: 1 }] },
 ]
-const GAP = 1.0
+const GAP0 = 1.0
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const smooth = (a, b, v) => { const x = clamp((v - a) / (b - a)); return x * x * (3 - 2 * x) }
 
@@ -263,7 +263,7 @@ function Building({ progress, hud, lang, lite }) {
   useFrame((st, dt) => {
     cur.current = THREE.MathUtils.damp(cur.current, progress.get(), 5, Math.min(dt, 0.05))
     const p = cur.current, e = smooth(0.14, 0.56, p), intro = smooth(0, 0.14, p)
-    const mob = size.width < 768
+    const mob = size.width < 768, GAP = mob ? 1.5 : GAP0
     floors.forEach((f, i) => {
       if (!f.current) return
       f.current.position.y = tops[i] + i * GAP * e
@@ -271,22 +271,22 @@ function Building({ progress, hud, lang, lite }) {
     })
     if (roof.current) { roof.current.position.y = H0 + 0.09 + (4 * GAP + 0.35) * e; roof.current.rotation.y = 2.5 * 0.16 * e }
     const g = root.current
-    const sc = mob ? 0.56 : 1
+    const sc = mob ? 0.5 : 1
     g.scale.setScalar(sc)
-    g.position.set(mob ? -0.85 : -1.15, (-(H0 + 0.8) / 2 - 2 * GAP * e) * sc - (1 - intro) * 0.5, 0)
+    g.position.set(mob ? -1.3 : -1.15, (-(H0 + 0.8) / 2 - 2 * GAP * e) * sc - (1 - intro) * 0.5 - (mob ? 0.85 * e : 0), 0)
     g.rotation.y = -0.95 + intro * 0.38 + p * 0.28 + st.pointer.x * 0.06
     camera.position.set(0, 1.2 + 7.2 * e, 12.5 + 5.2 * e)
     camera.lookAt(0, 0.1 * e, 0)
     // HUD: project the front-right corner of each band and drive leader lines
     if (hud.current) {
-      const lx0 = size.width * (mob ? 0.6 : 0.64)
+      const lx0 = size.width * (mob ? 0.52 : 0.64)
       floors.forEach((f, i) => {
         const L = hud.current.labels[i], Ln = hud.current.lines[i]
         if (!f.current || !L || !Ln) return
         f.current.localToWorld(V.set(W / 2, PLAN[i].h * 0.55, D / 2))
         V.project(camera)
         const ax = (V.x + 1) / 2 * size.width, ay = (1 - V.y) / 2 * size.height
-        const lx = Math.max(lx0, ax + 30)
+        const lx = Math.min(Math.max(lx0, ax + (mob ? 14 : 30)), size.width - (L.offsetWidth || 0) - 12)
         L.style.transform = `translate3d(${lx}px,${ay}px,0) translateY(-50%)`
         const o = clamp((e - 0.5 - (3 - i) * 0.08) / 0.16)
         Ln.style.transform = `translate3d(${ax}px,${ay}px,0) scaleX(${o})`

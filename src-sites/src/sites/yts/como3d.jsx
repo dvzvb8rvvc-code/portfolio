@@ -19,10 +19,10 @@ const F = 2.2 // terrain scale vs. the homes — keeps the mountains monumental
 function h0(x, z) {
   // near (east) shore — our hillside, rising into the Grigne behind
   const zn = z - 3 - (fbm(x * .02, 9) - .5) * 5
-  const near = zn > 0 ? (zn < 30 ? zn * .5 : 15 + (zn - 30) * .18) + ss(30, 88, zn) * (6 + 24 * ridge(x * .03, z * .03)) + (fbm(x * .05 + 3, z * .05) - .5) * 3.2 * ss(0, 8, zn) : zn * 1.3
+  const near = zn > 0 ? (zn < 30 ? zn * .5 : 15 + (zn - 30) * .16) + ss(30, 88, zn) * (5 + 20 * ridge(x * .03, z * .03)) + (fbm(x * .05 + 3, z * .05) - .5) * 3.2 * ss(0, 8, zn) : zn * 1.3
   // far (west) shore — Menaggio / Cadenabbia under the mountains
   const zf = -62 - z + (fbm(x * .025, 4) - .5) * 12
-  const far = zf > 0 ? zf * .7 + ss(4, 46, zf) * (16 + 34 * ridge(x * .025 + 7, z * .025)) : zf * 1.3
+  const far = zf > 0 ? zf * .42 + ss(4, 50, zf) * (8 + 24 * ridge(x * .025 + 7, z * .025)) : zf * 1.3
   // Bellagio peninsula (from the south, tip near x=-22)
   const px = Math.min(-22, x), d = Math.hypot(x - px, z + 30 + (fbm(x * .04, 2) - .5) * 6)
   const pk = 3 + 24 * ss(-24, -85, x)
@@ -54,7 +54,7 @@ function useTerrainGeo(seg) {
     for (let i = 0; i < p.count; i++) p.setY(i, height(p.getX(i), p.getZ(i)))
     g.computeVertexNormals()
     const n = g.attributes.normal, col = new Float32Array(p.count * 3)
-    const forest = C('#3f5a2c'), forest2 = C('#5d7337'), meadow = C('#7f8f45'), rock = C('#857a6c'), rock2 = C('#b2a593'), shore = C('#a89a80')
+    const forest = C('#466430'), forest2 = C('#66803b'), meadow = C('#8e9c4c'), rock = C('#857a6c'), rock2 = C('#b2a593'), shore = C('#a89a80')
     const sunC = C('#ffcf9a'), sky = C('#8ea6b6'), tmp = new THREE.Color(), lit = new THREE.Color()
     const nv = new THREE.Vector3()
     for (let i = 0; i < p.count; i++) {
@@ -93,7 +93,7 @@ void main(){
   float fr = .03 + .97*pow(1. - max(dot(n, V), 0.), 5.);
   vec3 R = reflect(-V, n);
   float s = max(dot(R, uSun), 0.);
-  float spec = pow(s, 420.)*5. + pow(s, 40.)*.35;
+  float spec = pow(s, 420.)*5. + pow(s, 40.)*.22;
   float streak = .85 + .15*sin(vW.z*.9 + sin(vW.x*.15 + t*.4)*2.);
   float a = clamp((1. - fr)*.42*streak + spec, 0., 1.);
   vec3 col = mix(uDeep, uSunCol*1.6, clamp(spec/max(a,.001), 0., 1.));
@@ -177,7 +177,7 @@ function Homes() {
       setI(roof.current, i, u.x, u.y + .885, u.z - .1, u.w + .08, .04, 1.5)
       setI(garden.current, i, u.x, u.y - 1.4, u.z - 1.45, u.w + .45, 2.85, 1.35)
       for (let k = 0; k < FIN; k++) setI(fins.current, i * FIN + k, u.x - u.w / 2 + .12 + (k === 2 ? u.w - .24 : k * .22), u.y + .4, u.z - .72, .05, .74, .1)
-      setI(olive.current, i, u.x + (u.tub ? -u.w * .32 : u.w * .3), u.y + .32, u.z - 1.75, .7, .65, .7, i)
+      setI(olive.current, i, u.x + (u.tub ? -u.w * .32 : u.w * .3), u.y + .26, u.z - 1.85, .5, .45, .5, i)
     })
     tubs.forEach((u, i) => setI(tub.current, i, u.x + u.w * .26, u.y + .06, u.z - 1.6, .4, .06, .4))
     done([body, glass, fascia, roof, garden, tub, fins, olive])
@@ -187,7 +187,7 @@ function Homes() {
     <group>
       <instancedMesh ref={body} args={[box, stone, UNITS.length]} />
       <instancedMesh ref={garden} args={[box, gardenMats, UNITS.length]} />
-      <instancedMesh ref={glass} args={[box, null, UNITS.length]}><meshStandardMaterial color="#26333a" metalness={1} roughness={.06} emissive="#ffb066" emissiveIntensity={.1} envMapIntensity={1.3} /></instancedMesh>
+      <instancedMesh ref={glass} args={[box, null, UNITS.length]}><meshStandardMaterial color="#9fb4bd" metalness={.9} roughness={.05} emissive="#ffb066" emissiveIntensity={.06} envMapIntensity={1.1} /></instancedMesh>
       <instancedMesh ref={fascia} args={[box, null, UNITS.length]}><meshStandardMaterial color="#f1ece2" roughness={.7} /></instancedMesh>
       <instancedMesh ref={roof} args={[box, null, UNITS.length]}><meshStandardMaterial color="#5f7d3b" roughness={1} /></instancedMesh>
       <instancedMesh ref={fins} args={[box, null, UNITS.length * FIN]}><meshStandardMaterial color="#7a5a3e" roughness={.8} /></instancedMesh>
@@ -239,7 +239,7 @@ function Trees({ count }) {
 }
 
 // [cx, cz, rx, rz, count, scale]
-const TOWNS = [[-8, 9.5, 11, 4.5, 60, 1], [-52, -66, 10, 6, 46, 1.5], [40, -141, 16, 5, 44, 2], [-12, -140, 12, 4, 26, 2]]
+const TOWNS = [[-8, 9.5, 11, 4.5, 60, 1], [-52, -66, 9, 5, 40, 1.1], [40, -141, 16, 5, 44, 1.5], [-12, -140, 12, 4, 26, 1.5]]
 function Towns() {
   const walls = useRef(), roofs = useRef()
   const box = useMemo(() => new THREE.BoxGeometry(1, 1, 1), [])
@@ -334,10 +334,10 @@ function Triangle({ progress, label }) {
 /* ───────────── camera film ───────────── */
 function buildPath(mobile) {
   const hTop = height(1, TOP_ROW.z) // camera rests on the top garden at the end
-  const pos = [[-15, 52, -112], [-78, 96, 6], [-12, 9, -26], [16, 20, 2], [-5, hTop + 3.2, 13], [1, hTop + 1.3, TOP_ROW.z - 1.1]]
-  const tgt = [[5, 46, 60], [-5, 0, -64], [0, 7, 22], [0, 8, 21], [0, 8, 23], [-34, 12, -140]]
-  const fov = mobile ? [66, 60, 56, 54, 54, 58] : [50, 42, 40, 36, 38, 42]
-  if (mobile) { pos[1] = [-80, 120, 30]; pos[3] = [18, 24, -2]; pos[4] = [-6, hTop + 4.5, 9] }
+  const pos = [[-15, 50, -112], [-84, 92, 10], [-66, 78, -18], [-14, 8, -28], [18, 21, 1], [-6, hTop + 3.4, 12], [1, hTop + 1.3, TOP_ROW.z - 1.1]]
+  const tgt = [[-14, 42, 60], [-6, 0, -62], [-4, 0, -66], [0, 7, 22], [0, 8, 21], [0, 8, 23], [-34, 16, -140]]
+  const fov = mobile ? [66, 60, 60, 56, 54, 54, 60] : [50, 44, 42, 40, 36, 38, 44]
+  if (mobile) { pos[1] = [-86, 118, 34]; pos[2] = [-70, 100, 0]; pos[4] = [20, 25, -3]; pos[5] = [-7, hTop + 4.6, 8] }
   const v = a => a.map(p => new THREE.Vector3(...p))
   return { pos: new THREE.CatmullRomCurve3(v(pos), false, 'centripetal'), tgt: new THREE.CatmullRomCurve3(v(tgt), false, 'centripetal'), fov }
 }
@@ -357,12 +357,12 @@ function Rig({ progress, skyRef, mobile, water, dome }) {
     path.tgt.getPoint(p, S.pt)
     camera.position.x += S.mx * .8; camera.position.y += S.my * .4
     camera.lookAt(S.pt)
-    const fi = Math.min(4.999, p * 5), i0 = Math.floor(fi), fv = THREE.MathUtils.lerp(path.fov[i0], path.fov[i0 + 1], ss(0, 1, fi - i0))
+    const N = path.fov.length - 1, fi = Math.min(N - .001, p * N), i0 = Math.floor(fi), fv = THREE.MathUtils.lerp(path.fov[i0], path.fov[i0 + 1], ss(0, 1, fi - i0))
     if (Math.abs(camera.fov - fv) > .01) { camera.fov = fv; camera.updateProjectionMatrix() }
     // palette: east → west as the camera turns into the sunset
     const k = ss(.7, .98, p)
     tmp.top.copy(PAL.top[0]).lerp(PAL.top[1], k); tmp.hor.copy(PAL.hor[0]).lerp(PAL.hor[1], k); tmp.fog.copy(PAL.fog[0]).lerp(PAL.fog[1], k)
-    scene.fog.color.copy(tmp.fog)
+    scene.fog.color.copy(tmp.fog); scene.fog.far = 560 - 170 * k
     if (water.current) { const u = water.current.uniforms; u.uTime.value += dt; u.uFog.value.copy(tmp.fog) }
     if (dome.current) { const u = dome.current.uniforms; u.uTop.value.copy(tmp.top); u.uHor.value.copy(tmp.hor) }
     // sky lives in the DOM behind the canvas, so the giant type sits behind the mountains
@@ -386,7 +386,7 @@ function Rig({ progress, skyRef, mobile, water, dome }) {
 
 function Water({ water }) {
   const uniforms = useMemo(() => ({
-    uTime: { value: 0 }, uDeep: { value: C('#2f5563') }, uSun: { value: SUN }, uSunCol: { value: C('#ffd59a') }, uFog: { value: C('#d8b4a4') }, uHor: { value: C('#e2b8a6') }, uFogNear: { value: 90 }, uFogFar: { value: 700 },
+    uTime: { value: 0 }, uDeep: { value: C('#3f6878') }, uSun: { value: SUN }, uSunCol: { value: C('#ffd59a') }, uFog: { value: C('#d8b4a4') }, uHor: { value: C('#e2b8a6') }, uFogNear: { value: 90 }, uFogFar: { value: 700 },
   }), [])
   return (
     <mesh rotation-x={-Math.PI / 2} renderOrder={2}>
