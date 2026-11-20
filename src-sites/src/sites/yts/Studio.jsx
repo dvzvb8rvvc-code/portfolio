@@ -1,6 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useMotionValueEvent, useInView, animate, useReducedMotion } from 'framer-motion'
+import { useLite, useIsMobile } from '../../lib/kit'
 import { useLang } from './i18n'
+
+const StudioFilm = lazy(() => import('./studio3d'))
+const Compare3D = lazy(() => import('./studiocompare3d'))
 import { T, PERSON, SERVICES, SCALE, PAIRS, img } from './data'
 
 const E = [0.16, 1, 0.3, 1]
@@ -110,7 +114,7 @@ function Step({ s, i, setActive }) {
   )
 }
 
-function Process() {
+function ProcessFlat() {
   const { t } = useLang()
   const [active, setActive] = useState(0)
   return (
@@ -148,6 +152,111 @@ function Process() {
   )
 }
 
+/* ---------- 2b. process film: one sticky canvas morphing through five 3D vignettes ---------- */
+const WORDS = { en: ['CONCEPT', 'PERMITS', 'DRAWINGS', 'INTERIORS', 'DEVELOP'], it: ['CONCEPT', 'PERMESSI', 'ESECUTIVO', 'INTERNI', 'SVILUPPO'] }
+const VIG = [
+  { en: 'Ink lines find the massing', it: 'Le linee a china trovano il volume' },
+  { en: 'Zoning envelope · authority review', it: 'Inviluppo urbanistico · verifica degli enti' },
+  { en: 'Slabs · columns · facade fins · glazing', it: 'Solai · pilastri · lamelle di facciata · vetrate' },
+  { en: 'Interior render · studio work — in depth', it: 'Render di interni · progetto dello studio — in profondità' },
+  { en: 'Building site · Lake Como — in depth', it: 'Cantiere · Lago di Como — in profondità' },
+]
+
+function KineticTitle({ text }) {
+  const words = text.split(' ')
+  return (
+    <span className="block">
+      {words.map((w, i) => (
+        <span key={i} className="inline-block overflow-hidden pb-[.08em] align-top">
+          <motion.span className="inline-block" initial={{ y: '105%', rotate: 4 }} animate={{ y: 0, rotate: 0 }} exit={{ y: '-105%' }} transition={{ duration: .8, ease: E, delay: .05 + i * .06 }}>{w}&nbsp;</motion.span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function ProcessFilm() {
+  const { t, lang } = useLang()
+  const mobile = useIsMobile()
+  const ref = useRef()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
+  const near = useInView(ref, { margin: '100% 0px 100% 0px' })
+  const active = useInView(ref, { margin: '0px' })
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { if (near) setMounted(true) }, [near])
+  const [step, setStep] = useState(0)
+  useMotionValueEvent(scrollYProgress, 'change', v => { const s = Math.min(4, Math.max(0, Math.floor(v * 5))); setStep(o => (o === s ? o : s)) })
+  const bar = useTransform(scrollYProgress, [0, 1], [0, 1])
+  const to = y => (window.__lenis ? window.__lenis.scrollTo(y) : window.scrollTo({ top: y, behavior: 'smooth' }))
+  const goStep = i => { const el = ref.current; const top = el.getBoundingClientRect().top + window.scrollY; to(top + (el.offsetHeight - window.innerHeight) * (i + .5) / 5) }
+  const skip = () => { const el = ref.current; to(el.getBoundingClientRect().top + window.scrollY + el.offsetHeight) }
+  const s = SERVICES[step]
+  return (
+    <div ref={ref} className="relative h-[560vh] bg-[#100f0e] text-[#ece7df]">
+      <div className="sticky top-0 h-[100svh] overflow-hidden">
+        {mounted && <Suspense fallback={null}><StudioFilm progress={scrollYProgress} active={active} mobile={mobile} words={WORDS[lang] || WORDS.en} /></Suspense>}
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#100f0e] via-[#100f0e]/30 to-transparent md:bg-gradient-to-r md:from-[#100f0e]/90 md:via-[#100f0e]/35 md:to-transparent" />
+        {/* top */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 pt-[84px] md:pt-[104px]">
+          <div className="mx-auto flex max-w-[1440px] items-start justify-between gap-6 px-5 md:px-10">
+            <div>
+              <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#ece7df]/60`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.procLabel)}</p>
+              <h2 className={`${T.serif} mt-3 max-w-[16ch] text-[26px] leading-[1] md:mt-4 md:text-[clamp(34px,3vw,50px)]`}>{t(S.procTitleA)} <span className="italic text-[#c3a15e]">{t(S.procTitleB)}</span> {t(S.procTitleC)}</h2>
+            </div>
+            <ol className="pointer-events-auto hidden flex-col items-end gap-2 md:flex" aria-label={t(S.procLabel)}>
+              {SERVICES.map((x, i) => (
+                <li key={i}><button onClick={() => goStep(i)} aria-current={i === step} className={`${T.sans} group flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.18em] transition-colors ${i === step ? 'text-[#ece7df]' : 'text-[#ece7df]/35 hover:text-[#ece7df]/70'}`}>
+                  <span className="hidden lg:inline">{t(x.t)}</span><span className="tabular-nums">{x.k}</span>
+                  <span className={`h-px transition-all duration-500 ${i === step ? 'w-10 bg-[#c3a15e]' : 'w-4 bg-[#ece7df]/30'}`} />
+                </button></li>
+              ))}
+            </ol>
+          </div>
+        </div>
+        {/* bottom-left: the step */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 pb-7 md:pb-12">
+          <div className="mx-auto flex max-w-[1440px] items-end justify-between gap-6 px-5 md:px-10">
+            <div className="max-w-[560px]">
+              <div className="flex items-end gap-4 md:gap-6">
+                <div className={`${T.sans} relative h-[1em] overflow-hidden text-[72px] font-black leading-none tracking-[-.06em] tabular-nums md:text-[clamp(120px,11vw,190px)]`} aria-hidden="true">
+                  <span className="text-[#ece7df]/20">0</span>
+                  <span className="relative inline-block h-[1em] overflow-hidden align-top">
+                    <motion.span className="flex flex-col" animate={{ y: `${-step}em` }} transition={{ duration: .9, ease: E }}>
+                      {SERVICES.map((_, i) => <span key={i} className="block h-[1em] text-[#c3a15e]">{i + 1}</span>)}
+                    </motion.span>
+                  </span>
+                </div>
+                <div className="pb-1 md:pb-4">
+                  <div className="flex gap-1.5">{SERVICES.map((_, i) => <span key={i} className={`h-[3px] w-6 rounded-full transition-colors duration-500 md:w-8 ${i <= step ? 'bg-[#c3a15e]' : 'bg-[#ece7df]/15'}`} />)}</div>
+                  <AnimatePresence mode="wait">
+                    <motion.p key={'v' + step + lang} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: .5, ease: E }} className={`${T.sans} mt-3 max-w-[30ch] text-[10.5px] font-semibold uppercase leading-snug tracking-[.16em] text-[#ece7df]/55`}>{t(VIG[step])}</motion.p>
+                  </AnimatePresence>
+                </div>
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.div key={step + lang} className="mt-3 md:mt-5" exit={{ opacity: 0, transition: { duration: .25 } }}>
+                  <h3 className={`${T.serif} text-[40px] leading-[.95] md:text-[clamp(52px,4.6vw,80px)]`}><KineticTitle text={t(s.t)} /></h3>
+                  <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, ease: E, delay: .25 }} className={`${T.sans} mt-3 max-w-[40ch] text-[14.5px] leading-relaxed text-[#ece7df]/72 md:mt-4 md:text-[16px]`}>{t(s.d)}</motion.p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <div className="pointer-events-auto flex shrink-0 flex-col items-end gap-4">
+              <div className="hidden h-24 w-px bg-white/15 md:block"><motion.div style={{ scaleY: bar }} className="h-full w-full origin-top bg-[#c3a15e]" /></div>
+              <button onClick={skip} className={`${T.sans} h-10 rounded-full border border-white/20 px-4 text-[11.5px] font-semibold uppercase tracking-[.14em] text-[#ece7df]/80 backdrop-blur-sm transition-colors hover:bg-white/10`}>{t('skip')} ↓</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Process() {
+  const lite = useLite()
+  const reduce = useReducedMotion()
+  return lite || reduce ? <ProcessFlat /> : <ProcessFilm />
+}
+
 /* ---------- 3. Sketch ↔ Reality comparison ---------- */
 function Handle({ pos, onKey, label }) {
   const [v, setV] = useState(50)
@@ -171,6 +280,12 @@ function Compare() {
   const stage = useRef(), drag = useRef(false), wrap = useRef()
   const inView = useInView(wrap, { once: true, margin: '-25% 0px' })
   const reduce = useReducedMotion()
+  const lite = useLite(), mobile = useIsMobile()
+  const nearC = useInView(wrap, { margin: '80% 0px 80% 0px' })
+  const onC = useInView(stage, { margin: '10% 0px' })
+  const [m3, setM3] = useState(false)
+  useEffect(() => { if (nearC) setM3(true) }, [nearC])
+  const use3d = !lite && !reduce
   const clipA = useTransform(pos, x => `inset(0 ${100 - x}% 0 0)`)
   const labAO = useTransform(pos, [4, 18], [0, 1]), labBO = useTransform(pos, [82, 96], [1, 0])
 
@@ -206,12 +321,13 @@ function Compare() {
             className="relative aspect-[4/5] w-full cursor-ew-resize select-none overflow-hidden rounded-[6px] bg-[#1d323d] sm:aspect-[16/10] md:max-h-[80vh]" style={{ touchAction: 'pan-y' }}>
             <AnimatePresence initial={false}>
               <motion.div key={idx} className="absolute inset-0" initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: .9, ease: E }}>
-                <img src={img(P.b)} alt={`${t(P.t)} — ${t(L[1])}`} draggable="false" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+                <img src={img(P.b, mobile)} alt={`${t(P.t)} — ${t(L[1])}`} draggable="false" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
                 <motion.div className="absolute inset-0 bg-[#f4f1ec]" style={{ clipPath: clipA }}>
-                  <img src={img(P.a)} alt={`${t(P.t)} — ${t(L[0])}`} draggable="false" loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full ${idx === 0 ? 'object-cover object-[50%_55%]' : 'object-cover'}`} />
+                  <img src={img(P.a, mobile)} alt={`${t(P.t)} — ${t(L[0])}`} draggable="false" loading="lazy" decoding="async" className={`absolute inset-0 h-full w-full ${idx === 0 ? 'object-cover object-[50%_55%]' : 'object-cover'}`} />
                 </motion.div>
               </motion.div>
             </AnimatePresence>
+            {use3d && m3 && <Suspense fallback={null}><Compare3D pairs={PAIRS} idx={idx} pos={pos} small={mobile} mobile={mobile} active={onC} /></Suspense>}
             <motion.span style={{ opacity: labAO }} className={`${T.sans} pointer-events-none absolute left-4 top-4 z-10 rounded-full bg-[#151412]/80 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[.18em] text-[#ece7df] backdrop-blur md:left-6 md:top-6`}>{t(L[0])}</motion.span>
             <motion.span style={{ opacity: labBO }} className={`${T.sans} pointer-events-none absolute right-4 top-4 z-10 rounded-full bg-[#ece7df]/90 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[.18em] text-[#151412] md:right-6 md:top-6`}>{t(L[1])}</motion.span>
             <Handle pos={pos} onKey={onKey} label={`${t(S.slider)} — ${t(P.t)}`} />

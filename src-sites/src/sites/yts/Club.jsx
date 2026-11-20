@@ -1,122 +1,127 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
+import { useIsMobile, useLite } from '../../lib/kit'
 import { useLang } from './i18n'
-import { T, CLUB } from './data'
+import { T, CLUB, img } from './data'
 
+const Sea3D = lazy(() => import('./club3d'))
 const EASE = [0.16, 1, 0.3, 1]
+const pad = n => String(n).padStart(2, '0')
 
-/* calm lake drawn as contour lines; the pointer is a hull leaving a wake */
-function Lake() {
-  const ref = useRef(null)
+function useNear(ref, margin = '80% 0px') {
+  const [near, setNear] = useState(false), [vis, setVis] = useState(false)
   useEffect(() => {
-    const c = ref.current, ctx = c.getContext('2d')
-    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-    let W = 0, H = 0, dpr = 1, raf = 0, on = false
-    const trail = []
-    const size = () => { dpr = Math.min(1.5, devicePixelRatio || 1); W = c.clientWidth; H = c.clientHeight; c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); if (reduce) draw(0) }
-    const draw = t => {
-      ctx.clearRect(0, 0, W, H)
-      const gap = W < 768 ? 16 : 20, step = W < 768 ? 10 : 8, now = t / 1000
-      for (let i = trail.length - 1; i >= 0; i--) if (now - trail[i].t > 2.6) trail.splice(i, 1)
-      for (let y0 = gap; y0 < H; y0 += gap) {
-        const depth = y0 / H
-        ctx.beginPath()
-        for (let x = 0; x <= W + step; x += step) {
-          let dy = Math.sin(x * 0.006 + now * 0.5 + y0 * 0.05) * 2.2 * (0.4 + depth) + Math.sin(x * 0.013 - now * 0.35 + y0 * 0.02) * 1.2
-          for (let k = 0; k < trail.length; k++) {
-            const p = trail[k], age = now - p.t
-            const dx = x - p.x, ddy = y0 - p.y, d = Math.sqrt(dx * dx + ddy * ddy)
-            const front = age * 140
-            const ring = Math.exp(-((d - front) * (d - front)) / 900)
-            dy += Math.sin((d - front) * 0.12) * ring * 9 * Math.max(0, 1 - age / 2.6) * p.s
-          }
-          x === 0 ? ctx.moveTo(x, y0 + dy) : ctx.lineTo(x, y0 + dy)
-        }
-        ctx.strokeStyle = `rgba(236,231,223,${0.06 + depth * 0.13})`
-        ctx.lineWidth = 1
-        ctx.stroke()
-      }
-    }
-    const loop = t => { draw(t); if (on) raf = requestAnimationFrame(loop) }
-    let last = 0, lx = 0, ly = 0
-    const move = e => {
-      const r = c.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, t = performance.now() / 1000
-      const d = Math.hypot(x - lx, y - ly)
-      if (t - last > 0.07 && d > 12) { trail.push({ x, y, t, s: Math.min(1, d / 60) }); if (trail.length > 26) trail.shift(); last = t; lx = x; ly = y }
-    }
-    size()
-    const io = new IntersectionObserver(([e]) => { const v = e.isIntersecting && !reduce; if (v && !on) { on = true; raf = requestAnimationFrame(loop) } else if (!v) { on = false; cancelAnimationFrame(raf) } })
-    io.observe(c)
-    addEventListener('resize', size)
-    const host = c.parentElement
-    host.addEventListener('pointermove', move)
-    return () => { on = false; cancelAnimationFrame(raf); io.disconnect(); removeEventListener('resize', size); host.removeEventListener('pointermove', move) }
+    const el = ref.current; if (!el) return
+    const a = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: margin })
+    const b = new IntersectionObserver(([e]) => setVis(e.isIntersecting), { rootMargin: '5% 0px' })
+    a.observe(el); b.observe(el)
+    return () => { a.disconnect(); b.disconnect() }
   }, [])
-  return <canvas ref={ref} aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" />
+  return [near, vis]
 }
 
-const ART = {
-  sail: ['M60 6 V66', 'M58 10 L58 60 L20 60 Z', 'M62 16 L94 60 L62 60', 'M12 66 Q60 80 108 66'],
-  wine: ['M44 8 Q38 40 60 46 Q82 40 76 8 Z', 'M42 24 H78', 'M60 46 V70', 'M46 72 H74'],
-  column: ['M36 12 H84', 'M40 18 H80', 'M46 18 V64', 'M55 18 V64', 'M65 18 V64', 'M74 18 V64', 'M40 64 H80', 'M36 70 H84'],
-  flotilla: ['M30 20 V56 L12 56 Z', 'M62 10 V60 L38 60 Z', 'M64 16 L82 60 L64 60', 'M94 30 V58 L80 58 Z', 'M6 62 Q60 72 114 62'],
-}
-const KEYS = ['sail', 'wine', 'column', 'flotilla']
-
-function Art({ k, hot }) {
+function Ask({ className = '' }) {
+  const { t } = useLang()
+  const ask = () => { window.dispatchEvent(new CustomEvent('yts:interest', { detail: 'club' })) }
   return (
-    <motion.svg initial="h" whileInView="v" viewport={{ once: true }} viewBox="0 0 120 80" className="h-[64px] w-[96px] overflow-visible md:h-[80px] md:w-[120px]" fill="none" strokeLinecap="round" strokeLinejoin="round">
-      {ART[k].map((d, i) => (
-        <motion.path key={i} d={d} stroke={hot ? '#c3a15e' : 'rgba(236,231,223,.7)'} strokeWidth="1.2" style={{ transition: 'stroke .5s' }}
-          variants={{ h: { pathLength: 0 }, v: { pathLength: 1, transition: { duration: 1.4, ease: EASE, delay: 0.2 + i * 0.12 } } }} />
-      ))}
-    </motion.svg>
+    <a href="#contact" onClick={ask} className={`pointer-events-auto inline-flex h-12 items-center gap-3 rounded-full bg-[#ece7df] px-6 text-[13px] font-semibold text-[#151412] transition-colors hover:bg-[#e9a25c] ${className}`}>
+      {t({ en: 'Ask about the club', it: 'Informazioni sul club' })}
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 9h13M10 4l5 5-5 5" /></svg>
+    </a>
   )
 }
 
-function Row({ it, i, hot, setHot }) {
+function Lead() {
   const { t } = useLang()
-  const on = hot === i
   return (
-    <motion.li onPointerEnter={() => setHot(i)} onFocus={() => setHot(i)} tabIndex={0}
-      initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-8%' }} transition={{ duration: 0.9, ease: EASE, delay: i * 0.06 }}
-      className="group relative grid grid-cols-[36px_1fr_auto] items-center gap-x-4 border-t border-[#ece7df]/15 py-7 outline-none md:grid-cols-[80px_1fr_auto_140px] md:py-9">
-      <span className="self-start pt-3 text-[12px] font-semibold tabular-nums text-[#ece7df]/45">{String(i + 1).padStart(2, '0')}</span>
-      <span className={`${T.serif} text-[40px] leading-[.95] transition-all duration-700 [transition-timing-function:cubic-bezier(.16,1,.3,1)] md:text-[5.4vw] 2xl:text-[80px] ${on ? 'translate-x-2 italic text-[#ece7df]' : 'text-[#ece7df]/80'}`}>{t(it.t)}</span>
-      <span className="col-start-2 row-start-2 mt-2 text-[12px] font-semibold uppercase tracking-[.2em] text-[#c3a15e] md:col-start-3 md:row-start-1 md:mt-0">{it.p}</span>
-      <span className="col-start-3 row-span-2 row-start-1 justify-self-end md:col-start-4 md:row-span-1"><Art k={KEYS[i]} hot={on} /></span>
-      <motion.span aria-hidden className="absolute bottom-[-1px] left-0 h-px w-full origin-left bg-[#c3a15e]" initial={false} animate={{ scaleX: on ? 1 : 0 }} transition={{ duration: 0.8, ease: EASE }} />
-    </motion.li>
+    <h2 className={`${T.serif} max-w-[22ch] text-[30px] leading-[1.04] md:text-[44px] lg:text-[50px]`}>
+      {t(CLUB.lead).split(' — ').map((s, i) => i === 0 ? <span key={i}>{s} </span> : <em key={i} className="text-[#ece7df]/55">— {s}</em>)}
+    </h2>
+  )
+}
+
+function Static() {
+  const { t } = useLang()
+  return (
+    <section id="club" className={`relative overflow-hidden bg-[#0d1a26] text-[#ece7df] ${T.sans}`}>
+      <div className="mx-auto max-w-[1440px] px-5 py-20 md:px-10">
+        <div className="text-[11px] font-semibold uppercase tracking-[.22em] text-[#c3a15e]">{t({ en: '06 — Club & events', it: '06 — Club ed eventi' })}</div>
+        <div className="mt-5"><Lead /></div>
+        <ul className="mt-10 border-b border-[#ece7df]/15">{CLUB.items.map((it, i) => <li key={i} className="flex items-baseline gap-4 border-t border-[#ece7df]/15 py-5"><span className="text-[12px] tabular-nums text-[#ece7df]/45">{pad(i + 1)}</span><span className={`${T.serif} text-[34px] leading-none`}>{t(it.t)}</span><span className="ml-auto text-[11px] font-semibold uppercase tracking-[.2em] text-[#c3a15e]">{it.p}</span></li>)}</ul>
+        <div className="mt-10"><Ask /></div>
+      </div>
+    </section>
   )
 }
 
 export default function Club() {
   const { t } = useLang()
-  const [hot, setHot] = useState(0)
-  const ask = () => { window.dispatchEvent(new CustomEvent('yts:interest', { detail: 'club' })) }
+  const mobile = useIsMobile(), lite = useLite()
+  const ref = useRef(null), host = useRef(null)
+  const [near, vis] = useNear(ref)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
+  const [i, setI] = useState(0)
+  useMotionValueEvent(scrollYProgress, 'change', v => setI(Math.min(3, Math.max(0, Math.floor((v - .06) / .22)))))
+  const bar = useTransform(scrollYProgress, [0, 1], [0, 1])
+  const bigX = useTransform(scrollYProgress, [0, 1], ['6%', '-30%'])
+  if (lite) return <Static />
+  const skip = () => { const el = ref.current; const y = el.getBoundingClientRect().bottom + scrollY - 2; window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.4 }) : scrollTo({ top: y, behavior: 'smooth' }) }
+  const it = CLUB.items[i]
   return (
-    <section id="club" className={`relative overflow-hidden bg-[#27414f] text-[#ece7df] ${T.sans}`}>
-      <Lake />
-      <div aria-hidden className="pointer-events-none absolute -right-[4vw] top-[6%] select-none text-[34vw] font-black uppercase leading-[.75] tracking-[-.06em] text-[#ece7df]/[.04]">Club</div>
-      <div className="relative mx-auto max-w-[1440px] px-5 py-24 md:px-10 md:py-36">
-        <div className="grid gap-10 lg:grid-cols-12">
-          <div className="lg:col-span-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[.22em] text-[#c3a15e]">{t({ en: '06 — Club & events', it: '06 — Club ed eventi' })}</div>
-            <p className="mt-6 max-w-[30ch] text-[14px] leading-relaxed text-[#ece7df]/60">{t({ en: 'Move the cursor across the water.', it: 'Muovi il cursore sull’acqua.' })}</p>
+    <section id="club" ref={ref} className={`relative h-[300vh] bg-[#0d1a26] text-[#ece7df] md:h-[340vh] ${T.sans}`}>
+      <div ref={host} className="sticky top-0 h-[100svh] touch-pan-y overflow-hidden">
+        {near && <Suspense fallback={null}><Sea3D progress={scrollYProgress} active={vis} mobile={mobile} lite={lite} host={host} /></Suspense>}
+        {/* giant word sits on the horizon */}
+        <motion.div aria-hidden style={{ x: bigX }} className="pointer-events-none absolute left-0 top-[24%] select-none whitespace-nowrap text-[30vw] font-black uppercase leading-[.8] tracking-[-.06em] text-[#ece7df]/[.05] mix-blend-plus-lighter md:top-[14%] md:text-[22vw]">Club · Vela · Vino</motion.div>
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-[#06101a]/80 to-transparent" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%] bg-gradient-to-t from-[#04080d]/85 to-transparent" />
+
+        <div className="pointer-events-none relative mx-auto flex h-full max-w-[1440px] flex-col px-5 pb-7 pt-20 md:px-10 md:pb-10 md:pt-24">
+          <div className="grid gap-4 lg:grid-cols-12">
+            <div className="flex items-start justify-between lg:col-span-4 lg:block">
+              <div className="text-[11px] font-semibold uppercase tracking-[.22em] text-[#e9a25c]">{t({ en: '06 — Club & events', it: '06 — Club ed eventi' })}</div>
+              <button onClick={skip} className="pointer-events-auto inline-flex h-9 items-center gap-2 rounded-full border border-[#ece7df]/25 px-4 text-[11px] font-semibold uppercase tracking-[.2em] text-[#ece7df]/75 backdrop-blur-md transition-colors hover:bg-[#ece7df] hover:text-[#151412] lg:mt-5">
+                {t('skip')}<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M5 1v8M1.5 5.5 5 9l3.5-3.5" /></svg>
+              </button>
+            </div>
+            <div className="lg:col-span-8"><Lead /></div>
           </div>
-          <h2 className={`${T.serif} text-[42px] leading-[1.02] md:text-[64px] lg:col-span-8`}>
-            {t(CLUB.lead).split(' — ').map((s, i) => i === 0 ? <span key={i}>{s} </span> : <em key={i} className="text-[#ece7df]/55">— {s}</em>)}
-          </h2>
-        </div>
-        <ul className="mt-20 border-b border-[#ece7df]/15 md:mt-28">
-          {CLUB.items.map((it, i) => <Row key={i} it={it} i={i} hot={hot} setHot={setHot} />)}
-        </ul>
-        <div className="mt-14 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-          <p className={`${T.serif} max-w-[34ch] text-[24px] italic leading-[1.15] text-[#ece7df]/75`}>{t({ en: 'From a marina in Herzliya to a flotilla off Olbia — Italy is easier to understand in good company.', it: 'Da una marina di Herzliya a una flottiglia al largo di Olbia — l’Italia si capisce meglio in buona compagnia.' })}</p>
-          <a href="#contact" onClick={ask} className="inline-flex h-12 items-center gap-3 rounded-full bg-[#ece7df] px-6 text-[13px] font-semibold text-[#151412] transition-colors hover:bg-[#c3a15e]">
-            {t({ en: 'Ask about the club', it: 'Informazioni sul club' })}
-            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 9h13M10 4l5 5-5 5" /></svg>
-          </a>
+
+          <div className="mt-auto grid items-end gap-6 lg:grid-cols-12">
+            {/* active item — big floating title */}
+            <div className="lg:col-span-8">
+              <div className="flex items-center gap-4 text-[12px] font-semibold tabular-nums text-[#ece7df]/55">
+                <span className="text-[#e9a25c]">{pad(i + 1)}</span><span className="h-px w-16 overflow-hidden bg-[#ece7df]/20"><motion.span style={{ scaleX: bar }} className="block h-full origin-left bg-[#e9a25c]" /></span><span>{pad(CLUB.items.length)}</span>
+              </div>
+              <div className="relative mt-3 h-[1.9em] text-[15vw] leading-[.92] md:h-[1.05em] md:text-[8.4vw] 2xl:text-[120px]">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.div key={i} className={`${T.serif} absolute inset-x-0 bottom-0`} initial={{ y: '60%', opacity: 0, filter: 'blur(10px)' }} animate={{ y: '0%', opacity: 1, filter: 'blur(0px)' }} exit={{ y: '-50%', opacity: 0, filter: 'blur(8px)' }} transition={{ duration: .9, ease: EASE }}>
+                    {t(it.t).split(' ').map((w, k) => <span key={k} className={k % 2 ? 'italic text-[#e9a25c]' : ''}>{w} </span>)}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              <div className="mt-3 flex items-center gap-3 text-[12px] font-semibold uppercase tracking-[.22em] text-[#ece7df]/70">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#e9a25c" strokeWidth="1.3"><path d="M7 13s4.5-4.2 4.5-7.5a4.5 4.5 0 1 0-9 0C2.5 8.8 7 13 7 13Z" /><circle cx="7" cy="5.5" r="1.5" /></svg>
+                <AnimatePresence mode="wait" initial={false}><motion.span key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: .4 }}>{it.p}</motion.span></AnimatePresence>
+              </div>
+            </div>
+            {/* editorial index */}
+            <div className="lg:col-span-4">
+              <ul className="hidden border-t border-[#ece7df]/15 md:block">
+                {CLUB.items.map((x, k) => (
+                  <li key={k} className={`flex items-baseline gap-3 border-b border-[#ece7df]/15 py-2.5 transition-all duration-700 ${k === i ? 'opacity-100' : 'opacity-40'}`}>
+                    <span className="w-6 text-[11px] tabular-nums text-[#ece7df]/50">{pad(k + 1)}</span>
+                    <span className={`${T.serif} text-[20px] leading-none ${k === i ? 'italic text-[#e9a25c]' : ''}`}>{t(x.t)}</span>
+                    <span className="ml-auto text-[10px] font-semibold uppercase tracking-[.18em] text-[#ece7df]/55">{x.p}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
+                <span className="text-[11px] font-semibold uppercase tracking-[.2em] text-[#ece7df]/50">{mobile ? t({ en: 'Tap the water', it: 'Tocca l’acqua' }) : t({ en: 'Move across the water · click to drop', it: 'Muoviti sull’acqua · clic per un’onda' })}</span>
+                <Ask />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
