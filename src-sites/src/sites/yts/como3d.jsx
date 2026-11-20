@@ -22,7 +22,7 @@ function h0(x, z) {
   const near = zn > 0 ? (zn < 30 ? zn * .5 : 15 + (zn - 30) * .16) + ss(30, 88, zn) * (5 + 20 * ridge(x * .03, z * .03)) + (fbm(x * .05 + 3, z * .05) - .5) * 3.2 * ss(0, 8, zn) : zn * 1.3
   // far (west) shore — Menaggio / Cadenabbia under the mountains
   const zf = -62 - z + (fbm(x * .025, 4) - .5) * 12
-  const far = zf > 0 ? zf * .42 + ss(4, 50, zf) * (8 + 24 * ridge(x * .025 + 7, z * .025)) : zf * 1.3
+  const far = zf > 0 ? zf * .3 + ss(4, 60, zf) * (6 + 19 * ridge(x * .025 + 7, z * .025)) : zf * 1.3
   // Bellagio peninsula (from the south, tip near x=-22)
   const px = Math.min(-22, x), d = Math.hypot(x - px, z + 30 + (fbm(x * .04, 2) - .5) * 6)
   const pk = 3 + 24 * ss(-24, -85, x)
@@ -37,7 +37,7 @@ export function height(x, z) {
   return h
 }
 
-const SUN = new THREE.Vector3(-.5, .15, -.85).normalize()
+const SUN = new THREE.Vector3(-.5, .2, -.85).normalize()
 const lerpC = (a, b, t) => a.clone().lerp(b, t)
 const C = c => new THREE.Color(c)
 // palettes: looking east (sun behind) → looking west into the sunset
@@ -55,7 +55,7 @@ function useTerrainGeo(seg) {
     g.computeVertexNormals()
     const n = g.attributes.normal, col = new Float32Array(p.count * 3)
     const forest = C('#466430'), forest2 = C('#66803b'), meadow = C('#8e9c4c'), rock = C('#857a6c'), rock2 = C('#b2a593'), shore = C('#a89a80')
-    const sunC = C('#ffcf9a'), sky = C('#8ea6b6'), tmp = new THREE.Color(), lit = new THREE.Color()
+    const haze = C('#7f8aa6'), sunC = C('#ffcf9a'), sky = C('#8ea6b6'), tmp = new THREE.Color(), lit = new THREE.Color()
     const nv = new THREE.Vector3()
     for (let i = 0; i < p.count; i++) {
       const x = p.getX(i), y = p.getY(i), z = p.getZ(i)
@@ -66,6 +66,7 @@ function useTerrainGeo(seg) {
       tmp.lerp(rock2, ss(80, 130, y + k * 18))
       tmp.lerp(shore, 1 - ss(.15, .7, y))
       tmp.multiplyScalar(.82 + .3 * ss(-.2, .9, k + (y < 20 ? .1 : 0)))
+      tmp.lerp(haze, ss(-90, -260, z) * .55 + ss(90, 220, z) * .25)
       // baked golden-hour light: sky dome + low western sun
       const dif = Math.max(0, nv.dot(SUN)), amb = .34 + .28 * nv.y
       lit.copy(sky).multiplyScalar(amb).add(sunC.clone().multiplyScalar(dif * 1.75))
@@ -95,7 +96,7 @@ void main(){
   float s = max(dot(R, uSun), 0.);
   float spec = pow(s, 420.)*5. + pow(s, 40.)*.22;
   float streak = .85 + .15*sin(vW.z*.9 + sin(vW.x*.15 + t*.4)*2.);
-  float a = clamp((1. - fr)*.42*streak + spec, 0., 1.);
+  float a = clamp((1. - fr)*.36*streak + spec, 0., 1.);
   vec3 col = mix(uDeep, uSunCol*1.6, clamp(spec/max(a,.001), 0., 1.));
   float dist = length(cameraPosition - vW);
   float f = smoothstep(uFogNear, uFogFar, dist);
@@ -110,10 +111,10 @@ void main(){
   vec3 d = normalize(vW - cameraPosition);
   if (d.y > .002) discard;
   vec3 r = vec3(d.x, -d.y, d.z);
-  vec3 c = mix(uHor, uTop, pow(clamp(r.y*2.6, 0., 1.), .7));
+  vec3 c = mix(uHor, uTop, pow(clamp(r.y*1.5, 0., 1.), .8));
   float g = max(dot(r, uSun), 0.);
   c += uSunCol*(pow(g, 9.)*.45 + pow(g, 120.)*.8);
-  gl_FragColor = vec4(c*.9, 1.);
+  gl_FragColor = vec4(c*.95, 1.);
 }`
 
 function Terrain({ seg }) {
@@ -239,7 +240,7 @@ function Trees({ count }) {
 }
 
 // [cx, cz, rx, rz, count, scale]
-const TOWNS = [[-8, 9.5, 11, 4.5, 60, 1], [-52, -66, 9, 5, 40, 1.1], [40, -141, 16, 5, 44, 1.5], [-12, -140, 12, 4, 26, 1.5]]
+const TOWNS = [[-8, 9.5, 11, 4.5, 60, .8], [-52, -66, 9, 5, 40, 1.1], [40, -141, 16, 5, 44, 1.5], [-12, -140, 12, 4, 26, 1.5]]
 function Towns() {
   const walls = useRef(), roofs = useRef()
   const box = useMemo(() => new THREE.BoxGeometry(1, 1, 1), [])
@@ -251,7 +252,7 @@ function Towns() {
       while (k < n && g++ < n * 60) {
         const a = r() * Math.PI * 2, rr = Math.sqrt(r()), x = cx + Math.cos(a) * rx * rr, z = cz + Math.sin(a) * rz * rr, h = height(x, z)
         if (h < .25 || h > 9) continue
-        const w = (.8 + r() * .6) * sc, hh = (.9 + r() * 1.1) * sc
+        const w = (.8 + r() * .6) * sc, hh = (.7 + r() * .8) * sc
         out.push([x, h, z, w, hh, r() * .5 - .25]); k++
       }
     })
@@ -334,10 +335,10 @@ function Triangle({ progress, label }) {
 /* ───────────── camera film ───────────── */
 function buildPath(mobile) {
   const hTop = height(1, TOP_ROW.z) // camera rests on the top garden at the end
-  const pos = [[-15, 50, -112], [-84, 92, 10], [-66, 78, -18], [-14, 8, -28], [18, 21, 1], [-6, hTop + 3.4, 12], [1, hTop + 1.3, TOP_ROW.z - 1.1]]
-  const tgt = [[-14, 42, 60], [-6, 0, -62], [-4, 0, -66], [0, 7, 22], [0, 8, 21], [0, 8, 23], [-34, 16, -140]]
+  const pos = [[-15, 50, -112], [-150, 120, -36], [-140, 104, -72], [-14, 8, -28], [18, 21, 1], [-6, hTop + 3.4, 12], [1, hTop + 1.3, TOP_ROW.z - 1.1]]
+  const tgt = [[-14, 42, 60], [-2, 0, -62], [-4, 0, -66], [0, 7, 22], [0, 8, 21], [0, 8, 23], [-34, 22, -140]]
   const fov = mobile ? [66, 60, 60, 56, 54, 54, 60] : [50, 44, 42, 40, 36, 38, 44]
-  if (mobile) { pos[1] = [-86, 118, 34]; pos[2] = [-70, 100, 0]; pos[4] = [20, 25, -3]; pos[5] = [-7, hTop + 4.6, 8] }
+  if (mobile) { pos[1] = [-170, 190, -30]; pos[2] = [-160, 170, -70]; pos[4] = [20, 25, -3]; pos[5] = [-7, hTop + 4.6, 8] }
   const v = a => a.map(p => new THREE.Vector3(...p))
   return { pos: new THREE.CatmullRomCurve3(v(pos), false, 'centripetal'), tgt: new THREE.CatmullRomCurve3(v(tgt), false, 'centripetal'), fov }
 }
@@ -352,17 +353,17 @@ function Rig({ progress, skyRef, mobile, water, dome }) {
     const S = s.current
     S.p = window.__comoSnap ? progress.get() : THREE.MathUtils.damp(S.p, progress.get(), 3.2, Math.min(dt, .05))
     S.mx = THREE.MathUtils.damp(S.mx, st.pointer.x, 2, dt); S.my = THREE.MathUtils.damp(S.my, st.pointer.y, 2, dt)
-    const p = S.p
-    path.pos.getPoint(p, camera.position)
-    path.tgt.getPoint(p, S.pt)
+    const p = S.p, pc = Math.min(1, p / .94) // hold the final view
+    path.pos.getPoint(pc, camera.position)
+    path.tgt.getPoint(pc, S.pt)
     camera.position.x += S.mx * .8; camera.position.y += S.my * .4
     camera.lookAt(S.pt)
-    const N = path.fov.length - 1, fi = Math.min(N - .001, p * N), i0 = Math.floor(fi), fv = THREE.MathUtils.lerp(path.fov[i0], path.fov[i0 + 1], ss(0, 1, fi - i0))
+    const N = path.fov.length - 1, fi = Math.min(N - .001, pc * N), i0 = Math.floor(fi), fv = THREE.MathUtils.lerp(path.fov[i0], path.fov[i0 + 1], ss(0, 1, fi - i0))
     if (Math.abs(camera.fov - fv) > .01) { camera.fov = fv; camera.updateProjectionMatrix() }
     // palette: east → west as the camera turns into the sunset
     const k = ss(.7, .98, p)
     tmp.top.copy(PAL.top[0]).lerp(PAL.top[1], k); tmp.hor.copy(PAL.hor[0]).lerp(PAL.hor[1], k); tmp.fog.copy(PAL.fog[0]).lerp(PAL.fog[1], k)
-    scene.fog.color.copy(tmp.fog); scene.fog.far = 560 - 170 * k
+    scene.fog.color.copy(tmp.fog); scene.fog.far = 560 - 60 * k
     if (water.current) { const u = water.current.uniforms; u.uTime.value += dt; u.uFog.value.copy(tmp.fog) }
     if (dome.current) { const u = dome.current.uniforms; u.uTop.value.copy(tmp.top); u.uHor.value.copy(tmp.hor) }
     // sky lives in the DOM behind the canvas, so the giant type sits behind the mountains
@@ -386,7 +387,7 @@ function Rig({ progress, skyRef, mobile, water, dome }) {
 
 function Water({ water }) {
   const uniforms = useMemo(() => ({
-    uTime: { value: 0 }, uDeep: { value: C('#3f6878') }, uSun: { value: SUN }, uSunCol: { value: C('#ffd59a') }, uFog: { value: C('#d8b4a4') }, uHor: { value: C('#e2b8a6') }, uFogNear: { value: 90 }, uFogFar: { value: 700 },
+    uTime: { value: 0 }, uDeep: { value: C('#5f8f9a') }, uSun: { value: SUN }, uSunCol: { value: C('#ffd59a') }, uFog: { value: C('#d8b4a4') }, uHor: { value: C('#e2b8a6') }, uFogNear: { value: 90 }, uFogFar: { value: 700 },
   }), [])
   return (
     <mesh rotation-x={-Math.PI / 2} renderOrder={2}>

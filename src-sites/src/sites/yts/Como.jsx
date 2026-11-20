@@ -124,19 +124,19 @@ function Film() {
     <div ref={ref} className="relative h-[480vh] md:h-[560vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         <div ref={skyRef} className="absolute inset-0" style={{
-          background: 'radial-gradient(circle at var(--sx,-50%) var(--sy,-50%), rgba(255,240,205,var(--glow,0)) 0, rgba(255,206,140,calc(var(--glow,0)*.6)) 4%, rgba(255,186,118,calc(var(--glow,0)*.22)) 16%, rgba(255,186,118,0) 38%), linear-gradient(180deg, var(--top,#56738a) 0%, var(--hor,#e2b8a6) var(--hy,55%), var(--hor,#e2b8a6) 100%)',
+          background: 'radial-gradient(circle at var(--sx,-50%) var(--sy,-50%), rgba(255,244,214,var(--glow,0)) 0, rgba(255,214,150,calc(var(--glow,0)*.7)) 5%, rgba(255,190,120,calc(var(--glow,0)*.3)) 20%, rgba(255,186,118,0) 48%), linear-gradient(180deg, var(--top,#56738a) 0%, var(--hor,#e2b8a6) var(--hy,55%), var(--hor,#e2b8a6) 100%)',
         }} />
         {/* giant type that the mountains cut through */}
-        <motion.div aria-hidden style={{ y: wordY, opacity: wordO }} className="pointer-events-none absolute inset-x-0 top-[12%] select-none text-center md:top-[9%]">
+        <motion.div aria-hidden style={{ y: wordY, opacity: wordO }} className="pointer-events-none absolute inset-x-0 top-[16%] select-none text-center md:top-[13%]">
           <span className={`${T.sans} block text-[34vw] font-black leading-[.8] tracking-[-.06em] text-white/90 md:text-[27vw]`}>COMO</span>
         </motion.div>
-        <motion.div aria-hidden style={{ opacity: vistaO, y: vistaY }} className="pointer-events-none absolute inset-x-0 top-[14%] select-none text-center md:top-[8%]">
+        <motion.div aria-hidden style={{ opacity: vistaO, y: vistaY }} className="pointer-events-none absolute inset-x-0 top-[18%] select-none text-center md:top-[13%]">
           <span className={`${T.serif} block text-[30vw] italic leading-[.8] tracking-[-.03em] text-[#fff3dc]/85 md:text-[22vw]`}>Vista</span>
         </motion.div>
         <div className="absolute inset-0">
           {near && <Suspense fallback={null}><ComoScene progress={p} skyRef={skyRef} active={vis} mobile={mobile} labels={labels} /></Suspense>}
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#27414f]/70 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-[#151412]/55 via-[#151412]/15 to-transparent" />
 
         {/* chapters */}
         <Chapter p={p} range={[-1, -.5, .1, .16]} className="bottom-[13%] left-5 right-5 md:bottom-[11%] md:left-10">
