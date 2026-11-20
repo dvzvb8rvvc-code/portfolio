@@ -123,7 +123,7 @@ function IsoFloor({ i, e, activeFloor, activeUnit, onPick, dark }) {
   )
 }
 function IsoRoof({ e, activeFloor, dark }) {
-  const y = useTransform(e, v => -(4 * ISO_GAP - 0.6) * S * v)
+  const y = useTransform(e, v => -(3 * ISO_GAP + 2.8) * S * v)
   const b = ISO_BASE[3] + ISO_H[3], rh = 0.7, dim = activeFloor != null
   return (
     <motion.g style={{ y }}>
@@ -133,7 +133,7 @@ function IsoRoof({ e, activeFloor, dark }) {
   )
 }
 function IsoStack({ e, activeFloor = null, activeUnit = null, onPick, dark, className = '' }) {
-  const top = -(ISO_BASE[3] + ISO_H[3] + 0.7 + 4 * ISO_GAP - 0.6) * S - 10
+  const top = -(ISO_BASE[3] + ISO_H[3] + 0.7 + 3 * ISO_GAP + 2.8) * S - 10
   return (
     <svg viewBox={`${-D2 * 0.866 * S - 10} ${top} ${(W2 + D2) * 0.866 * S + 20} ${(W2 + D2) * 0.5 * S - top + 10}`} className={className} role="img" aria-label="Palazzo Campani — exploded floors">
       <defs><pattern id="yts-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#efe7d8" /><line x1="0" y1="0" x2="0" y2="5" stroke="#151412" strokeWidth="1" opacity=".45" /></pattern></defs>
