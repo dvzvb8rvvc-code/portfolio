@@ -371,7 +371,7 @@ function LookUp() {
         )}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(7,9,15,.7)_100%)]" />
         <motion.div style={{ opacity: o1, y: y1 }} className="pointer-events-none absolute inset-x-0 bottom-[12vh] mx-auto max-w-[1440px] px-5 text-center md:px-10">
-          <Kicker className="text-[#e9c48f]">{t({ en: 'Piano nobile · original frescoes', it: 'Piano nobile · affreschi originali' })}</Kicker>
+          <Kicker className="text-[#e9c48f]">{t({ en: 'Original frescoes', it: 'Affreschi originali' })}</Kicker>
           <div className={`${T.serif} mt-3 text-[22vw] italic leading-[.8] md:text-[13vw]`}>{t({ en: 'Look up.', it: 'Alza lo sguardo.' })}</div>
           <p className="mx-auto mt-5 max-w-[40ch] text-[14px] leading-relaxed text-white/70">{t({ en: 'Scroll slowly. Drag to turn beneath the vault.', it: 'Scorri piano. Trascina per girare sotto la volta.' })}</p>
         </motion.div>

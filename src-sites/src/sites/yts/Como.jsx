@@ -9,11 +9,14 @@ const EASE = [0.16, 1, 0.3, 1]
 const LAKE = '#27414f', PAPER = '#ece7df', INK = '#151412', GOLD = '#c3a15e', OCHRE = '#b06a35'
 
 /* ───────────── small shared bits ───────────── */
-function Mask({ children, className = '', delay = 0, as: As = 'span' }) {
+function Mask({ children, className = '', delay = 0 }) {
+  // observe the (unclipped) wrapper — the translated child is clipped, so IO on it would never fire
+  const ref = useRef()
+  const inView = useInView(ref, { once: true, margin: '0px 0px -8% 0px' })
   return (
-    <As className={`block overflow-hidden pb-[.12em] -mb-[.12em] ${className}`}>
-      <motion.span className="block" initial={{ y: '108%' }} whileInView={{ y: '0%' }} viewport={{ once: true, margin: '-8% 0px' }} transition={{ duration: 1.1, ease: EASE, delay }}>{children}</motion.span>
-    </As>
+    <span ref={ref} className={`block overflow-hidden pb-[.12em] -mb-[.12em] ${className}`}>
+      <motion.span className="block" initial={{ y: '108%' }} animate={inView ? { y: '0%' } : { y: '108%' }} transition={{ duration: 1.1, ease: EASE, delay }}>{children}</motion.span>
+    </span>
   )
 }
 function Eyebrow({ children, className = '' }) {
@@ -205,7 +208,7 @@ function unitGeom(t) {
   out.dimA = seg([gx0, gd + 2, 0], [gx1, gd + 2, 0], s)
   out.dimL = iso(0, gd + 3.6, 0, s)
   out.houseL = iso(x1 + .2, -d / 2, H + 1.6, s)
-  out.lake = iso(-6, gd + 9, 0, s)
+  out.lake = iso(6, gd + 5.5, 0, s)
   return out
 }
 const PARTS = ['garden', 'heat', 'park', 'tub', 'pool'] // maps to COMO.every order
@@ -222,7 +225,7 @@ function UnitSvg({ t, hi }) {
   const stroke = k => (on(k) ? OCHRE : INK)
   const pl = unitGeom(0).poolL, lk = unitGeom(1).lake
   return (
-    <svg viewBox="-360 -200 720 480" className="h-auto w-full overflow-visible" role="img" aria-label={tr({ en: 'Isometric drawing of a home with its garden', it: 'Disegno isometrico di una casa con il suo giardino' })}>
+    <svg viewBox="-290 -175 570 400" className="h-auto w-full overflow-visible" role="img" aria-label={tr({ en: 'Isometric drawing of a home with its garden', it: 'Disegno isometrico di una casa con il suo giardino' })}>
       <defs>
         <pattern id="como-glass" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><path d="M0 0v6" stroke="#27414f" strokeOpacity=".35" strokeWidth="1" /></pattern>
       </defs>
@@ -354,7 +357,7 @@ function Fact({ f, i, p }) {
       <Mask>
         <motion.span
           className={`${T.serif} block whitespace-nowrap bg-clip-text text-transparent text-[clamp(96px,17vw,280px)] leading-[.9] tracking-[-.04em]`}
-          style={{ backgroundImage: `url(${img(i % 2 ? 141 : 129)})`, backgroundSize: '260% auto', backgroundPositionX: bx, backgroundPositionY: '55%', WebkitBackgroundClip: 'text' }}
+          style={{ backgroundImage: `url(${img(i % 2 ? 141 : 129)})`, backgroundSize: '260% auto', backgroundPositionX: bx, backgroundPositionY: '64%', WebkitBackgroundClip: 'text', WebkitTextStroke: '1px rgba(39,65,79,.22)' }}
         >{f.v}</motion.span>
       </Mask>
       {f.u && <div className={`${T.serif} -mt-2 text-[34px] italic text-[#27414f]`}>{f.u}</div>}
