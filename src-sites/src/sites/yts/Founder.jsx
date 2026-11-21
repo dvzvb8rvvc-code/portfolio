@@ -16,7 +16,7 @@ const TIMELINE = [
 const GROUP = [
   { k: { en: 'Architecture', it: 'Architettura' }, d: { en: 'Design studio', it: 'Studio di progettazione' }, c: [COMPANIES[0]] },
   { k: { en: 'Holdings', it: 'Holding' }, d: { en: 'Italy', it: 'Italia' }, c: [COMPANIES[1], COMPANIES[2]] },
-  { k: { en: 'Project companies', it: 'Società di progetto' }, d: { en: 'One per development', it: 'Una per ogni sviluppo' }, c: COMPANIES.slice(3) },
+  { k: { en: 'Project companies', it: 'Società di progetto' }, d: { en: 'Companies of the group', it: 'Società del gruppo' }, c: COMPANIES.slice(3) },
 ]
 
 function Eyebrow({ children, className = '' }) {
@@ -119,7 +119,7 @@ function Group() {
             <Reveal>{t({ en: 'One studio,', it: 'Uno studio,' })}</Reveal>
             <Reveal delay={0.1}><em className="text-[#d9bf86]">{t({ en: 'eight companies.', it: 'otto società.' })}</em></Reveal>
           </h3>
-          <p className="mt-4 max-w-[34ch] text-[14px] leading-relaxed text-[#efe8dc]/60">{t({ en: 'Design in Israel, development in Italy — each residence carried by its own project company.', it: 'Progettazione in Israele, sviluppo in Italia — ogni residenza affidata alla propria società di progetto.' })}</p>
+          <p className="mt-4 max-w-[34ch] text-[14px] leading-relaxed text-[#efe8dc]/60">{t({ en: 'Design in Israel, development in Italy — carried by the companies of YTS Group.', it: 'Progettazione in Israele, sviluppo in Italia — attraverso le società di YTS Group.' })}</p>
         </div>
         <div className="grid gap-px overflow-hidden rounded-[6px] bg-[rgba(239,232,220,.12)] sm:grid-cols-3 lg:col-span-8">
           {GROUP.map((g, i) => (
