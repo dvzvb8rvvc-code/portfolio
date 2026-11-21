@@ -67,14 +67,15 @@ function Label({ k, title, sub, gold, reg }) {
 function Tod({ p }) {
   const { t } = useLang()
   const x = useTransform(p, [0, 1], ['0%', '100%'])
+  const o = useTransform(p, [.92, .98], [1, 0]) // QA: gone before the film releases (no chrome over the dark tail)
   const names = t(S.tod)
   return (
-    <div className={`${T.sans} pointer-events-none absolute bottom-[34px] left-5 z-30 w-[min(200px,48vw)] whitespace-nowrap text-[11px] font-semibold uppercase tracking-[.16em] text-[#efe8dc]/75 md:bottom-10 md:left-10 md:w-[220px] md:tracking-[.18em]`}>
+    <motion.div style={{ opacity: o }} className={`${T.sans} pointer-events-none absolute bottom-[34px] left-5 z-30 w-[min(200px,48vw)] whitespace-nowrap text-[11px] font-semibold uppercase tracking-[.16em] text-[#efe8dc]/75 md:bottom-10 md:left-10 md:w-[220px] md:tracking-[.18em]`}>
       <div className="mb-2 flex justify-between gap-3"><span>{names[0]}</span><span className="text-[#c3a15e]">{names[1]}</span></div>
       <div className="relative h-px bg-[#efe8dc]/25">
         <motion.span style={{ left: x }} className="absolute -top-[3.5px] -ml-1 block h-2 w-2 rounded-full bg-[#c3a15e] shadow-[0_0_14px_#c3a15e]" />
       </div>
-    </div>
+    </motion.div>
   )
 }
 function Skip({ p, target }) {
@@ -100,6 +101,7 @@ function Film({ after }) {
   const titleO = useTransform(p, [.1, .2], [1, 0])
   const imgS = useTransform(p, [0, 1], [1.04, 1.18])
   const renderO = useTransform(p, [.86, .92], [0, 1])
+  const renderCapO = useTransform(p, [.86, .9, .93, .98], [0, 1, 1, 0]) // QA: caption leaves before the tail
   return (
     <div ref={ref} className="relative h-[150vh] md:h-[220vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
@@ -140,8 +142,8 @@ function Film({ after }) {
 
         <Caption p={p} a={.22} b={.44} l1={t(S.c1a)} l2={t(S.c1b)} className="bottom-[150px] left-5 md:bottom-[18%] md:left-10" />
         <Caption p={p} a={.44} b={.68} l1={t(S.c2a)} l2={t(S.c2b)} className="bottom-[150px] right-5 text-right md:bottom-[18%] md:right-10" />
-        <Caption p={p} a={.8} b={1.06} l1={t(S.c3a)} l2={t(S.c3b)} className="bottom-[150px] left-5 md:bottom-[16%] md:left-10" />
-        <motion.p style={{ opacity: renderO }} className={`${T.sans} pointer-events-none absolute bottom-[112px] left-5 z-20 text-[11px] font-semibold uppercase tracking-[.18em] text-[#efe8dc]/70 md:bottom-[11%] md:left-10`}>{t(S.render)}</motion.p>
+        <Caption p={p} a={.8} b={.98} l1={t(S.c3a)} l2={t(S.c3b)} className="bottom-[150px] left-5 md:bottom-[16%] md:left-10" />
+        <motion.p style={{ opacity: renderCapO }} className={`${T.sans} pointer-events-none absolute bottom-[112px] left-5 z-20 text-[11px] font-semibold uppercase tracking-[.18em] text-[#efe8dc]/70 md:bottom-[11%] md:left-10`}>{t(S.render)}</motion.p>
 
         <Tod p={p} />
         <Skip p={p} target={after} />

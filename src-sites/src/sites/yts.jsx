@@ -69,6 +69,8 @@ function Sheet({ close }) {
     const k = e => e.key === 'Escape' && close(); addEventListener('keydown', k)
     return () => { window.__lenis?.start(); document.body.style.overflow = o; removeEventListener('keydown', k) }
   }, [])
+  // QA: unlock scroll BEFORE the global anchor handler (kit.jsx) runs lenis.scrollTo — a stopped Lenis ignores it
+  const leave = () => { window.__lenis?.start(); document.body.style.overflow = ''; close() }
   return (
     <motion.div initial={{ clipPath: 'inset(0 0 100% 0)' }} animate={{ clipPath: 'inset(0 0 0% 0)' }} exit={{ clipPath: 'inset(0 0 100% 0)' }} transition={{ duration: .75, ease: EASE }}
       className={`fixed inset-0 z-[59] flex flex-col bg-[#0b0a08] px-6 pb-[max(28px,env(safe-area-inset-bottom))] pt-24 lg:hidden ${T.sans}`}>
@@ -76,7 +78,7 @@ function Sheet({ close }) {
       <motion.span aria-hidden initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1.1, ease: EASE, delay: .25 }} className="block h-px origin-left bg-[#c3a15e]/60" />
       <nav className="relative mt-2 flex flex-1 flex-col">
         {items.map(([h, k], i) => (
-          <a key={h} href={h} onClick={close} className="group flex min-h-[64px] items-baseline gap-5 border-b border-[rgba(239,232,220,.10)] py-3">
+          <a key={h} href={h} onClick={leave} className="group flex min-h-[64px] items-baseline gap-5 border-b border-[rgba(239,232,220,.10)] py-3">
             <span className="w-6 text-[11px] font-semibold tabular-nums tracking-[.2em] text-[#c3a15e]">0{i + 1}</span>
             <span className="block overflow-hidden pb-[.06em]">
               <motion.span className={`${T.serif} block text-[40px] leading-[1.05] text-[#efe8dc] ${i % 2 ? 'italic' : ''}`} initial={{ y: '105%' }} animate={{ y: 0 }} transition={{ duration: .9, ease: EASE, delay: .25 + i * .06 }}>{t(k)}</motion.span>
@@ -86,7 +88,7 @@ function Sheet({ close }) {
       </nav>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, ease: EASE, delay: .55 }} className="relative mt-6 flex items-center justify-between gap-4">
         <LangSwitch big />
-        <a href="#contact" onClick={close} className="inline-flex h-12 items-center rounded-full bg-[#efe8dc] px-6 text-[11.5px] font-semibold uppercase tracking-[.2em] text-[#0b0a08]">{t('cta.inquire')}</a>
+        <a href="#contact" onClick={leave} className="inline-flex h-12 items-center rounded-full bg-[#efe8dc] px-6 text-[11.5px] font-semibold uppercase tracking-[.2em] text-[#0b0a08]">{t('cta.inquire')}</a>
       </motion.div>
       <p className="yts-cap relative mt-6 text-[#efe8dc]/40">YTS Architects · Israel — Italia</p>
     </motion.div>
@@ -105,7 +107,7 @@ function Nav() {
       <header className={`fixed inset-x-0 top-0 z-[60] transition-[background-color,border-color,backdrop-filter] duration-700 ${glass ? 'border-b border-[rgba(239,232,220,.08)] bg-[#0b0a08]/70 backdrop-blur-xl backdrop-saturate-150' : 'border-b border-transparent'}`}>
         <div className={`overflow-hidden transition-[max-height] duration-500 ${solid || open ? 'max-h-0' : 'max-h-16'}`}><Ribbon /></div>
         <div className={`mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 md:h-[72px] md:px-10 ${T.sans}`}>
-          <a href="#top" onClick={() => setOpen(false)} className="flex min-h-[44px] items-center gap-3 text-[#efe8dc]">
+          <a href="#top" onClick={() => { if (open) { window.__lenis?.start(); document.body.style.overflow = '' } setOpen(false) }} className="flex min-h-[44px] items-center gap-3 text-[#efe8dc]">
             <span className="text-[18px] font-black tracking-[.04em]">YTS</span>
             <span className="h-4 w-px bg-[#c3a15e]/70" />
             <span className={`${T.serif} text-[18px] italic text-[#efe8dc]/70`}>Yehiel Tsubery</span>
