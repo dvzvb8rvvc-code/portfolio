@@ -47,7 +47,7 @@ vec2 tc(vec2 uv, vec4 c, vec2 r){
 }`
 
 const vert = /* glsl */`
-uniform sampler2D uDA, uDB; uniform vec4 uCA, uCB; uniform vec2 uRA, uRB, uNdc;
+uniform sampler2D uDA, uDB; uniform vec4 uCA, uCB; uniform vec2 uRA, uRB;
 uniform float uMix, uAmtA, uAmtB, uTime, uBend; uniform mat4 uVP;
 varying vec2 vUv; varying float vD;
 ${NOISE}
@@ -64,9 +64,7 @@ void main(){
   vec3 p = position;
   float top = max(uv.y - .18, 0.) / .82;
   p.z += mix(dA * uAmtA, dB * uAmtB, k) + band * .05 + uBend * top * top;
-  vec4 cp = uVP * modelMatrix * vec4(p, 1.);
-  cp.y = cp.y * uNdc.x + uNdc.y * cp.w;   // map the virtual viewport onto the sticky frame
-  gl_Position = cp;
+  gl_Position = uVP * modelMatrix * vec4(p, 1.);   // uVP also maps the virtual viewport onto the sticky frame
 }`
 
 const frag = /* glsl */`
@@ -204,6 +202,7 @@ export default function ScenePalazzo({ track }) {
 
   const st = useRef({ t: 0, frames: 0, p1: 0, p2: 0, wasOn: false, px: 0, py: 0, live: 0 })
   const buf = useMemo(() => new THREE.Vector2(), [])
+  const FM = useMemo(() => new THREE.Matrix4(), [])
 
   // apply image i (with its life-driven move) to slot A or B
   const setSlot = (slot, i, p, pa, port, t) => {
@@ -270,11 +269,9 @@ export default function ScenePalazzo({ track }) {
     const ratio = buf.y / H
     U.uRes.value.copy(buf)
     U.uClip.value.set((H - r.top - r.height) * ratio - 0.5, (H - r.top) * ratio + 0.5)
-    if (hub.noClip) U.uClip.value.set(-1e5, 1e5)
     const sc = r.height / H
     U.uNdc.value.set(sc, 1 - (2 * r.top) / H - sc)
     U.uPlane.value = pa
-    hub.dbg = [Math.round(r.top), Math.round(r.height), H, buf.y, Math.round(U.uClip.value.x), Math.round(U.uClip.value.y), +s.live.toFixed(2)]
     // leaving: the picture sinks into the dark page as the frame scrolls away (no hard edge)
     U.uExit.value = Math.pow(clamp(-r.top / r.height), 1.3) * 0.85
 
@@ -311,7 +308,9 @@ export default function ScenePalazzo({ track }) {
     vcam.lookAt(dx * 0.4, dy * 0.4 + 0.22 * up, 0)
     vcam.updateProjectionMatrix()
     vcam.updateMatrixWorld()
-    U.uVP.value.multiplyMatrices(vcam.projectionMatrix, vcam.matrixWorldInverse)
+    // frame mapping folded into the projection: y' = y·sc + off·w
+    FM.set(1, 0, 0, 0, 0, U.uNdc.value.x, 0, U.uNdc.value.y, 0, 0, 1, 0, 0, 0, 0, 1)
+    U.uVP.value.multiplyMatrices(FM, vcam.projectionMatrix).multiply(vcam.matrixWorldInverse)
 
     const fh = 2 * D * Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * OVER
     mesh.current.scale.set(fh * pa, fh, 1)
