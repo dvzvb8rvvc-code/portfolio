@@ -85,7 +85,7 @@ float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
   return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
 void main(){
   vec4 c = texture2D(uMap, vUv);
-  if (uExt > 0. && vX < .015) { float k = smoothstep(.015, -.03, vX); c.rgb = mix(c.rgb, mix(vec3(.05, .08, .045), c.rgb, c.a), k); c.a = mix(c.a, 1., k); }
+  if (uExt > 0. && vX < .015) { float k = smoothstep(.015, -.03, vX); c.rgb = mix(c.rgb, vec3(.045, .07, .04), k * (1. - c.a * .25)); c.a = mix(c.a, 1., k); }
   float a = c.a * uOpacity * uFade;
   // depth dissolve: near pixels (white) materialise first, with a soft noisy front
   if (uReveal < .999) { float key = (1. - vD) * .78 + n2(vUv * vec2(160., 90.)) * .22; float r = uReveal * 1.3 - .15; a *= smoothstep(r + .02, r - .12, key); }
