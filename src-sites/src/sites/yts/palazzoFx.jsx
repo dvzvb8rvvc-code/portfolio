@@ -81,7 +81,6 @@ void main(){
 }`
 
 function Card({ id, i, rects, ptr, mob }) {
-  window.__cardR = (window.__cardR || 0) + 1
   const [map, dmap] = useLoader(THREE.TextureLoader, [url(id, mob), durl(id)])
   map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4
   const ia = map.image ? map.image.height / map.image.width : 0.8
@@ -91,9 +90,8 @@ function Card({ id, i, rects, ptr, mob }) {
     uMap: { value: map }, uDepth: { value: dmap }, uRep: { value: new THREE.Vector2(1, 1) }, uOff: { value: new THREE.Vector2() }, uAmount: { value: 60 },
     uSize: { value: new THREE.Vector2(100, 100) }, uPtr: { value: new THREE.Vector2() }, uSweep: { value: -1 }, uHover: { value: 0 }, uIn: { value: 0 },
   }), [map, dmap])
-  useFrame((st, dt) => {
-    dt = Math.min(dt, 0.05)
-    window.__cardF = (window.__cardF || 0) + 1
+  useFrame((st, rawDt) => {
+    const dt = Math.min(rawDt, 0.05)
     const r = rects.current[i], m = mesh.current; if (!r || !m) return
     const { width: Wc, height: Hc } = st.size
     m.position.set(r.x + r.w / 2 - Wc / 2, -(r.y + r.h / 2 - Hc / 2), 0)
@@ -111,7 +109,7 @@ function Card({ id, i, rects, ptr, mob }) {
     m.rotation.y = U.uPtr.value.x * 0.26
     m.rotation.x = -U.uPtr.value.y * 0.2
     U.uHover.value = THREE.MathUtils.damp(U.uHover.value, P.h ? 1 : 0, 5, dt)
-    U.uIn.value = THREE.MathUtils.damp(U.uIn.value, 1, 2.5, dt)
+    U.uIn.value = Math.min(1, U.uIn.value + Math.min(rawDt, 0.5) * 1.4)
     if (P.h && !wasHover.current && sweep.current > 1.4) sweep.current = -0.6
     wasHover.current = P.h
     sweep.current += dt * (P.h ? 0.9 : 0.45)
@@ -135,7 +133,7 @@ function PixelCamera() {
 }
 export function CardsCanvas({ ids, rects, ptr, active, mob, bg = '#1b2a33' }) {
   return (
-    <Canvas frameloop={active ? 'always' : 'demand'} dpr={[1, mob ? 1.5 : 1.6]} gl={{ antialias: true }} camera={{ fov: 30, near: 10, far: 20000, position: [0, 0, 1000] }} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+    <Canvas frameloop="always" dpr={[1, mob ? 1.5 : 1.6]} gl={{ antialias: true }} camera={{ fov: 30, near: 10, far: 20000, position: [0, 0, 1000] }} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
       <color attach="background" args={[bg]} />
       <PixelCamera />
       <Suspense fallback={null}>{ids.map((id, i) => <Card key={id} id={id} i={i} rects={rects} ptr={ptr} mob={mob} />)}</Suspense>

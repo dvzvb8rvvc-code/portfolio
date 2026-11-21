@@ -26,7 +26,7 @@ const ISO_H = [0.62, 1.0, 1.22, 0.72].map(h => h * 0.55)
 const ROOM_TXT = {
   148: { k: { en: 'Grotesques', it: 'Grottesche' }, t: { en: 'Painted vaults, room after room.', it: 'Volte dipinte, stanza dopo stanza.' } },
   156: { k: { en: 'Arched windows', it: 'Finestre ad arco' }, t: { en: 'Tuscan light through deep stone reveals.', it: 'Luce toscana tra profondi sguinci di pietra.' } },
-  157: { k: { en: 'Salon', it: 'Salotto' }, t: { en: 'Coffered ceilings over quiet salons.', it: 'Soffitti decorati su salotti silenziosi.' } },
+  157: { k: { en: 'Salon', it: 'Salotto' }, t: { en: 'Decorated ceilings over quiet salons.', it: 'Soffitti decorati su salotti silenziosi.' } },
   152: { k: { en: 'Bedroom', it: 'Camera' }, t: { en: 'Sleeping beneath original frescoes.', it: 'Dormire sotto affreschi originali.' } },
   143: { k: { en: 'Terracotta & paint', it: 'Cotto e decori' }, t: { en: 'Terracotta floors, painted walls.', it: 'Pavimenti in cotto, pareti dipinte.' } },
 }
@@ -291,7 +291,7 @@ function Film({ pickerRef }) {
                 <span ref={el => { hud.current.total = el }} className="text-[84px] md:text-[150px]">0</span>
                 <span className="text-[30px] md:text-[52px]">m²</span>
               </div>
-              <p className="mt-2 max-w-[30ch] text-[13px] leading-relaxed text-white/80 md:text-[14px]">{t({ en: 'Total area of the six residences, across three floors above the cellars and spa.', it: 'Superficie totale delle sei residenze, su tre piani sopra cantine e spa.' })}</p>
+              <p className="mt-2 max-w-[30ch] text-[13px] leading-relaxed text-white/80 md:text-[14px]">{t({ en: 'Total area of the six residences, across three floors above the cellars.', it: 'Superficie totale delle sei residenze, su tre piani sopra le cantine.' })}</p>
             </Chapter>
             <Chapter progress={progress} r={[0.4, 0.425, 0.47, 0.495]}>
               <Kicker className="text-[#ffcf8f]">{t({ en: 'Dusk in Volterra · 04', it: 'Sera a Volterra · 04' })}</Kicker>
@@ -432,10 +432,10 @@ function Picker({ innerRef }) {
 
 /* ---------------- 5. Amenities: depth cards that tilt toward the pointer ---------------- */
 const CARDS = [
-  { id: 149, k: 1, t: { en: 'Private wine cellars', it: 'Cantine private' }, s: { en: 'Level −1', it: 'Livello −1' } },
-  { id: 155, k: 0, t: { en: 'Spa suites', it: 'Suite spa' }, s: { en: 'Level −1', it: 'Livello −1' } },
-  { id: 153, k: 4, t: { en: 'Cigar lounge', it: 'Cigar lounge' }, s: { en: 'Attic', it: 'Mansarda' } },
-  { id: 150, k: null, t: { en: 'The Tuscan table', it: 'La tavola toscana' }, s: { en: 'Volterra', it: 'Volterra' } },
+  { id: 149, k: 1, t: { en: 'Private wine cellars', it: 'Cantine private' }, s: { en: 'Palazzo Campani', it: 'Palazzo Campani' } },
+  { id: 155, k: 0, t: { en: 'Spa suites', it: 'Suite spa' }, s: { en: 'Palazzo Campani', it: 'Palazzo Campani' } },
+  { id: 153, k: 4, t: { en: 'Cigar lounge', it: 'Cigar lounge' }, s: { en: 'Palazzo Campani', it: 'Palazzo Campani' } },
+  { id: 150, k: null, t: { en: 'Italian living', it: 'Vivere all’italiana' }, s: { en: 'Volterra', it: 'Volterra' } },
 ]
 function Amenities() {
   const { t, lang } = useLang()

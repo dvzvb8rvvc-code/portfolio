@@ -55,10 +55,10 @@ export const PALAZZO = {
   credit: { en: 'Restoration & interiors: architect and designer Emanuele Colombi', it: 'Restauro e interni: architetto e designer Emanuele Colombi' },
   // floors bottom → top, for the exploded 3D model
   floors: [
-    { id: 'cellar', t: { en: 'Cellars & spa', it: 'Cantine e spa' }, d: { en: 'Private wine cellars, spa suites', it: 'Cantine private, suite spa' }, units: [] },
+    { id: 'cellar', t: { en: 'Cellars', it: 'Cantine' }, d: { en: 'Private wine cellars', it: 'Cantine private' }, units: [] },
     { id: 'ground', t: { en: 'Ground floor', it: 'Piano terra' }, d: { en: 'Entrance salon, meeting & working lounge', it: 'Salone d’ingresso, lounge per riunioni e lavoro' }, units: [{ n: 1, m2: 83, r: { en: 'three rooms', it: 'trilocale' } }, { n: 2, m2: 84, r: { en: 'two rooms', it: 'bilocale' } }] },
     { id: 'nobile', t: { en: 'Piano nobile', it: 'Piano nobile' }, d: { en: 'Frescoed halls, art salon', it: 'Sale affrescate, salotto d’arte' }, units: [{ n: 3, m2: 68 }, { n: 4, m2: 58 }, { n: 5, m2: 79 }] },
-    { id: 'attic', t: { en: 'Attic loft', it: 'Loft mansardato' }, d: { en: 'Cigar lounge', it: 'Cigar lounge' }, units: [{ n: 6, m2: 102, r: { en: 'three rooms, two bedrooms', it: 'trilocale, due camere' } }] },
+    { id: 'attic', t: { en: 'Attic loft', it: 'Loft mansardato' }, d: { en: 'Loft residence', it: 'Residenza mansardata' }, units: [{ n: 6, m2: 102, r: { en: 'three rooms, two bedrooms', it: 'trilocale, due camere' } }] },
   ],
   total: 474, // 83+84+68+58+79+102
   extras: { en: ['Spa suites', 'Private wine cellars', 'Entrance salon', 'Meeting & working lounge', 'Cigar lounge', 'Art salon', 'Six residences, adults only'], it: ['Suite spa', 'Cantine private', 'Salone d’ingresso', 'Lounge per riunioni e lavoro', 'Cigar lounge', 'Salotto d’arte', 'Sei residenze, solo adulti'] },

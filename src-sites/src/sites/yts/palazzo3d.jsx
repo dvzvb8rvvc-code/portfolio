@@ -16,7 +16,7 @@ import { Journey, INT } from './palazzoRooms'
    ============================================================ */
 export const W = 4.2, D = 2.6, T = 0.1
 export const PLAN = [
-  { id: 'cellar', h: 0.62, rooms: [{ a: 0, b: 0.44, l: { en: 'SPA SUITES', it: 'SUITE SPA' } }, { a: 0.44, b: 0.56, core: 1 }, { a: 0.56, b: 1, l: { en: 'WINE CELLARS', it: 'CANTINE' } }] },
+  { id: 'cellar', h: 0.62, rooms: [{ a: 0, b: 0.44, l: { en: 'WINE CELLARS', it: 'CANTINE' } }, { a: 0.44, b: 0.56, core: 1 }, { a: 0.56, b: 1, l: { en: 'CELLARS', it: 'CANTINE' } }] },
   { id: 'ground', h: 1.0, rooms: [{ a: 0, b: 0.4, u: 1, m2: 83 }, { a: 0.4, b: 0.6, core: 1, l: { en: 'SALON', it: 'SALONE' } }, { a: 0.6, b: 1, u: 2, m2: 84 }] },
   { id: 'nobile', h: 1.22, rooms: [{ a: 0, b: 0.33, u: 3, m2: 68 }, { a: 0.33, b: 0.45, core: 1 }, { a: 0.45, b: 0.7, u: 4, m2: 58 }, { a: 0.7, b: 1, u: 5, m2: 79 }] },
   { id: 'attic', h: 0.72, rooms: [{ a: 0, b: 0.82, u: 6, m2: 102 }, { a: 0.82, b: 1, core: 1 }] },
@@ -334,6 +334,7 @@ function Building({ S, hud, lang, lite, M }) {
     // glass: three groups of rooms switch on one after another as dusk falls
     M.glass.forEach((m, k) => { m.emissiveIntensity = S.glow[k] })
     // HUD leader lines + labels from the projected corner of each band
+    if (hud.current && S.interior) hud.current.lines.forEach(Ln => { if (Ln) Ln.style.transform = 'scaleX(0)' })
     if (hud.current && !S.interior) {
       const lx0 = size.width * (mob ? 0.5 : 0.63)
       floors.forEach((f, i) => {
@@ -414,7 +415,7 @@ function Director({ progress, S, drag }) {
     dt = Math.min(dt, 0.05)
     const target = progress.get()
     // snap on big jumps (skip button / anchor links), damp otherwise
-    S.p = Math.abs(target - S.p) > 0.2 || window.__palSnap ? target : THREE.MathUtils.damp(S.p, target, 4.2, dt)
+    S.p = Math.abs(target - S.p) > 0.2 ? target : THREE.MathUtils.damp(S.p, target, 4.2, dt)
     const p = S.p, mob = size.width < 768, cam = st.camera
     S.e = explodeOf(p)
     S.dusk = smooth(TL.dusk[0], TL.dusk[1], p)
