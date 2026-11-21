@@ -36,11 +36,11 @@ const HILL = { w: 112, h: 112 * 890 / 1600, pos: [0, 31, 32] }
 const TOD = {
   k: [0, .55, 1],
   top: ['#3d6488', '#4b6189', '#46507c'].map(C),
-  hor: ['#c9d2d4', '#ecc999', '#efa66c'].map(C),
+  hor: ['#b9c3c6', '#e3bd8c', '#e89a5e'].map(C),
   sun: ['#fff0d6', '#ffd39a', '#ffa95c'].map(C),
   tint: ['#fff7ec', '#ffead0', '#ffd4a6'].map(C),
-  haze: ['#a3b2b9', '#c8b192', '#d4a074'].map(C),
-  exp: [.93, .95, .9], el: [.5, .28, .12], glow: [.2, .55, .95], hazeAmt: [.13, .18, .23],
+  haze: ['#8e9ea6', '#b39c80', '#c08c64'].map(C),
+  exp: [.9, .92, .88], el: [.5, .28, .12], glow: [.2, .55, .95], hazeAmt: [.08, .12, .16],
 }
 function todAt(t, out) {
   const k = TOD.k; let i = 0; while (i < k.length - 2 && t > k[i + 1]) i++
@@ -74,13 +74,14 @@ vec3 cine(vec3 c){
   float l = dot(c, vec3(.2126, .7152, .0722));
   c = mix(vec3(l), c, .86);
   c *= mix(vec3(.92, .96, 1.03), vec3(1.07, 1., .87), smoothstep(.04, .62, l));
+  c = mix(c, c * c * (3. - 2. * c), .3);
   c = c * .94 + vec3(.010, .0085, .0065);
   vec2 s = gl_FragCoord.xy / uRes;
   c *= 1. - .5 * (1. - smoothstep(0., .42, s.y));
   c *= 1. - .32 * smoothstep(.78, 1., s.y);
   c *= mix(1., 1. - smoothstep(.32, 1.2, length((s - .5) * vec2(1.1, 1.))), .55);
   float fe = uRes.y * .14;
-  float m = smoothstep(uEdge.x, uEdge.x + fe, gl_FragCoord.y) * smoothstep(uEdge.y, uEdge.y - fe, gl_FragCoord.y);
+  float m = smoothstep(uEdge.x, uEdge.x + fe, gl_FragCoord.y) * (1. - smoothstep(uEdge.y - fe, uEdge.y, gl_FragCoord.y));
   c = mix(uBg, c, m);
   float g = cineHash(gl_FragCoord.xy + fract(uTime * 7.31) * 113.) - .5;
   return c + g * .022 * (.35 + sqrt(max(c.g, 0.)));
@@ -266,10 +267,10 @@ void main(){
   vec3 deep = mix(vec3(.05, .11, .14), uTop * .32, .5) * uExp;
   vec3 col = mix(deep, refl * .92, F);
   // sun glitter — sharp highlights from the ripple normals, sparkling cells
-  float sp = pow(max(dot(r, uSun), 0.), 1400.) * smoothstep(8., 40., dist);
-  float tw = step(.62, h21(floor(q * 7.) + floor(t * 5.)));
+  float sp = pow(max(dot(r, uSun), 0.), 1400.) * smoothstep(40., 140., dist);
+  float tw = step(.7, h21(floor(q * 18.) + floor(t * 5.)));
   col += uSunCol * (sp * (1.4 + 2.6 * tw) + pow(max(dot(r, uSun), 0.), 60.) * .1 * uGlow);
-  col = mix(col, uHaze, clamp(smoothstep(30., 260., dist) * uHazeAmt * 2.4, 0., .85));
+  col = mix(col, uHaze, clamp(smoothstep(30., 260., dist) * uHazeAmt * 1.8, 0., .7));
   gl_FragColor = vec4(col, uFade);
   ${FIN}
 }`
@@ -306,7 +307,7 @@ void main(){
   ${FIN}
 }`
 function Mist({ sh }) {
-  const banks = [[[10, 7, -143], 520, 24, .55], [[-30, 4, -105], 380, 12, .28]]
+  const banks = [[[10, 7, -143], 520, 24, .4], [[-30, 4, -105], 380, 12, .2]]
   const us = useMemo(() => banks.map(b => ({ uHaze: sh.uHaze, uTime: sh.uTime, uFade: sh.uFade, uRes: sh.uRes, uEdge: sh.uEdge, uBg: sh.uBg, uAmt: { value: b[3] } })), [])
   return banks.map(([p, w, h], i) => (
     <mesh key={i} position={p} renderOrder={3}>
@@ -447,6 +448,7 @@ function Ready({ reg }) { useLayoutEffect(() => { reg.current.ready = true }, []
 function World({ track, mobile }) {
   const reg = useRef({})
   const sh = useMemo(makeShared, [])
+  if (typeof window !== 'undefined') window.__ytsComo = sh
   const g = useRef()
   useLayoutEffect(() => { reg.current.group = g.current }, [])
   const sm = !!mobile

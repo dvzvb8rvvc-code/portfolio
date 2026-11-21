@@ -285,7 +285,7 @@ function Details({ innerRef }) {
 export default function Como() {
   const after = useRef()
   return (
-    <section id="como" className="relative bg-[#0b0a08]">
+    <section id="como" className="relative">
       <Film after={after} />
       <Details innerRef={after} />
     </section>

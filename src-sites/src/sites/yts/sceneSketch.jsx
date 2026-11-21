@@ -83,10 +83,10 @@ void main(){
   vec3 b = texture2D(uB, (uv - flow * wide * .045 - .5) * uCovB + .5).rgb;
   // before — drawing: warm ink on dark paper (keeps the watercolour hue, never inverts it)
   float la = dot(a, vec3(.299, .587, .114));
-  float ink = smoothstep(.97, .25, la);
+  float ink = pow(smoothstep(.86, .22, la), 1.2);
   vec3 hue = a / max(max(a.r, max(a.g, a.b)), .02);
   vec3 paper = vec3(.078, .07, .058) * (.92 + .1 * vn(q * 3.) );
-  vec3 aInk = paper + ink * mix(vec3(.93, .82, .62), hue * .9, .4) * .95;
+  vec3 aInk = paper + ink * mix(vec3(.9, .78, .56), hue * .85, .35) * .85;
   // before — photo: archival grade (desaturated, warm, low-key)
   vec3 aPh = mix(vec3(la), a, .35) * vec3(1.02, .96, .86) * .72 + .015;
   vec3 ca = mix(aPh, aInk, uSketch);
@@ -262,16 +262,14 @@ export default function SceneSketch({ track }) {
     const visH = D * tan2, visW = visH * va
     const sx = desk ? -0.17 * visW : 0, sy = desk ? 0.02 * visH : 0.06 * visH
     const travel = Math.sin(Math.PI * fr)
-    const rr = s.r[Math.round(C.c)] ?? 0
-    const ox = (rr - 0.5) * 0.5 * (desk ? 1 : 0.4) + ptr.x * 0.2, oy = -0.15 + rr * 0.26 + ptr.y * 0.1
+    // one damping stage only (C.c, rr, pointer) → camera and look target move together, no skew while panning
+    C.rr = damp(C.rr ?? 0, s.r[Math.round(C.c)] ?? 0, 4, dt)
+    C.mx = damp(C.mx ?? 0, ptr.x, 2.5, dt); C.my = damp(C.my ?? 0, ptr.y, 2.5, dt)
+    const rr = C.rr
+    const ox = (rr - 0.5) * 0.5 * (desk ? 1 : 0.4) + C.mx * 0.2, oy = -0.15 + rr * 0.26 + C.my * 0.1
     const px = ORIGIN.x + C.c * GAP + sx, py = ORIGIN.y + sy
     const tx = px + ox, ty = py + oy, tz = D + travel * 1.4 - rr * 0.25
-    if (!C.wasActive) { camera.position.set(tx, ty, tz); C.wasActive = true; C.y = ty }
-    else {
-      camera.position.x = damp(camera.position.x, tx, 4, dt)
-      C.y = damp(C.y, ty, 4, dt)
-      camera.position.z = damp(camera.position.z, tz, 4, dt)
-    }
+    camera.position.x = tx; camera.position.z = tz; C.y = ty; C.wasActive = true
     // emulated sticky: while the film enters/leaves, the frame scrolls 1:1 with the page (not damped)
     const el = stage.els.sketch
     let sh = 0
@@ -281,7 +279,7 @@ export default function SceneSketch({ track }) {
       else if (r.bottom < vh) sh = -(vh - r.bottom) / vh
     }
     camera.position.y = C.y + sh * visH
-    tmpLook.set(px, py + sh * visH, 0)
+    tmpLook.set(px + ox * .35, py + sh * visH + oy * .35, 0)
     camera.lookAt(tmpLook)
   })
 

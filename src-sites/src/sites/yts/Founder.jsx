@@ -62,7 +62,7 @@ function Portrait() {
         </div>
         {/* b/w inset floats on its own depth */}
         <motion.div style={{ x: ix, y: iy, z: 60 }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1.2, ease: EASE, delay: 0.5 }}
-          className="absolute -bottom-8 -right-3 w-[34%] overflow-hidden rounded-[4px] shadow-[0_30px_60px_-20px_rgba(0,0,0,.8)] ring-4 ring-[#0b0a08] md:-right-10">
+          className="absolute -bottom-8 right-2 w-[34%] overflow-hidden rounded-[4px] shadow-[0_30px_60px_-20px_rgba(0,0,0,.8)] ring-4 ring-[#0b0a08] md:-right-10">
           <img src={img(1, true)} alt="" loading="lazy" decoding="async" width="480" height="720" className="aspect-[2/3] w-full object-cover grayscale" />
         </motion.div>
       </motion.div>

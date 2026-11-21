@@ -52,7 +52,7 @@ function Title({ p }) {
   return (
     <motion.div style={{ opacity: o, scale: sc, y, filter: blur, pointerEvents: ev }} className="absolute inset-x-0 bottom-0 z-20 origin-bottom-left">
       <div className="mx-auto max-w-[1440px] px-6 pb-[max(36px,calc(env(safe-area-inset-bottom)+24px))] md:px-12 md:pb-16">
-        <Fade d={.2} className={`${T.sans} mb-5 flex items-center gap-4 text-[11px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/75 md:mb-7 md:tracking-[.4em]`}>
+        <Fade d={.2} className={`${T.sans} mb-5 flex items-center gap-4 text-[11px] font-medium uppercase tracking-[.26em] text-[#f3ede3]/75 md:mb-7 md:tracking-[.4em] md:tracking-[.4em]`}>
           <span className="h-px w-10 bg-[#c3a15e]" />{t(PERSON.motto)}
         </Fade>
         <h1 className={`${T.serif} text-[#f6f1e8] text-[clamp(64px,19vw,96px)] leading-[.86] tracking-[-.02em] md:text-[clamp(96px,11.4vw,200px)]`}>

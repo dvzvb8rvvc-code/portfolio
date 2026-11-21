@@ -95,7 +95,7 @@ function OpeningCopy({ t }) {
       </h2>
       <div className="mt-5 grid gap-4 md:mt-8 md:grid-cols-12 md:gap-8">
         <p className={`${T.serif} text-[19px] leading-[1.22] text-[#efe8dc]/92 md:col-span-6 md:text-[27px] md:leading-[1.18]`}>{t(PALAZZO.lead)}</p>
-        <div className="hidden flex-col justify-end gap-3 text-[13px] leading-relaxed text-[#efe8dc]/62 md:col-span-3 md:col-start-10 md:flex">
+        <div className="hidden flex-col justify-end gap-3 text-[13px] leading-relaxed text-[#efe8dc]/80 [text-shadow:0_1px_12px_rgba(0,0,0,.7)] md:col-span-3 md:col-start-8 md:flex">
           <span className="h-px w-12 bg-[#c3a15e]" />{t(PALAZZO.credit)}
         </div>
       </div>
@@ -154,6 +154,7 @@ function Film() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0b0a08]/70 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-[#0b0a08]/88 via-[#0b0a08]/35 to-transparent" />
 
+        <motion.div style={{ opacity: openO }} className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(11,10,8,.62)_0%,rgba(11,10,8,.25)_45%,transparent_70%)] max-md:bg-[linear-gradient(0deg,rgba(11,10,8,.7)_0%,rgba(11,10,8,.3)_55%,transparent_75%)]" />
         <motion.div style={{ opacity: openO, y: openY }} className="pointer-events-none absolute inset-0"><OpeningCopy t={t} /></motion.div>
 
         <motion.div style={{ opacity: chromeO }} className="pointer-events-none absolute inset-0">
