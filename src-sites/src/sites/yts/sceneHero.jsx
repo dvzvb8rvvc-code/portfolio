@@ -128,7 +128,7 @@ void main(){
   vec3 c = mix(uA, uB, uDark);
   c *= 1. - .10 * smoothstep(.35, 1.1, length((vQ - .5) * vec2(1.3, 1.)));
   c += vec3(.75, .55, .3) * .05 * (1. - uDark) * smoothstep(.9, .0, length(vQ - vec2(.7, .55)));
-  c += (h21(gl_FragCoord.xy + fract(uTime * 5.1) * 77.) - .5) * mix(.025, .04, uDark);
+  c += (h21(gl_FragCoord.xy + fract(uTime * 5.1) * 77.) - .5) * mix(.022, .026, uDark);
   gl_FragColor = vec4(c, 1.);
   #include <colorspace_fragment>
 }`

@@ -106,7 +106,7 @@ function StageLabel({ r, i }) {
   const oa = useTransform(r, v => 1 - ss(.35, .6, v)), ob = useTransform(r, v => ss(.35, .6, v))
   const ya = useTransform(r, v => -ss(.35, .6, v) * 100 + '%'), yb = useTransform(r, v => (1 - ss(.35, .6, v)) * 100 + '%')
   return (
-    <span className="relative inline-grid overflow-hidden align-bottom">
+    <span className="relative -my-[.18em] inline-grid overflow-hidden py-[.18em] align-bottom">
       <motion.span style={{ opacity: oa, y: ya }} className="col-start-1 row-start-1">{t(PAIR_LAB[i][0])}</motion.span>
       <motion.span style={{ opacity: ob, y: yb }} className="col-start-1 row-start-1 italic text-[#b06a35]">{t(PAIR_LAB[i][1])}</motion.span>
     </span>

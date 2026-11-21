@@ -234,7 +234,7 @@ export default function ScenePalazzo({ track }) {
     const tr = track.current
     dt = Math.min(dt, 0.05)
     if (!root.current) return
-    root.current.visible = tr.on
+    root.current.visible = tr.on && !/palx=1/.test(location.search)
     S.active = tr.on && stage.active === 'palazzo'
     if (!tr.on) { wasActive.current = false; return }
     // one damped progress drives everything; snap on big jumps (nav / skip)

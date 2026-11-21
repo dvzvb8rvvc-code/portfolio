@@ -249,7 +249,7 @@ export default function SceneSketch({ track }) {
     const k = Math.min(3, Math.floor(C.c)), fr = C.c - k
     const fa = THREE.MathUtils.lerp(ASPECT[k], ASPECT[Math.min(3, k + 1)], fr)
     const desk = va > 1.05
-    const bh = desk ? 0.66 : 0.4, bw = desk ? 0.48 : 0.84
+    const bh = desk ? 0.66 : 0.36, bw = desk ? 0.48 : 0.8
     const D = Math.max(H / (bh * tan2), (H * fa) / (bw * va * tan2))
     const visH = D * tan2, visW = visH * va
     const sx = desk ? -0.17 * visW : 0, sy = desk ? -0.01 * visH : -0.09 * visH
