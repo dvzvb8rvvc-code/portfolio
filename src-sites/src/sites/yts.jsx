@@ -11,11 +11,12 @@ import Como from './yts/Como'
 import Palazzo from './yts/Palazzo'
 import Works from './yts/Works'
 import Founder from './yts/Founder'
-import Club from './yts/Club'
 import Contact from './yts/Contact'
+import { Stage } from './yts/engine'
+import { useLite } from '../lib/kit'
 
 /* Shell: owns nav, language switch, ribbon, smooth scroll. Sections live in ./yts/*.jsx (one owner each). */
-const NAV = [['#studio', 'nav.studio'], ['#residences', 'nav.residences'], ['#works', 'nav.works'], ['#founder', 'nav.founder'], ['#club', 'nav.club']]
+const NAV = [['#studio', 'nav.studio'], ['#como', 'nav.residences'], ['#works', 'nav.works'], ['#founder', 'nav.founder']]
 
 function LangSwitch({ dark }) {
   const { lang, setLang } = useLang()
@@ -76,12 +77,14 @@ function Ribbon() {
 
 function App() {
   useSmooth()
+  const lite = useLite()
   return (
     <MotionConfig reducedMotion="user">
       <div id="top" className={`bg-[#ece7df] text-[#151412] ${T.sans}`} style={{ '--sel': '#151412', '--selc': '#ece7df' }}>
-        <Ribbon />
+        <Stage lite={lite} />
+        <div className="relative z-[61]"><Ribbon /></div>
         <Nav />
-        <main>
+        <main className="relative z-10">
           <Hero />
           <Studio />
           <div id="residences">
@@ -90,7 +93,6 @@ function App() {
           </div>
           <Works />
           <Founder />
-          <Club />
           <Contact />
         </main>
       </div>
