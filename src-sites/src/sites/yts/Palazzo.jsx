@@ -214,7 +214,7 @@ function Film({ pickerRef }) {
   const lite = useLite()
   const mob = useIsMobile()
   const ref = useRef()
-  const [near, vis] = useNear(ref)
+  const [near, vis] = useNear(ref, '250% 0px')
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const still = useMotionValue(1)
   const progress = reduce ? still : scrollYProgress
@@ -256,7 +256,7 @@ function Film({ pickerRef }) {
 
   return (
     <div ref={ref} className="relative bg-[#0b0a09]" style={{ height: mob ? '880vh' : '1000vh' }}>
-      <div className="sticky top-0 h-[100svh] touch-pan-y overflow-hidden text-[#ece7df]" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
+      <div className="sticky top-0 h-[100svh] touch-pan-y overflow-hidden bg-[radial-gradient(ellipse_at_50%_40%,#d9b88f_0%,#8a5f3a_55%,#2a1c12_100%)] text-[#ece7df]" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
         <div className="absolute inset-0">{near && <Suspense fallback={null}><Film3D progress={progress} hud={hud} lang={lang} active={vis} lite={mob} drag={drag} /></Suspense>}</div>
 
         {/* HUD: leader lines + floor labels */}

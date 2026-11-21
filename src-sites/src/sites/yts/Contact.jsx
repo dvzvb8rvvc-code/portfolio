@@ -143,7 +143,7 @@ function useNear(ref) {
   const [near, setNear] = useState(false), [vis, setVis] = useState(false)
   useEffect(() => {
     const el = ref.current; if (!el) return
-    const a = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: '80% 0px' })
+    const a = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: '40% 0px' })
     const b = new IntersectionObserver(([e]) => setVis(e.isIntersecting), { rootMargin: '5% 0px' })
     a.observe(el); b.observe(el)
     return () => { a.disconnect(); b.disconnect() }

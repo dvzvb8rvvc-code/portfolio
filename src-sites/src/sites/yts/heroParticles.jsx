@@ -27,7 +27,7 @@ void main(){
   float hy = (aBuild.y + 4.) / 10.;
   float km = sm(uMorph * 1.7 - rw * .4 - hy * .3);
   float arc = sin(km * 3.14159);
-  p = mix(p, aBuild, km) + vec3(sin(rx * 50. + uTime * .8) * .9, .5 + ry * 1.6, cos(rz * 50. + uTime * .8) * .9) * arc;
+  p = mix(p, aBuild, km) + vec3(sin(rx * 50. + uTime * .8) * .6, .3 + ry * 1.1, cos(rz * 50. + uTime * .8) * .6) * arc;
   // 3 · building → photo cloud
   vec2 uv = aUv;
   float d = texture2D(uDepthMap, uv).r;
@@ -42,10 +42,10 @@ void main(){
   sk = mix(sk, uGold, gold * .85);
   vec3 bc = mix(mix(uInk, vec3(.32, .26, .2), ry * .6), uGold * 1.6, uDusk * .8 + gold * .6);
   vec3 col = mix(sk, bc, km);
-  col = mix(col, uGold * 1.8, arc * .7);
+  col = mix(col, uGold * 1.5, arc * .45);
   vec3 ph = texture2D(uPhotoMap, uv).rgb;
-  col = mix(col, ph * 1.08, kp);
-  col = mix(col, uGold * 2.2, arc2 * .6);
+  col = mix(col, ph * 1.08, smoothstep(0., .55, kp));
+  col = mix(col, uGold * 1.6, arc2 * .3);
 
   // the scan: particles below the cut have become stone; a hot band rides the cut
   float inB = km * (1. - kp);
@@ -59,7 +59,7 @@ void main(){
 
   vec4 mv = modelViewMatrix * vec4(p, 1.);
   gl_Position = projectionMatrix * mv;
-  float s = uSize * (1. + band * 1.4 + arc * .6 + arc2 * .8) * mix(1., 1.55, kp) * mix(1., 1.25, gold);
+  float s = uSize * (1. + band * 1.4 + arc * .3 + arc2 * .4) * mix(1., 1.2, kp) * mix(1., 1.25, gold);
   gl_PointSize = max(1., s * uScale / -mv.z);
   vCol = col; vA = a;
 }`

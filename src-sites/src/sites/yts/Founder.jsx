@@ -11,7 +11,7 @@ const Group3D = lazy(() => import('./foundergroup3d'))
 const EASE = [0.16, 1, 0.3, 1]
 const pad = n => String(n).padStart(2, '0')
 
-function useNear(ref, margin = '80% 0px') {
+function useNear(ref, margin = '40% 0px') {
   const [near, setNear] = useState(false), [vis, setVis] = useState(false)
   useEffect(() => {
     const el = ref.current; if (!el) return

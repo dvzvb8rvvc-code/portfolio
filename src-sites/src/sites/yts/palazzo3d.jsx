@@ -267,7 +267,7 @@ const skyVert = `varying vec3 vP; void main(){ vP = normalize(position); gl_Posi
 const skyFrag = `uniform float uDusk; uniform vec3 uSun; varying vec3 vP;
 void main(){
   float y = clamp(vP.y, -0.2, 1.0);
-  vec3 zD = vec3(.36,.52,.70), hD = vec3(.96,.84,.66);
+  vec3 zD = vec3(.24,.40,.60), hD = vec3(.92,.72,.50);
   vec3 zG = vec3(.20,.27,.42), hG = vec3(1.0,.58,.28);
   vec3 zN = vec3(.025,.04,.09), hN = vec3(.42,.17,.12);
   float a = smoothstep(0.0, .5, uDusk), b = smoothstep(.45, 1.0, uDusk);
@@ -389,12 +389,12 @@ function Word({ S }) {
     ref.current.visible = !S.interior && S.p < 0.5
     // always stands behind the palazzo, turned to the lens
     FWD.set(camera.position.x, 0, camera.position.z).normalize()
-    ref.current.position.set(-FWD.x * 6.5, -0.06 + S.e * 1.2, -FWD.z * 6.5)
+    ref.current.position.set(-FWD.x * 7.5, -0.06 + S.e * 1.6, -FWD.z * 7.5)
     ref.current.rotation.y = Math.atan2(FWD.x, FWD.z)
   })
   return (
     <group ref={ref}>
-      <Center bottom>
+      <Center top>
         <Text3D font={font} size={2.3} height={0.4} bevelEnabled bevelSize={0.025} bevelThickness={0.03} bevelSegments={2} curveSegments={6} letterSpacing={-0.04}>
           CAMPANI
           <meshStandardMaterial color="#d5ae6e" metalness={0.9} roughness={0.28} />
@@ -432,7 +432,7 @@ function Director({ progress, S, drag }) {
       P0.y += (1 - intro) * -0.4
       // push the building off-centre to leave room for the copy / labels
       FWD.subVectors(T0, P0).normalize(); RIGHT.crossVectors(FWD, cam.up).normalize()
-      const off = (mob ? 0.7 : 0.9) * (0.4 + 0.6 * ex)
+      const off = mob ? 0.6 * (0.4 + 0.6 * ex) : -0.2 - 0.25 * ex
       P0.addScaledVector(RIGHT, off); T0.addScaledVector(RIGHT, off)
       // fly to the central window of the piano nobile, then through it
       const wy = BASES[2] + (WIN.y0 + (WIN.y1 - WIN.y0) * 0.42) * PLAN[2].h
@@ -474,7 +474,7 @@ function Effects({ S, mob }) {
       <Bloom mipmapBlur luminanceThreshold={0.92} luminanceSmoothing={0.25} intensity={1.2} radius={0.78} />
       <ToneMapping ref={tm} mode={ToneMappingMode.ACES_FILMIC} />
       <Vignette offset={0.28} darkness={0.62} />
-      <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.55} />
+      <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.35} />
     </EffectComposer>
   )
 }

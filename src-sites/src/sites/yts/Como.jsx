@@ -155,10 +155,10 @@ function Film() {
           <Eyebrow className="mb-4 text-white/85">{t({ en: 'Perledo · SP65 Scenic Route', it: 'Perledo · Strada panoramica SP65' })}</Eyebrow>
           <p className={`${T.serif} text-[clamp(28px,3.1vw,46px)] leading-[1.04] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,.4)]`}>{t(COMO.lead)}</p>
         </Chapter>
-        <Chapter p={p} range={[.88, .92, 1.1, 1.2]} className="bottom-[12%] left-5 right-5 md:left-10">
+        <Chapter p={p} range={[.91, .94, 1.1, 1.2]} className="bottom-[12%] left-5 right-5 md:left-10">
           <Eyebrow className="mb-4 text-white/85">{t({ en: 'From every garden', it: 'Da ogni giardino' })}</Eyebrow>
           <h3 className={`${T.serif} text-[clamp(40px,6vw,96px)] leading-[.92] text-white drop-shadow-[0_2px_30px_rgba(0,0,0,.35)]`}>
-            <KineticWords p={p} from={.9} to={.97} text={t({ en: 'The lake, framed as your own.', it: 'Il lago, incorniciato come fosse tuo.' })} />
+            <KineticWords p={p} from={.925} to={.98} text={t({ en: 'The lake, framed as your own.', it: 'Il lago, incorniciato come fosse tuo.' })} />
           </h3>
         </Chapter>
         <Rail p={p} />

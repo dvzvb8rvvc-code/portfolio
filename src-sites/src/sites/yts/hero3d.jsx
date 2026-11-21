@@ -25,18 +25,18 @@ const tex = n => `/portfolio/yts/tex/${n}.webp`
 
 /* camera keyframes (orbit around the building) */
 const DESK = {
-  A: { th: -.58, el: .30, R: 21, ty: 0, ly: -.2, sh: 2.5 },
-  B: { th: -.22, el: .25, R: 19, ty: 0, ly: 0, sh: 2.1 },
-  C: { th: .36, el: .21, R: 17.6, ty: 0, ly: 0, sh: 1.7 },
-  D: { th: .52, el: .17, R: 20.5, ty: 1.9, ly: 0, sh: .55 },
-  E: { th: .08, el: .1, R: 19, ty: .6, ly: 0, sh: 0 },
+  A: { th: -.58, el: .30, R: 29, ty: 0, ly: -1.3, sh: 4.4 },
+  B: { th: -.22, el: .25, R: 27, ty: 0, ly: -.6, sh: 3.8 },
+  C: { th: .36, el: .21, R: 25.5, ty: 0, ly: -.4, sh: 3.4 },
+  D: { th: .52, el: .17, R: 30, ty: 1.9, ly: 0, sh: 1.2 },
+  E: { th: .08, el: .1, R: 27, ty: .6, ly: 0, sh: 0 },
 }
 const MOB = {
-  A: { th: -.5, el: .3, R: 30, ty: 0, ly: -2.6, sh: 0 },
-  B: { th: -.2, el: .26, R: 29, ty: 0, ly: -2.2, sh: 0 },
-  C: { th: .3, el: .22, R: 28, ty: 0, ly: -2.0, sh: 0 },
-  D: { th: .45, el: .16, R: 33, ty: 2.0, ly: -1.2, sh: .9 },
-  E: { th: .05, el: .08, R: 30, ty: .6, ly: -.5, sh: 0 },
+  A: { th: -.5, el: .3, R: 44, ty: 0, ly: -3.4, sh: 0 },
+  B: { th: -.2, el: .26, R: 42, ty: 0, ly: -3, sh: 0 },
+  C: { th: .3, el: .22, R: 40, ty: 0, ly: -2.6, sh: 0 },
+  D: { th: .45, el: .16, R: 46, ty: 2.0, ly: -1.6, sh: 1.6 },
+  E: { th: .05, el: .08, R: 42, ty: .6, ly: -.5, sh: 0 },
 }
 function lerpPose(a, b, k) { const o = {}; for (const key in a) o[key] = lerp(a[key], b[key], k); return o }
 const _r = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0)
@@ -118,7 +118,7 @@ function useBuildingMats(plane, mobile) {
     return {
       plaster: new THREE.MeshStandardMaterial({ ...base, map: t.pd, normalMap: t.pn, normalScale: new THREE.Vector2(.35, .35), color: '#fbf6ee', roughness: .82 }),
       stone: new THREE.MeshStandardMaterial({ ...base, map: t.sd, normalMap: t.sn, roughnessMap: t.sa, aoMap: null, color: '#e6dccb', roughness: 1, normalScale: new THREE.Vector2(1.1, 1.1) }),
-      wood: new THREE.MeshStandardMaterial({ ...base, map: t.wd, normalMap: t.wn, color: '#d9a674', roughness: .62 }),
+      wood: new THREE.MeshStandardMaterial({ ...base, map: t.wd, normalMap: t.wn, color: '#f2e6da', roughness: .6 }),
       glass: new THREE.MeshStandardMaterial({ ...base, color: '#1b262b', metalness: 1, roughness: .05, envMapIntensity: 1.6, transparent: true, opacity: .62 }),
       frame: new THREE.MeshStandardMaterial({ ...base, color: '#2a2724', metalness: .7, roughness: .38 }),
       interior: new THREE.MeshStandardMaterial({ ...base, color: '#3a2a1c', emissive: '#ffb066', emissiveIntensity: .3, roughness: .9 }),
@@ -129,9 +129,8 @@ function useBuildingMats(plane, mobile) {
 }
 
 function Instanced({ geo, list, mat }) {
-  const ref = useRef()
-  useEffect(() => { ref.current && fillInstances(ref.current, list) }, [list])
-  return <instancedMesh ref={ref} args={[geo, mat, list.length]} frustumCulled={false} />
+  const mesh = useMemo(() => { const m = new THREE.InstancedMesh(geo, mat, list.length); fillInstances(m, list); m.frustumCulled = false; return m }, [geo, list, mat])
+  return <primitive object={mesh} />
 }
 
 function Label({ L, i, text, refFn }) {
@@ -237,11 +236,11 @@ function World({ film, labels, mobile }) {
   photoS.colorSpace = THREE.SRGBColorSpace
   const model = useMemo(buildModel, [])
   const pose = useMemo(() => openingPose(mobile), [mobile])
-  const geometry = useMemo(() => buildParticleGeometry({ N, build: samplePoints(model, N), sketchImage: sketch.image, pose, sketchH: mobile ? 9.6 : 8.4, photoAspect: PHOTO.aspect }), [model, sketch, pose, N])
+  const geometry = useMemo(() => buildParticleGeometry({ N, build: samplePoints(model, N), sketchImage: sketch.image, pose, sketchH: mobile ? 13.5 : 11.6, photoAspect: PHOTO.aspect }), [model, sketch, pose, N])
   return (
     <>
       <Building model={model} film={film} labels={labels} mobile={mobile} />
-      <Particles geometry={geometry} film={film} photoMap={photoS} depthMap={depth} photo={PHOTO} swirlC={CENTER} size={mobile ? .04 : .024} />
+      <Particles geometry={geometry} film={film} photoMap={photoS} depthMap={depth} photo={PHOTO} swirlC={CENTER} size={mobile ? .05 : .032} />
       <PhotoSolid film={film} photo={PHOTO} depthMap={depth} mobile={mobile} />
     </>
   )
@@ -261,13 +260,13 @@ function Post({ film }) {
       _focus.lerp(new THREE.Vector3(PHOTO.c[0], PHOTO.c[1] - .6, PHOTO.c[2] + 1.2), b.dolly)
       target.copy(_focus)
       dof.current.target = target
-      dof.current.bokehScale = lerp(0, 3.2, b.solid) * (1 - b.photo * .7) + b.dolly * 2.4
+      dof.current.bokehScale = lerp(0, 1.4, b.solid) * (1 - b.photo) + b.dolly * 1.1
     }
-    if (ca.current) { const k = Math.min(.006, f.v * .016); caOff.set(k, k * .6) }
+    if (ca.current) { const k = SNAP ? 0 : Math.min(.0024, f.v * .006); caOff.set(k, k * .6) }
   })
   return (
     <EffectComposer multisampling={0} disableNormalPass>
-      <DepthOfField ref={dof} focusRange={.03} bokehScale={0} resolutionScale={.5} />
+      <DepthOfField ref={dof} focusRange={.06} bokehScale={0} resolutionScale={.5} />
       <Bloom mipmapBlur luminanceThreshold={1} luminanceSmoothing={.2} intensity={.85} radius={.7} />
       <ChromaticAberration ref={ca} offset={caOff} radialModulation modulationOffset={.15} />
       <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />

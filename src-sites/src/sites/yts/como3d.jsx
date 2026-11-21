@@ -314,11 +314,11 @@ function Lights({ reg, mobile }) {
 const HILL = { pos: [0, 22, 32], w: 112 } // render #140 stage, faces the lake (−z)
 const TERR = { pos: [0, 34.2, 25.9], look: [0, 44, 4], w: 38 } // render #5 stage
 const LBL = {
-  bellagio: { p: [...far(560, 296)].map((v, i) => (i === 1 ? v + 2 : v)), win: [[.2, .45], [.86, 1.01]] },
-  cadenabbia: { p: far(1130, 292), win: [[.22, .45], [.88, 1.01]] },
-  menaggio: { p: far(1660, 300), win: [[.24, .45], [.88, 1.01]] },
-  vezio: { p: onPlane(776, 418, KN), win: [[.88, 1.01]] },
-  varenna: { p: onPlane(1205, 582, KN), win: [[.86, 1.01]] },
+  bellagio: { p: [...far(560, 296)].map((v, i) => (i === 1 ? v + 2 : v)), win: [[.2, .45], [.9, 1.01]] },
+  cadenabbia: { p: far(1130, 292), win: [[.22, .45], [.91, 1.01]] },
+  menaggio: { p: far(1660, 300), win: [[.24, .45], [.91, 1.01]] },
+  vezio: { p: onPlane(776, 418, KN), win: [[.92, 1.01]] },
+  varenna: { p: onPlane(1205, 582, KN), win: [[.91, 1.01]] },
   home: { p: [-8, 25, 30], win: [[.54, .69]] },
 }
 function Label({ id, text, sub, progress, gold, layer }) {
@@ -351,9 +351,9 @@ function Triangle({ progress, label }) {
     out.push(k[3]); return out
   }, [])
   useFrame(() => {
-    const p = progress.get(), d = ss(.875, .93, p), fade = 1 - ss(.965, .995, p)
+    const p = progress.get(), d = ss(.915, .955, p), fade = 1 - ss(.975, .998, p)
     if (line.current) { line.current.geometry.instanceCount = Math.max(1, Math.round(d * (pts.length - 1))); line.current.material.opacity = fade * .9; line.current.visible = d > 0 && fade > 0 }
-    if (lab.current) lab.current.style.opacity = ss(.91, .935, p) * fade
+    if (lab.current) lab.current.style.opacity = ss(.935, .955, p) * fade
   })
   useLayoutEffect(() => { line.current?.layers.set(1) }, [])
   return (
@@ -378,8 +378,8 @@ const STATIONS_D = [
   [.62, [0, 18, -14], PI, .04, 44],
   [.7, [0, 34.9, -.1], PI, -.42, 46],
   [.79, [0, 44, 4], PI, -.42, 46],
-  [.85, [0, 34, 4], PI * 1.45, -.2, 50],
-  [.93, [0, EYE, 0], 2 * PI, -.178, 50],
+  [.855, [0, 33, 3], PI * 1.5, -.2, 50],
+  [.91, [0, EYE, 0], 2 * PI, -.178, 50],
   [1, [0, EYE, 0], 2 * PI, -.165, 47],
 ]
 const STATIONS_M = STATIONS_D.map(([p, pos, y, pt, f], i) => [p, i === 2 || i === 3 ? [pos[0], pos[1] + 1.5, pos[2]] : pos, y + (i <= 3 ? .08 : 0), pt, Math.min(74, f + 18)])
@@ -407,7 +407,6 @@ function Rig({ progress, mobile, reg, clockRef }) {
     s.p = window.__comoSnap ? progress.get() : THREE.MathUtils.damp(s.p, progress.get(), 3.4, dt)
     s.mx = THREE.MathUtils.damp(s.mx, state.pointer.x, 2.2, dt); s.my = THREE.MathUtils.damp(s.my, state.pointer.y, 2.2, dt)
     const p = s.p
-    if (window.__comoHide) for (const k of window.__comoHide) { const L = R[k]; const o3 = L?.mesh || L?.mat?.__r3f?.parent || L?.mat; if (o3 && 'visible' in o3) o3.visible = false }
     const o = sampleStations(st, p, tmp.o)
     // pointer parallax: strongest when the camera rests among the depth layers
     const par = mobile ? 0 : (.6 + 1.4 * ss(.86, .95, p))
@@ -432,11 +431,11 @@ function Rig({ progress, mobile, reg, clockRef }) {
     if (R.water) { R.water.mat.color.copy(T.top).multiplyScalar(.28 * T.exp); R.water.tint.copy(T.haze).lerp(new THREE.Color(1, 1, 1), .4).multiplyScalar(.66) }
     if (R.word) R.word.mat.opacity = 1 - ss(.14, .26, p)
     if (R.mist) for (const u of R.mist) { u.uCol.value.copy(T.haze); u.uTime.value += dt; u.uAmt.value = u.uBase * (1 - .35 * T.stars) }
-    if (R.lights) { R.lights[0].uI.value = T.lights; R.lights[1].uI.value = T.lights * ss(.86, .95, p); R.lights.forEach(u => (u.uTime.value = s.t)) }
+    if (R.lights) { R.lights[0].uI.value = T.lights; R.lights[1].uI.value = T.lights * ss(.91, .96, p); R.lights.forEach(u => (u.uTime.value = s.t)) }
     // grade every photo layer
     const vis = {
       far129: 1, band142: 1, band141: 1,
-      near129: ss(.855, .935, p), fg129: ss(.875, .95, p),
+      near129: ss(.895, .95, p), fg129: ss(.905, .96, p),
       hill140: 1 - ss(.655, .72, p), terr5: ss(.64, .71, p) * (1 - ss(.8, .86, p)),
     }
     for (const k in vis) {
@@ -467,8 +466,8 @@ function Scene({ progress, mobile, labels, clockRef }) {
         {/* far mountains of #129 — plane at z = −150, shoreline row on the water line */}
         <Layer name="far129" depthId={129} width={360} seg={segF} position={[0, (SHORE - 350.5) * S, ZF]} amount={14} hazeScale={1} reg={reg} renderOrder={0} opts={{ edgeX: .012, baseHaze: .55 }} />
         {/* side ranges so the turn over the water never runs out of mountains */}
-        <Layer name="band142" depthId={142} width={420} seg={mobile ? 100 : 160} position={[-175, -14, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} opts={{ edgeX: .06, baseHaze: .6 }} />
-        <Layer name="band141" depthId={141} width={420} seg={mobile ? 100 : 160} position={[175, -12, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} opts={{ edgeX: .06, baseHaze: .6 }} />
+        <Layer name="band142" depthId={142} width={520} seg={mobile ? 100 : 160} position={[-185, -3.5, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} opts={{ edgeX: .06, baseHaze: .6 }} />
+        <Layer name="band141" depthId={141} width={520} seg={mobile ? 100 : 160} position={[185, -6.4, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} opts={{ edgeX: .06, baseHaze: .6 }} />
         {/* the hillside with the homes (#140, sky removed) across the water, east shore */}
         <Layer name="hill140" depthId={140} width={HILL.w} seg={mobile ? 150 : 240} position={[HILL.pos[0], HILL.pos[1], HILL.pos[2]]} rotation={[0, PI, 0]} amount={-9} hazeScale={.35} reg={reg} renderOrder={1} opts={{ edgeX: .07, baseHaze: .2, reveal: 1 }} />
         <Stage name="terr5" id={5} width={TERR.w} seg={mobile ? 150 : 230} position={TERR.pos} lookAt={TERR.look} amount={7} reg={reg} />

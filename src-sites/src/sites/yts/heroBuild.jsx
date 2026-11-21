@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { MeshSurfaceSampler } from 'three/examples/jsm/math/MeshSurfaceSampler.js'
 
 /* Procedural terraced hillside residence (after the Lake Como scheme, render id 5):
@@ -53,7 +53,8 @@ export function hillY(x, z) {
 }
 
 function lumpy(detail = 1, amp = .22, seed = 1) {
-  const g = new THREE.IcosahedronGeometry(1, detail)
+  const g0 = new THREE.IcosahedronGeometry(1, detail); g0.deleteAttribute('normal'); g0.deleteAttribute('uv')
+  const g = mergeVertices(g0)
   const p = g.attributes.position, v = new THREE.Vector3()
   for (let i = 0; i < p.count; i++) {
     v.fromBufferAttribute(p, i)
@@ -66,7 +67,7 @@ function lumpy(detail = 1, amp = .22, seed = 1) {
 }
 
 const GREENS = ['#56703a', '#6b8444', '#47602f', '#7f9450', '#5d7a3c', '#3f5629', '#8ea35c']
-const FLOWER = '#ece8da'
+const FLOWER = '#cfcbb4'
 
 export function buildModel() {
   const rnd = rng(11)
@@ -117,7 +118,7 @@ export function buildModel() {
       for (let b = 0; b < n; b++) {
         const r = (big ? .2 : .13) + rnd() * (big ? .16 : .12)
         const bx = x - w / 2 + .1 + (b + rnd() * .6) * ((w - .2) / n)
-        bushes.push({ p: [bx, y0 + r * .35, z0 + (rnd() - .5) * .14], s: [r * 1.25, r * .8, r], c: rnd() < .14 ? FLOWER : GREENS[(rnd() * GREENS.length) | 0] })
+        bushes.push({ p: [bx, y0 + r * .35, z0 + (rnd() - .5) * .14], s: [r * 1.25, r * .8, r], c: rnd() < .08 ? FLOWER : GREENS[(rnd() * GREENS.length) | 0] })
         if (rnd() < .45) bushes.push({ p: [bx + (rnd() - .5) * .2, y0 - r * .6, z0 + .16], s: [r * .8, r * 1.2, r * .55], c: GREENS[(rnd() * GREENS.length) | 0] }) // hanging
       }
     }
@@ -161,7 +162,7 @@ export function buildModel() {
   for (let k = 0; k < 7; k++) { const tx = -5.9 - (k % 2) * .5, tz = 1.5 - k * 1.3, h = 1.3 + rnd() * 1.1; cypress.push({ p: [tx, hillY(tx, tz) + h * .9, tz], s: [.25, h, .25], c: '#2c4125' }) }
   for (let k = 0; k < 5; k++) { const tx = 5.7 + (k % 2) * .5, tz = -.5 - k * 1.5, h = 1.2 + rnd() * 1.3; cypress.push({ p: [tx, hillY(tx, tz) + h * .9, tz], s: [.24, h, .24], c: '#34492c' }) }
 
-  return { levels, hill, cypress, crowns, geoms: { bush: lumpy(1, .2, 1), crown: lumpy(2, .16, 4), cypress: cypressGeo() } }
+  return { levels, hill, cypress, crowns, geoms: { bush: lumpy(2, .24, 1), crown: lumpy(3, .2, 4), cypress: cypressGeo() } }
 }
 
 function cypressGeo() {
