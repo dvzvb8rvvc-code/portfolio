@@ -69,7 +69,7 @@ function Tod({ p }) {
   const x = useTransform(p, [0, 1], ['0%', '100%'])
   const names = t(S.tod)
   return (
-    <div className={`${T.sans} pointer-events-none absolute bottom-6 left-5 z-30 w-[150px] text-[10px] font-semibold uppercase tracking-[.18em] text-white/80 md:bottom-8 md:left-10 md:w-[220px] md:text-[11px]`}>
+    <div className={`${T.sans} pointer-events-none absolute bottom-6 left-5 z-30 w-[200px] whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.18em] text-white/80 md:bottom-8 md:left-10 md:w-[220px] md:text-[11px]`}>
       <div className="mb-2 flex justify-between"><span>{names[0]}</span><span className="text-[#f3dca6]">{names[1]}</span></div>
       <div className="relative h-px bg-white/30">
         <motion.span style={{ left: x }} className="absolute -top-[3.5px] -ml-1 block h-2 w-2 rounded-full bg-[#f3dca6] shadow-[0_0_14px_#f3c27a]" />
@@ -183,7 +183,7 @@ function Range() {
           <motion.div className="absolute bottom-0 left-0 rounded-[3px] bg-[#ece7df]" animate={{ width: px(e.h) + '%', height: px(e.h) + '%' }} transition={{ duration: .9, ease: E }} />
         </div>
       </div>
-      <div className="relative mt-5 min-h-[150px] flex-1 overflow-hidden rounded-[14px]">
+      <div className="relative mt-5 min-h-[130px] flex-1 overflow-hidden rounded-[14px]">
         <img src={img(95, true)} alt={t(S.render)} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
       </div>
       <p className={`${T.sans} mt-3 text-[12px] leading-snug text-[#ece7df]/55`}>{t(S.rangeNote)}</p>
@@ -196,7 +196,7 @@ function Details({ innerRef }) {
   const { t } = useLang()
   const every = t(COMO.every)
   return (
-    <div ref={innerRef} className="relative z-10 bg-[#ece7df] pb-16 pt-14 md:pb-24 md:pt-20">
+    <div ref={innerRef} className="relative z-10 bg-[#ece7df] pb-14 pt-12 md:pb-16 md:pt-16">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <div className="grid gap-8 md:grid-cols-12 md:gap-8">
           <Reveal className="md:col-span-5">
@@ -228,7 +228,7 @@ function Details({ innerRef }) {
         </div>
 
         {/* build phases: one row of labels + real site photos */}
-        <Reveal className="mt-14 md:mt-16">
+        <Reveal className="mt-12 md:mt-12">
           <div className="flex items-end justify-between gap-4">
             <p className={`${T.serif} text-[30px] leading-none md:text-[40px]`}>{t(S.phases)}</p>
             <a href="#contact" className={`${T.sans} hidden h-10 shrink-0 items-center rounded-full bg-[#151412] px-5 text-[12.5px] font-semibold text-[#ece7df] md:inline-flex`}>{t(S.inquire)} →</a>
@@ -248,7 +248,7 @@ function Details({ innerRef }) {
           <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             {SITE.map(([id, cap], k) => (
               <figure key={id} className="group">
-                <div className="aspect-[4/3] overflow-hidden rounded-[14px] bg-[#e2dcd2]">
+                <div className="aspect-[3/2] overflow-hidden rounded-[14px] bg-[#e2dcd2]">
                   <img src={img(id, true)} alt={t(cap)} loading="lazy" className={`h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04] ${id === 104 ? '' : ''}`} />
                 </div>
                 <figcaption className={`${T.sans} mt-2 text-[11.5px] ${id === 104 ? 'font-semibold text-[#151412]' : 'text-[#151412]/55'}`}>{t(cap)}</figcaption>
@@ -258,7 +258,7 @@ function Details({ innerRef }) {
           <p className={`${T.sans} mt-5 max-w-[70ch] text-[13px] leading-relaxed text-[#151412]/65`}>{t(COMO.phasesNote)}</p>
         </Reveal>
 
-        <div className={`${T.sans} mt-10 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-[#151412]/15 pt-5 text-[13px]`}>
+        <div className={`${T.sans} mt-8 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-[#151412]/15 pt-5 text-[13px]`}>
           <span className="text-[10.5px] font-semibold uppercase tracking-[.22em] text-[#151412]/45">{t(S.next)}</span>
           <span className={`${T.serif} text-[22px]`}>{SARDEGNA.name}</span>
           <span className="text-[#151412]/55">{SARDEGNA.place}</span>

@@ -67,9 +67,8 @@ function Letters({ text, delay = 0, className = '' }) {
 function OpeningCopy({ t }) {
   return (
     <div className="pointer-events-none relative mx-auto flex h-full max-w-[1440px] flex-col justify-between px-5 pb-10 pt-24 text-[#ece7df] md:px-10 md:pb-14 md:pt-28">
-      <div className="flex items-start justify-between gap-6">
-        <Kicker className="text-[#ece7df]/80">{t({ en: 'Residences · Tuscany', it: 'Residenze · Toscana' })}</Kicker>
-        <Kicker className="text-right text-[#ece7df]/80">{PALAZZO.place}</Kicker>
+      <div className="flex items-start justify-between gap-6 pr-24 md:pr-32">
+        <Kicker className="text-[#ece7df]/80">{t({ en: 'Residences', it: 'Residenze' })} · {PALAZZO.place}</Kicker>
       </div>
       <div>
         <h2 className={`${T.serif} select-none leading-[.82] tracking-[-.02em] drop-shadow-[0_8px_40px_rgba(0,0,0,.4)]`}>
@@ -222,56 +221,53 @@ function Residences() {
   const [sel, setSel] = useState(3)
   const unit = UNITS.find(u => u.n === sel)
   return (
-    <div id="palazzo-residences" className="relative bg-[#ece7df] px-5 pb-14 pt-16 md:px-10 md:pb-16 md:pt-20">
-      <div className="mx-auto max-w-[1440px]">
-        <div className="grid gap-4 md:grid-cols-12 md:items-end">
-          <div className="md:col-span-7">
-            <Kicker className="text-[#b06a35]">{t({ en: 'Six residences · 474 m²', it: 'Sei residenze · 474 m²' })}</Kicker>
-            <h3 className={`${T.serif} mt-3 text-[46px] leading-[.9] md:text-[76px]`}>
-              <Mask>{t({ en: 'Six residences,', it: 'Sei residenze,' })}</Mask>
-              <Mask delay={0.1} className="italic text-[#b06a35]">{t({ en: 'one palazzo.', it: 'un palazzo.' })}</Mask>
-            </h3>
-          </div>
-          <p className="text-[14.5px] leading-relaxed text-[#151412]/70 md:col-span-4 md:col-start-9">{t({ en: 'Two on the ground floor, three on the piano nobile, one attic loft. Choose a residence to see where it sits.', it: 'Due al piano terra, tre al piano nobile, un loft mansardato. Scegli una residenza per vedere dove si trova.' })}</p>
-        </div>
-
-        <div className="mt-10 grid gap-8 md:mt-12 md:grid-cols-12 md:gap-10">
-          <div className="md:col-span-5" role="tablist" aria-label={t({ en: 'Residences', it: 'Residenze' })}>
+    <div id="palazzo-residences" className="relative bg-[#ece7df] px-5 pb-12 pt-14 md:px-10 md:pb-14 md:pt-16">
+      <div className="mx-auto grid max-w-[1440px] gap-10 md:grid-cols-12 md:gap-10">
+        <div className="md:col-span-5">
+          <Kicker className="text-[#b06a35]">{t({ en: 'Six residences · 474 m²', it: 'Sei residenze · 474 m²' })}</Kicker>
+          <h3 className={`${T.serif} mt-3 text-[46px] leading-[.9] md:text-[64px]`}>
+            <Mask>{t({ en: 'Six residences,', it: 'Sei residenze,' })}</Mask>
+            <Mask delay={0.1} className="italic text-[#b06a35]">{t({ en: 'one palazzo.', it: 'un palazzo.' })}</Mask>
+          </h3>
+          <p className="mt-3 max-w-[40ch] text-[14px] leading-relaxed text-[#151412]/65">{t({ en: 'Two on the ground floor, three on the piano nobile, one attic loft. Choose a residence to see where it sits.', it: 'Due al piano terra, tre al piano nobile, un loft mansardato. Scegli una residenza per vedere dove si trova.' })}</p>
+          <div className="mt-6" role="tablist" aria-label={t({ en: 'Residences', it: 'Residenze' })}>
             {PALAZZO.floors.filter(f => f.units.length).map(f => (
-              <div key={f.id} className="mb-3">
-                <div className="flex items-baseline justify-between border-b border-[#151412]/20 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[.22em] text-[#151412]/50">
+              <div key={f.id} className="mb-2">
+                <div className="flex items-baseline justify-between border-b border-[#151412]/20 pb-1 text-[10.5px] font-semibold uppercase tracking-[.22em] text-[#151412]/50">
                   <span>{t(f.t)}</span><span>m²</span>
                 </div>
                 {f.units.map(u => {
                   const on = u.n === sel
                   return (
                     <button key={u.n} role="tab" aria-selected={on} onClick={() => setSel(u.n)} onMouseEnter={() => setSel(u.n)}
-                      className={`group relative flex w-full items-baseline gap-4 border-b border-[#151412]/10 py-2.5 text-left transition-colors md:py-3 ${on ? 'text-[#151412]' : 'text-[#151412]/55 hover:text-[#151412]'}`}>
+                      className={`relative flex w-full items-baseline gap-4 border-b border-[#151412]/10 py-2 text-left transition-colors ${on ? 'text-[#151412]' : 'text-[#151412]/55 hover:text-[#151412]'}`}>
                       {on && <motion.span layoutId="pal-row" className="absolute inset-y-0 -left-3 w-[3px] bg-[#b06a35]" transition={{ type: 'spring', stiffness: 400, damping: 36 }} />}
-                      <span className={`${T.serif} w-[4.2rem] text-[26px] leading-none md:text-[30px]`}>Ap. {u.n}</span>
+                      <span className={`${T.serif} w-[4.2rem] text-[26px] leading-none md:text-[28px]`}>Ap. {u.n}</span>
                       <span className="flex-1 text-[13px]">{u.r ? t(u.r) : ''}</span>
-                      <span className={`${T.serif} text-[28px] leading-none tabular-nums md:text-[32px] ${on ? 'text-[#b06a35]' : ''}`}>{u.m2}</span>
+                      <span className={`${T.serif} text-[28px] leading-none tabular-nums md:text-[30px] ${on ? 'text-[#b06a35]' : ''}`}>{u.m2}</span>
                     </button>
                   )
                 })}
               </div>
             ))}
-            <div className="flex items-baseline justify-between pt-2">
+            <div className="flex items-baseline justify-between pt-1">
               <span className="text-[11px] font-semibold uppercase tracking-[.22em]">{t({ en: 'Total', it: 'Totale' })}</span>
-              <span className={`${T.serif} text-[36px] leading-none tabular-nums`}>474 <span className="text-[18px]">m²</span></span>
+              <span className={`${T.serif} text-[34px] leading-none tabular-nums`}>474 <span className="text-[18px]">m²</span></span>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-5 md:col-span-7 md:grid-cols-7 md:gap-8">
+        <div className="md:col-span-7">
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-7 md:gap-8">
             <div className="col-span-2 flex flex-col justify-between md:col-span-3">
               <Schematic sel={sel} onPick={setSel} t={t} />
               <div className="mt-4">
-                <div className={`${T.serif} text-[40px] leading-none`}>Ap. {sel} <span className="text-[#b06a35]">· {unit.m2} m²</span></div>
+                <div className={`${T.serif} text-[38px] leading-none`}>Ap. {sel} <span className="text-[#b06a35]">· {unit.m2} m²</span></div>
                 <div className="mt-2 text-[13.5px] text-[#151412]/70">{t(unit.floor.t)}{unit.r ? ' · ' + t(unit.r) : ''}</div>
               </div>
             </div>
             <div className="col-span-2 md:col-span-4">
-              <div className="relative aspect-[4/5] overflow-hidden bg-[#151412] md:aspect-[4/4.6]">
+              <div className="relative aspect-[5/4] overflow-hidden bg-[#151412] md:aspect-square">
                 <AnimatePresence initial={false}>
                   <motion.img key={sel} src={img(UNIT_IMG[sel], 1)} alt={t({ en: 'Interior of Palazzo Campani', it: 'Interno di Palazzo Campani' })} loading="lazy" decoding="async"
                     className="absolute inset-0 h-full w-full object-cover" initial={{ opacity: 0, scale: 1.06 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.9, ease: E }} />
@@ -280,31 +276,32 @@ function Residences() {
               <div className="mt-2 text-[11px] text-[#151412]/50">{t({ en: 'Palazzo interiors — illustrative, not the specific residence', it: 'Interni del palazzo — indicativi, non della singola residenza' })}</div>
             </div>
           </div>
+          <div className="mt-7 grid gap-5 border-t border-[#151412]/15 pt-5 md:grid-cols-7 md:gap-8">
+            <div className="md:col-span-4">
+              <Kicker className="text-[#151412]/50">{t({ en: 'Inside the palazzo', it: 'Nel palazzo' })}</Kicker>
+              <ul className={`${T.serif} mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-[19px] leading-snug md:text-[21px]`}>
+                {t(PALAZZO.extras).map((x, i) => <li key={i} className="flex items-center gap-3">{i > 0 && <span aria-hidden className="h-1 w-1 rounded-full bg-[#b06a35]" />}{x}</li>)}
+              </ul>
+            </div>
+            <div className="md:col-span-3">
+              <p className="text-[12.5px] leading-relaxed text-[#151412]/65">{t(PALAZZO.archive)}</p>
+              <a href="#contact" className="mt-3 inline-flex h-11 items-center gap-3 rounded-full bg-[#151412] px-5 text-[13px] font-semibold text-[#ece7df] transition-colors hover:bg-[#b06a35]">{t({ en: 'Request the technical archive', it: 'Richiedi l’archivio tecnico' })} <span aria-hidden>→</span></a>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-10 grid gap-6 border-t border-[#151412]/15 pt-7 md:mt-12 md:grid-cols-12 md:items-center">
-          <div className="md:col-span-7">
-            <Kicker className="text-[#151412]/50">{t({ en: 'Inside the palazzo', it: 'Nel palazzo' })}</Kicker>
-            <ul className={`${T.serif} mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[22px] leading-snug md:text-[26px]`}>
-              {t(PALAZZO.extras).map((x, i) => <li key={i} className="flex items-center gap-5">{i > 0 && <span aria-hidden className="h-1 w-1 rounded-full bg-[#b06a35]" />}{x}</li>)}
-            </ul>
+        <div className="md:col-span-12">
+          <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
+            {GALLERY.map((g, i) => (
+              <motion.figure key={g.id} style={{ flexGrow: g.w }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5% 0px' }} transition={{ duration: 1, ease: E, delay: i * 0.06 }}
+                className="group relative h-[170px] w-[62vw] shrink-0 snap-start overflow-hidden bg-[#151412] md:h-[180px] md:w-auto md:basis-0">
+                <img src={img(g.id, 1)} alt={t(g.t)} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.06]" />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2.5 pt-8 text-[11px] font-medium uppercase tracking-[.16em] text-white/90">{t(g.t)}</figcaption>
+              </motion.figure>
+            ))}
           </div>
-          <div className="md:col-span-4 md:col-start-9">
-            <p className="text-[13px] leading-relaxed text-[#151412]/65">{t(PALAZZO.archive)}</p>
-            <a href="#contact" className="mt-4 inline-flex h-12 items-center gap-3 rounded-full bg-[#151412] px-6 text-[13.5px] font-semibold text-[#ece7df] transition-colors hover:bg-[#b06a35]">{t({ en: 'Request the technical archive', it: 'Richiedi l’archivio tecnico' })} <span aria-hidden>→</span></a>
-          </div>
+          <p className="mt-2 text-[11px] text-[#151412]/45">{t({ en: 'Lifestyle photographs are illustrative.', it: 'Le fotografie lifestyle sono indicative.' })}</p>
         </div>
-
-        <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:mt-12 md:overflow-visible md:px-0 md:pb-0">
-          {GALLERY.map((g, i) => (
-            <motion.figure key={g.id} style={{ flexGrow: g.w }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5% 0px' }} transition={{ duration: 1, ease: E, delay: i * 0.06 }}
-              className="group relative h-[190px] w-[68vw] shrink-0 snap-start overflow-hidden bg-[#151412] md:h-[200px] md:w-auto md:basis-0">
-              <img src={img(g.id, 1)} alt={t(g.t)} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.06]" />
-              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2.5 pt-8 text-[11px] font-medium uppercase tracking-[.16em] text-white/90">{t(g.t)}</figcaption>
-            </motion.figure>
-          ))}
-        </div>
-        <p className="mt-2 text-[11px] text-[#151412]/45">{t({ en: 'Lifestyle photographs are illustrative.', it: 'Le fotografie lifestyle sono indicative.' })}</p>
       </div>
     </div>
   )

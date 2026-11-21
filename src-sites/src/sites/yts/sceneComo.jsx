@@ -30,7 +30,7 @@ const asset = (n, s) => `/portfolio/yts/como/${n}${s ? '-s' : ''}.webp`
 const depthUrl = id => `/portfolio/yts/depth/${id}.webp`
 
 const FAR = { w: 360, h: 360 * 701 / 1800, pos: [0, (SHORE - 350.5) * S, ZF] }
-const HILL = { w: 112, h: 112 * 890 / 1600, pos: [0, 22, 32] }
+const HILL = { w: 112, h: 112 * 890 / 1600, pos: [0, 31, 32] }
 
 /* ───────────── time of day: afternoon → late afternoon → golden hour ───────────── */
 const TOD = {
@@ -76,12 +76,17 @@ void main(){
   gl_Position = projectionMatrix * viewMatrix * w;
 }`
 const layerFS = /* glsl */`
-uniform sampler2D uMap; uniform float uOpacity, uHazeAmt, uHazeScale, uExp, uEdgeX, uEdgeY, uEdgeTop, uBaseHaze, uFade;
+uniform sampler2D uMap; uniform float uOpacity, uHazeAmt, uHazeScale, uExp, uEdgeX, uEdgeY, uEdgeTop, uBaseHaze, uFade, uReveal;
 uniform vec3 uTint, uHaze;
 varying vec2 vUv; varying float vD; varying vec3 vL;
+float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
+float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+  return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
 void main(){
   vec4 c = texture2D(uMap, vUv);
   float a = c.a * uOpacity * uFade;
+  // depth dissolve: near pixels (white) materialise first, with a soft noisy front
+  if (uReveal < .999) { float key = (1. - vD) * .78 + n2(vUv * vec2(160., 90.)) * .22; float r = uReveal * 1.3 - .15; a *= smoothstep(r + .02, r - .12, key); }
   a *= smoothstep(0., uEdgeX, vUv.x) * smoothstep(0., uEdgeX, 1. - vUv.x) * smoothstep(0., uEdgeY, vUv.y) * smoothstep(0., uEdgeTop, 1. - vUv.y);
   if (a < .004) discard;
   vec3 col = c.rgb * uTint * uExp;
@@ -106,7 +111,7 @@ function Layer({ ext = 0, name, depthId, width, seg, position, rotation, amount 
     return g
   }, [width, aspect, seg])
   const uniforms = useMemo(() => ({
-    ...sh, uExt: { value: ext }, uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: amount }, uOpacity: { value: 1 }, uHazeScale: { value: hazeScale },
+    ...sh, uExt: { value: ext }, uReveal: { value: 1 }, uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: amount }, uOpacity: { value: 1 }, uHazeScale: { value: hazeScale },
     uEdgeX: { value: edgeX }, uEdgeY: { value: edgeY }, uEdgeTop: { value: edgeTop }, uBaseHaze: { value: baseHaze },
   }), [map, dmap])
   const m = useRef()
@@ -231,10 +236,10 @@ uniform vec3 uHaze; uniform float uAmt, uTime, uFade; varying vec2 vUv;
 float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
 float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
   return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
-float fbm(vec2 p){ float s = 0., a = .5; for (int i = 0; i < 4; i++){ s += a * n2(p); p *= 2.07; a *= .5; } return s; }
+float fbm(vec2 p){ float s = 0., a = .5; for (int i = 0; i < 3; i++){ s += a * n2(p); p *= 2.07; a *= .5; } return s * 1.14; }
 void main(){
   vec2 p = vUv * vec2(9., 2.2) + vec2(uTime * .012, 0.);
-  float f = fbm(p + fbm(p * .7 - uTime * .006));
+  float f = fbm(p + vec2(n2(p * .6 - uTime * .006) * 1.4, 0.));
   float a = pow(1. - vUv.y, 1.6) * smoothstep(0., .08, vUv.y + .02) * smoothstep(.0, .25, vUv.x) * smoothstep(1., .75, vUv.x);
   a *= smoothstep(.25, .85, f) * uAmt * uFade;
   gl_FragColor = vec4(uHaze * 1.04, a);
@@ -259,8 +264,8 @@ const ST_D = [
   [.42, [-4, 8.5, -34], .05, -.06, 46],
   [.6, [-9, 4.6, -62], .13, -.015, 46],
   [.76, [-7, 7, -60], PI * .6, .01, 46],
-  [.9, [-1.5, 14, -28], PI - .03, .03, 44],
-  [1, [0, 16.5, -14], PI, .015, 41],
+  [.9, [-1.5, 20, -30], PI - .03, .02, 44],
+  [1, [0, 26, -14], PI, .01, 41],
 ]
 const ST_M = ST_D.map(([p, pos, y, pt, f], i) => [p, pos, y + (i > 0 && i < 4 ? .06 : 0), pt, Math.min(72, f + 20)])
 function sample(st, p, out) {
@@ -279,7 +284,7 @@ const LBL = {
   varenna: { p: onPlane(1205, 575, KN), win: [[-.1, .2]] },
   bellagio: { p: [far(560, 296)[0], far(560, 296)[1] + 3, ZF], win: [[.2, .5]] },
   triangle: { p: [far(1050, 300)[0], 6, ZF], win: [[.36, .64]] },
-  home: { p: [-6, 26, 30], win: [[.9, 1.2]] },
+  home: { p: [-6, 36, 30], win: [[.9, 1.2]] },
 }
 
 function Rig({ track, reg, sh, mobile }) {
@@ -334,8 +339,8 @@ function Rig({ track, reg, sh, mobile }) {
     const lay = (k, z, lo, hi) => { const L = R[k]; if (!L) return; const op = ss(lo, hi, tmp.cam.z - z) * (1 - back); L.u.uOpacity.value = op; L.mesh.visible = op > .004 }
     lay('fg129', ZFG, 1.5, 7)
     lay('near129', ZN, 2, 12)
-    const hillOn = ss(.2, .5, yaw / PI)
-    if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uOpacity.value = hillOn }
+    const hillOn = ss(.4, .85, yaw / PI) * .5 + ss(.78, .94, p) * .5
+    if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uReveal.value = hillOn; R.hill140.u.uOpacity.value = ss(0, .15, hillOn) }
     if (R.water) {
       R.water.uHillOn.value = hillOn
       if (!R.water.uFar.value && R.far129) R.water.uFar.value = R.far129.map
@@ -369,13 +374,13 @@ function World({ track, mobile }) {
     <group ref={g} position={OFF} scale={K} visible={false}>
       <Sky sh={sh} reg={reg} />
       <Suspense fallback={null}>
-        <Layer name="far129" depthId={129} width={FAR.w} seg={sm ? 120 : 240} position={FAR.pos} amount={14} reg={reg} sh={sh} renderOrder={0} edgeX={.05} baseHaze={.55} small={false} />
-        <Layer name="band142" depthId={142} width={520} seg={sm ? 64 : 120} position={[-185, -3.5, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.06} baseHaze={.6} small />
-        <Layer name="band141" depthId={141} width={520} seg={sm ? 64 : 120} position={[185, -6.4, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.06} baseHaze={.6} small />
-        <Layer name="hill140" depthId={140} width={HILL.w} seg={sm ? 110 : 220} position={HILL.pos} rotation={[0, PI, 0]} amount={7} hazeScale={.3} reg={reg} sh={sh} renderOrder={1} edgeX={.16} baseHaze={.15} small={sm} />
-        <Layer name="near129" depthId={129} width={FAR.w * KN} seg={sm ? 110 : 220} position={onPlane(900, 350.5, KN)} amount={3.5} hazeScale={.4} renderOrder={10} depthTest={false} reg={reg} sh={sh} edgeX={.005} ext={.3} baseHaze={0} small={sm} />
+        <Layer name="far129" depthId={129} width={FAR.w} seg={sm ? 96 : 160} position={FAR.pos} amount={14} reg={reg} sh={sh} renderOrder={0} edgeX={.05} baseHaze={.55} small={false} />
+        <Layer name="band142" depthId={142} width={520} seg={sm ? 48 : 72} position={[-185, -3.5, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.16} baseHaze={.6} small />
+        <Layer name="band141" depthId={141} width={520} seg={sm ? 48 : 72} position={[185, -6.4, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.16} baseHaze={.6} small />
+        <Layer name="hill140" depthId={140} width={HILL.w} seg={sm ? 96 : 180} position={HILL.pos} rotation={[0, PI, 0]} amount={7} hazeScale={.3} reg={reg} sh={sh} renderOrder={1} edgeX={.16} edgeY={.07} baseHaze={.15} small={sm} />
+        <Layer name="near129" depthId={129} width={FAR.w * KN} seg={sm ? 96 : 160} position={onPlane(900, 350.5, KN)} amount={3.5} hazeScale={.4} renderOrder={10} depthTest={false} reg={reg} sh={sh} edgeX={.005} ext={.8} baseHaze={0} small={sm} />
         <Ready reg={reg} />
-        <Layer name="fg129" depthId={129} width={FAR.w * KFG} seg={sm ? 96 : 200} position={onPlane(900, 350.5, KFG)} amount={2.2} hazeScale={.1} renderOrder={11} depthTest={false} reg={reg} sh={sh} edgeX={.004} ext={.8} baseHaze={0} small={sm} />
+        <Layer name="fg129" depthId={129} width={FAR.w * KFG} seg={sm ? 72 : 128} position={onPlane(900, 350.5, KFG)} amount={2.2} hazeScale={.1} renderOrder={11} depthTest={false} reg={reg} sh={sh} edgeX={.004} ext={1.6} baseHaze={0} small={sm} />
       </Suspense>
       <Water sh={sh} reg={reg} />
       <Mist sh={sh} />
