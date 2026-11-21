@@ -88,7 +88,7 @@ function Letters({ text, delay = 0 }) {
 function OpeningCopy({ t }) {
   return (
     <div className="relative mx-auto flex h-full max-w-[1440px] flex-col justify-end px-5 pb-[max(64px,calc(env(safe-area-inset-bottom)+56px))] md:px-10 md:pb-20">
-      <Kicker className="mb-4 flex items-center gap-3 text-[#efe8dc]/80 md:mb-5"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: 'Residences', it: 'Residenze' })} · {PALAZZO.place}</Kicker>
+      <Kicker className="mb-4 flex items-center gap-3 text-[#efe8dc]/80 md:mb-5"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: 'Residences', it: 'Residenze' })} · {t(PALAZZO.place)}</Kicker>
       <h2 className={`${T.serif} select-none text-[clamp(60px,18.5vw,92px)] leading-[.84] tracking-[-.02em] text-[#f4eee4] md:text-[clamp(96px,10.5vw,184px)]`}>
         <span className="block"><Letters text="Palazzo" /></span>
         <span className="block pl-[.6em] italic text-[#e6cf9f]"><Letters text="Campani" delay={0.22} /></span>
@@ -110,8 +110,8 @@ function Caption({ prog, i, cap, t }) {
   const f = useTransform(prog, w, ['blur(8px)', 'blur(0px)', 'blur(0px)', 'blur(6px)'])
   return (
     <motion.div style={{ opacity: o, y, filter: f }} className="absolute bottom-0 left-0 w-full max-w-[34rem]">
-      <Kicker className="text-[#e6cf9f]">{String(i).padStart(2, '0')} — {t(cap.k)}</Kicker>
-      <p className={`${T.serif} mt-3 text-[34px] leading-[1.02] text-[#f4eee4] md:text-[54px]`}>{t(cap.t)}</p>
+      <Kicker className="text-[#e6cf9f] [text-shadow:0_1px_14px_rgba(0,0,0,.8)]">{String(i).padStart(2, '0')} — {t(cap.k)}</Kicker>
+      <p className={`${T.serif} mt-3 text-[34px] leading-[1.02] text-[#f4eee4] [text-shadow:0_2px_28px_rgba(0,0,0,.7),0_0_2px_rgba(0,0,0,.35)] md:text-[54px]`}>{t(cap.t)}</p>
     </motion.div>
   )
 }
@@ -147,7 +147,7 @@ function Film() {
   const skip = () => goTo('palazzo-residences')
 
   return (
-    <div ref={ref} className="relative h-[180vh] md:h-[220vh]">
+    <div ref={ref} className="relative h-[160vh] md:h-[220vh]">
       {/* transparent sticky frame: the canvas draws the film exactly inside it */}
       <div ref={frame} className="sticky top-0 h-[100svh] overflow-hidden text-[#efe8dc]">
         {/* legibility (CSS, over the canvas) */}
@@ -220,7 +220,7 @@ function Schematic({ sel, onPick, t }) {
   const rows = SECTION.map(r => { y -= r.h; return { ...r, y } })
   const top = rows[rows.length - 1].y
   return (
-    <svg viewBox="0 0 300 258" className="w-full" role="img" aria-label={t({ en: 'Schematic section of the palazzo', it: 'Sezione schematica del palazzo' })}>
+    <svg viewBox="0 0 300 262" className="w-full" role="img" aria-label={t({ en: 'Schematic section of the palazzo', it: 'Sezione schematica del palazzo' })}>
       <defs>
         <pattern id="pal-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke={INK} strokeOpacity=".16" strokeWidth="1" /></pattern>
       </defs>
@@ -242,7 +242,7 @@ function Schematic({ sel, onPick, t }) {
           })}
         </g>
       ))}
-      <text x={X0} y="254" fontSize="9" letterSpacing="1.6" fill={INK} fillOpacity=".5">{t({ en: 'SCHEMATIC · NOT TO SCALE', it: 'SCHEMA · NON IN SCALA' })}</text>
+      <text x={X0} y="256" fontSize="11" letterSpacing="1.4" fill={INK} fillOpacity=".5">{t({ en: 'SCHEMATIC · NOT TO SCALE', it: 'SCHEMA · NON IN SCALA' })}</text>
     </svg>
   )
 }
@@ -253,6 +253,8 @@ function Residences() {
   const unit = UNITS.find(u => u.n === sel)
   return (
     <div id="palazzo-residences" className={`${T.sans} relative bg-[#0b0a08] px-5 pb-14 pt-14 text-[#efe8dc] md:px-10 md:pb-16 md:pt-20`}>
+      {/* the film dissolves into the page — no hard edge */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-full h-[26vh] bg-gradient-to-b from-transparent via-[#0b0a08]/60 to-[#0b0a08]" />
       <div className="mx-auto grid max-w-[1440px] gap-10 md:grid-cols-12 md:gap-x-10 md:gap-y-12">
         <div className="min-w-0 md:col-span-5">
           <Kicker className="text-[#c3a15e]">{t({ en: 'Six residences · 474 m²', it: 'Sei residenze · 474 m²' })}</Kicker>

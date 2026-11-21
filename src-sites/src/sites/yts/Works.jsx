@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useMotionValue } from 'framer-motion'
 import { useIsMobile } from '../../lib/kit'
 import { useLang } from './i18n'
@@ -45,10 +46,10 @@ function Tabs({ filter, setFilter }) {
         const n = f === 'all' ? ITEMS.length : ITEMS.filter(x => x.kind === f).length
         return (
           <button key={f} role="tab" aria-selected={on} onClick={() => setFilter(f)}
-            className={`relative h-11 rounded-full px-4 text-[11px] font-semibold uppercase tracking-[.2em] transition-colors duration-300 md:px-5 ${on ? 'text-[#0b0a08]' : 'text-[#efe8dc]/65 hover:text-[#efe8dc]'}`}>
+            className={`relative h-11 shrink-0 rounded-full px-3.5 text-[11px] font-semibold uppercase tracking-[.14em] md:px-5 md:tracking-[.2em] transition-colors duration-300 md:px-5 ${on ? 'text-[#0b0a08]' : 'text-[#efe8dc]/65 hover:text-[#efe8dc]'}`}>
             {on && <motion.span layoutId="works-tab" className="absolute inset-0 rounded-full bg-[#efe8dc]" transition={{ type: 'spring', stiffness: 480, damping: 40 }} />}
             <span className="relative">{f === 'all' ? t({ en: 'All', it: 'Tutti' }) : t(KIND[f].tab)}</span>
-            <sup className={`relative ml-1 text-[9.5px] tabular-nums ${on ? 'text-[#8a6a2c]' : 'text-[#c3a15e]/70'}`}>{n}</sup>
+            <sup className={`relative ml-1 text-[11px] tabular-nums ${on ? 'text-[#8a6a2c]' : 'text-[#c3a15e]/70'}`}>{n}</sup>
           </button>
         )
       })}
@@ -63,13 +64,13 @@ function Thumb({ it, h, onOpen, dragged }) {
     <button type="button" onClick={e => { if (dragged.current) { e.preventDefault(); return } onOpen(it) }}
       aria-label={`${t(KIND[it.kind].cap)} ${pad(it.n, 3)}`}
       style={{ width: Math.round(h * it.ar), height: h }}
-      className={`group relative shrink-0 overflow-hidden rounded-[6px] outline-none ring-[#c3a15e] focus-visible:ring-2 ${sketch ? 'bg-[#e6ddcc]' : 'bg-[#1a1713]'}`}>
+      className={`group relative shrink-0 overflow-hidden rounded-[4px] [content-visibility:auto] outline-none ring-[#c3a15e] focus-visible:ring-2 ${sketch ? 'bg-[#e6ddcc]' : 'bg-[#1a1713]'}`}>
       <img src={img(it.id, true)} alt="" loading="lazy" decoding="async" draggable={false}
         className={`h-full w-full select-none object-cover transition-transform duration-[900ms] [transition-timing-function:cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06] ${sketch ? 'p-[7%] mix-blend-multiply [filter:sepia(.25)_contrast(1.05)]' : 'yts-grade'}`} />
       {sketch && <span aria-hidden className="pointer-events-none absolute inset-0 shadow-[inset_0_0_40px_rgba(140,110,60,.18)]" />}
       <span className="pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-2 items-end justify-between gap-3 bg-gradient-to-t from-black/65 to-transparent px-3 pb-2.5 pt-10 text-left opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
         <span className="text-[11px] font-semibold uppercase tracking-[.16em] text-white">{t(KIND[it.kind].cap)}</span>
-        <span className="text-[10.5px] tabular-nums text-white/65">{pad(it.n, 3)}</span>
+        <span className="text-[11px] tabular-nums text-white/65">{pad(it.n, 3)}</span>
       </span>
     </button>
   )
@@ -172,11 +173,12 @@ function Lightbox({ list, index, setIndex }) {
     return () => { removeEventListener('keydown', k); window.__lenis?.start(); document.body.style.overflow = o }
   }, [open, list.length])
   useEffect(() => { if (!open) return; [1, -1].forEach(d => { const n = list[(index + d + list.length) % list.length]; if (n) { const im = new Image(); im.src = img(n.id) } }) }, [index, open])
-  return (
+  // portal: <main> is a stacking context (z-10) → the dialog must live on <body> to sit above the fixed nav
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div key="lb" role="dialog" aria-modal="true" aria-label={t(KIND[it.kind].cap)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}
-          className={`fixed inset-0 z-[90] flex flex-col bg-[#0b0a08]/[.96] text-[#efe8dc] backdrop-blur-md ${T.sans}`} onClick={() => setIndex(null)}>
+          className={`fixed inset-0 z-[95] flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-[#0b0a08]/[.96] text-[#efe8dc] backdrop-blur-md ${T.sans}`} onClick={() => setIndex(null)}>
           <div className="flex h-16 shrink-0 items-center justify-between px-5 md:px-10" onClick={e => e.stopPropagation()}>
             <span className="text-[12px] font-semibold tabular-nums tracking-[.16em] text-[#efe8dc]/60">{pad(index + 1)} / {pad(list.length)}</span>
             <button onClick={() => setIndex(null)} aria-label={t({ en: 'Close', it: 'Chiudi' })} className="grid h-11 w-11 place-items-center rounded-full border border-[rgba(239,232,220,.2)] transition-colors hover:border-[#c3a15e] hover:bg-[#c3a15e] hover:text-[#0b0a08]">
@@ -198,13 +200,22 @@ function Lightbox({ list, index, setIndex }) {
               </button>
             ))}
           </div>
-          <div className="flex h-16 shrink-0 items-center justify-between gap-4 px-5 md:px-10" onClick={e => e.stopPropagation()}>
-            <span className={`${T.serif} text-[22px] italic`}>{t(KIND[it.kind].cap)}</span>
-            <span className="text-[11px] uppercase tracking-[.16em] text-[#efe8dc]/45">{t({ en: '← → · swipe · Esc', it: '← → · scorri · Esc' })}</span>
+          <div className="flex min-h-16 shrink-0 items-center justify-between gap-4 px-5 py-2 md:px-10" onClick={e => e.stopPropagation()}>
+            <span className={`${T.serif} truncate text-[20px] italic md:text-[22px]`}>{t(KIND[it.kind].cap)}</span>
+            <span className="hidden text-[11px] uppercase tracking-[.2em] text-[#efe8dc]/45 md:inline">{t({ en: '← → · swipe · Esc', it: '← → · scorri · Esc' })}</span>
+            <div className="flex shrink-0 gap-2 md:hidden">
+              {[-1, 1].map(d => (
+                <button key={d} onClick={() => go(d)} aria-label={d < 0 ? t({ en: 'Previous', it: 'Precedente' }) : t({ en: 'Next', it: 'Successivo' })}
+                  className="grid h-11 w-11 place-items-center rounded-full border border-[rgba(239,232,220,.2)] active:bg-[#c3a15e] active:text-[#0b0a08]">
+                  <svg width="14" height="14" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ transform: d < 0 ? 'scaleX(-1)' : '' }}><path d="M2 9h13M10 4l5 5-5 5" /></svg>
+                </button>
+              ))}
+            </div>
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
 
@@ -262,7 +273,7 @@ export default function Works() {
           <div className="lg:col-span-8"><Headline filter={filter} /></div>
           <p className="max-w-[36ch] text-[15px] leading-relaxed text-[#efe8dc]/62 lg:col-span-4 lg:justify-self-end">{t({ en: 'A contact sheet of the practice — the hand sketch, the render, and the site where it became real.', it: 'Il provino dello studio — lo schizzo a mano, il render e il cantiere dove diventa realtà.' })}</p>
         </div>
-        <div className="-mx-5 mt-8 overflow-x-auto px-5 [scrollbar-width:none] md:mx-0 md:mt-10 md:px-0"><Tabs filter={filter} setFilter={setFilter} /></div>
+        <div className="-mx-5 mt-8 overflow-x-auto px-5 [scrollbar-width:none] [mask-image:linear-gradient(90deg,#000_85%,transparent)] md:mx-0 md:mt-10 md:px-0 md:[mask-image:none] [&::-webkit-scrollbar]:hidden"><Tabs filter={filter} setFilter={setFilter} /></div>
       </div>
       <div className="mt-6 md:mt-8">
         <AnimatePresence mode="wait" initial={false}>

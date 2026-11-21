@@ -71,7 +71,7 @@ void main(){
 
 const frag = /* glsl */`
 uniform sampler2D uA, uB, uDB; uniform vec4 uCA, uCB; uniform vec2 uRA, uRB, uTA, uTB, uClip, uRes;
-uniform float uMix, uTime, uSharp, uSweep, uLive;
+uniform float uMix, uTime, uSharp, uSweep, uLive, uExit;
 varying vec2 vUv; varying float vD;
 ${NOISE}
 vec3 tex(sampler2D s, vec2 t, vec2 px){
@@ -112,7 +112,7 @@ void main(){
   c *= mix(1., 1. - smoothstep(.32, 1.2, length((s - .5) * vec2(1.15, 1.))), .6);
   float g = h21(gl_FragCoord.xy + fract(uTime * 7.31) * 113.) - .5;
   c += g * .024 * (.35 + sqrt(max(c.g, 0.)));
-  c = mix(vec3(.0043, .0037, .0027), c, uLive);
+  c = mix(vec3(.0043, .0037, .0027), c, uLive * (1. - uExit));
   gl_FragColor = vec4(max(c, 0.), 1.);
   #include <colorspace_fragment>
 }`
@@ -197,7 +197,7 @@ export default function ScenePalazzo({ track }) {
     uRA: { value: new THREE.Vector2(1, 0) }, uRB: { value: new THREE.Vector2(1, 0) },
     uTA: { value: new THREE.Vector2(1e-3, 1e-3) }, uTB: { value: new THREE.Vector2(1e-3, 1e-3) },
     uMix: { value: 0 }, uAmtA: { value: 0.5 }, uAmtB: { value: 0.5 }, uTime: { value: 0 }, uPlane: { value: 1.6 }, uBend: { value: 0 },
-    uSharp: { value: 0.3 }, uSweep: { value: -1 }, uLive: { value: 0 },
+    uSharp: { value: 0.3 }, uSweep: { value: -1 }, uLive: { value: 0 }, uExit: { value: 0 },
     uVP: { value: new THREE.Matrix4() }, uNdc: { value: new THREE.Vector2(1, 0) },
     uClip: { value: new THREE.Vector2(-2, -1) }, uRes: { value: new THREE.Vector2(1, 1) },
   }), [])
@@ -273,6 +273,9 @@ export default function ScenePalazzo({ track }) {
     const sc = r.height / H
     U.uNdc.value.set(sc, 1 - (2 * r.top) / H - sc)
     U.uPlane.value = pa
+    hub.dbg = [Math.round(r.top), Math.round(r.height), H, buf.y, Math.round(U.uClip.value.x), Math.round(U.uClip.value.y), +s.live.toFixed(2)]
+    // leaving: the picture sinks into the dark page as the frame scrolls away (no hard edge)
+    U.uExit.value = Math.pow(clamp(-r.top / r.height), 1.3) * 0.85
 
     // ---- which pair + transition mix
     let A = 0, B = 0, mix = 0

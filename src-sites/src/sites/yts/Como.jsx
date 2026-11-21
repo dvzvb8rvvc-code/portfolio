@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, animate, useMotionValue } from 'framer-motion'
+import React, { useEffect, useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { useLite } from '../../lib/kit'
 import { useLang } from './i18n'
 import { useStage, stage } from './engine'
@@ -27,10 +27,10 @@ const S = {
   tri: { en: 'Golden Triangle', it: 'Triangolo d’Oro' }, triSub: { en: 'Vezio · Bellagio · Menaggio · Cadenabbia', it: 'Vezio · Bellagio · Menaggio · Cadenabbia' },
   home: { en: 'Il Giardino di Teodolinda', it: 'Il Giardino di Teodolinda' }, homeSub: { en: 'Perledo', it: 'Perledo' },
   every: { en: 'Every home includes', it: 'Ogni casa include' },
-  range: { en: 'From the smallest to the largest home', it: 'Dalla casa più piccola alla più grande' },
+  range: { en: 'Sizes across the residences', it: 'Superfici nelle residenze' },
   small: { en: 'Smallest', it: 'Più piccola' }, large: { en: 'Largest', it: 'Più grande' },
-  home2: { en: 'home', it: 'casa' }, garden: { en: 'garden', it: 'giardino' },
-  rangeNote: { en: 'The two ends of the range. Every size in between — on request.', it: 'I due estremi della gamma. Ogni taglio intermedio — su richiesta.' },
+  home2: { en: 'Home · built area', it: 'Casa · superficie' }, garden: { en: 'Private garden', it: 'Giardino privato' },
+  rangeNote: { en: 'Home and garden sizes vary independently from unit to unit — details on request.', it: 'Superficie della casa e del giardino variano in modo indipendente da unità a unità — dettagli su richiesta.' },
   phases: { en: 'Building it — phase by phase', it: 'Il cantiere — fase per fase' },
   founder: { en: 'Yehiel Tsubery on site', it: 'Yehiel Tsubery in cantiere' },
   site: { en: 'Construction · Perledo', it: 'Cantiere · Perledo' },
@@ -89,7 +89,7 @@ function Skip({ p, target }) {
 }
 
 function Film({ after }) {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const lite = useLite()
   const ref = useRef()
   useStage('como', ref)
@@ -101,7 +101,7 @@ function Film({ after }) {
   const imgS = useTransform(p, [0, 1], [1.04, 1.18])
   const renderO = useTransform(p, [.86, .92], [0, 1])
   return (
-    <div ref={ref} className="relative h-[175vh] md:h-[220vh]">
+    <div ref={ref} className="relative h-[150vh] md:h-[220vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {lite && <>
           <motion.img src={img(129)} alt={t(S.alt)} style={{ scale: imgS }} className="absolute inset-0 h-full w-full object-cover [filter:saturate(.85)_sepia(.12)_brightness(.86)_contrast(1.05)]" />
@@ -111,11 +111,17 @@ function Film({ after }) {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0a08] to-transparent" />
         </>}
 
+        {!lite && (
+          <motion.div style={{ opacity: renderO }} className="pointer-events-none absolute inset-0 [html[data-como-ready]_&]:hidden">
+            <img src={img(140)} alt="" decoding="async" className="h-full w-full object-cover [filter:saturate(.86)_sepia(.12)_brightness(.85)_contrast(1.05)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0a08] via-transparent to-[#0b0a08]/50" />
+          </motion.div>
+        )}
         {!lite && <>
-          <Label k="varenna" reg={labels} title={t(S.varenna)} sub={t(S.varennaSub)} />
-          <Label k="bellagio" reg={labels} title={t(S.bellagio)} sub={t(S.bellagioSub)} />
-          <Label k="triangle" reg={labels} title={t(S.tri)} sub={t(S.triSub)} />
-          <Label k="home" reg={labels} title={t(S.home)} sub={t(S.homeSub)} gold />
+          <Label key={"varenna"+lang} k="varenna" reg={labels} title={t(S.varenna)} sub={t(S.varennaSub)} />
+          <Label key={"bellagio"+lang} k="bellagio" reg={labels} title={t(S.bellagio)} sub={t(S.bellagioSub)} />
+          <Label key={"triangle"+lang} k="triangle" reg={labels} title={t(S.tri)} sub={t(S.triSub)} />
+          <Label key={"home"+lang} k="home" reg={labels} title={t(S.home)} sub={t(S.homeSub)} gold />
         </>}
 
         <motion.div style={{ y: titleY, opacity: titleO }} className="absolute inset-x-0 top-[92px] z-20 md:top-[110px]">
@@ -148,45 +154,36 @@ function Film({ after }) {
 function Reveal({ children, className = '', d = 0 }) {
   return <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '0px 0px -10% 0px' }} transition={{ duration: 1, ease: E, delay: d }} className={className}>{children}</motion.div>
 }
-function Count({ to, className }) {
-  const mv = useMotionValue(to), ref = useRef(), first = useRef(true)
-  useEffect(() => mv.on('change', v => { if (ref.current) ref.current.textContent = Math.round(v) }), [])
-  useEffect(() => { if (first.current) { first.current = false; return } const c = animate(mv, to, { duration: .9, ease: E }); return c.stop }, [to])
-  return <span ref={ref} className={className}>{to}</span>
-}
 
-const ENDS = [{ h: 35, g: 25 }, { h: 95, g: 160 }]
-const INK = '#efe8dc', GOLD = '#c3a15e'
 const GRADE = '[filter:saturate(.86)_sepia(.1)_brightness(.9)_contrast(1.05)]'
 const lbl = `${T.sans} text-[11px] font-semibold uppercase tracking-[.22em]`
 
+const RANGES = [{ k: 'home2', lo: 35, hi: 95 }, { k: 'garden', lo: 25, hi: 160 }]
+const SCALE_MAX = 160
+function RangeBar({ r, i }) {
+  const { t } = useLang()
+  const gold = i === 1
+  return (
+    <div className="border-t border-[#efe8dc]/[.12] pt-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className={`${lbl} ${gold ? 'text-[#c3a15e]' : 'text-[#efe8dc]/60'}`}>{t(S[r.k])}</span>
+        <span className={`${T.serif} whitespace-nowrap text-[44px] leading-none tabular-nums md:text-[52px] ${gold ? 'italic text-[#c3a15e]' : ''}`}>{r.lo}–{r.hi}<span className={`${T.sans} ml-1.5 text-[13px] font-semibold not-italic ${gold ? 'text-[#c3a15e]/75' : 'text-[#efe8dc]/55'}`}>m²</span></span>
+      </div>
+      <div className="relative mt-3 h-[6px] rounded-full bg-[#efe8dc]/[.08]" aria-hidden>
+        <motion.span initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.2, ease: E, delay: .15 + i * .12 }}
+          className={`absolute inset-y-0 origin-left rounded-full ${gold ? 'bg-[#c3a15e]' : 'bg-[#efe8dc]'}`} style={{ left: (r.lo / SCALE_MAX * 100) + '%', width: ((r.hi - r.lo) / SCALE_MAX * 100) + '%' }} />
+      </div>
+    </div>
+  )
+}
 function Range() {
   const { t } = useLang()
-  const [i, setI] = useState(0)
-  const e = ENDS[i]
-  const px = v => Math.sqrt(v / 160) * 100 // side ∝ √area, garden 160 m² = 100%
   return (
     <div className="flex h-full flex-col rounded-[20px] border border-[#efe8dc]/[.12] bg-[#14120f] p-5 text-[#efe8dc] md:p-6">
-      <p className={`${lbl} text-[#efe8dc]/55`}>{t(S.range)}</p>
-      <div role="radiogroup" aria-label={t(S.range)} className={`${T.sans} relative mt-4 grid grid-cols-2 rounded-full border border-[#efe8dc]/[.12] p-1 text-[12.5px] font-semibold`}>
-        <motion.span className="absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#c3a15e]" animate={{ x: i ? '100%' : '0%' }} transition={{ type: 'spring', stiffness: 420, damping: 38 }} />
-        {[S.small, S.large].map((l, k) => (
-          <button key={k} role="radio" aria-checked={i === k} onClick={() => setI(k)} className={`relative z-10 h-11 rounded-full transition-colors duration-300 md:h-10 ${i === k ? 'text-[#0b0a08]' : 'text-[#efe8dc]/70 hover:text-[#efe8dc]'}`}>{t(l)}</button>
-        ))}
-      </div>
-      <div className="mt-5 grid grid-cols-[1fr_auto] items-end gap-4">
-        <div className={`${T.serif} leading-none`}>
-          <div className="text-[52px] tabular-nums md:text-[60px]"><Count to={e.h} /><span className={`${T.sans} ml-1.5 text-[13px] font-semibold text-[#efe8dc]/55`}>m² {t(S.home2)}</span></div>
-          <div className="mt-1 text-[52px] italic tabular-nums text-[#c3a15e] md:text-[60px]">+<Count to={e.g} /><span className={`${T.sans} ml-1.5 text-[13px] font-semibold not-italic text-[#c3a15e]/75`}>m² {t(S.garden)}</span></div>
-        </div>
-        {/* plan glyph: garden square with the home inside, sides ∝ √area */}
-        <div className="relative h-[92px] w-[92px] md:h-[104px] md:w-[104px]" aria-hidden>
-          <span className="absolute inset-0 rounded-[4px] border border-dashed border-[#efe8dc]/15" />
-          <motion.div className="absolute bottom-0 left-0 rounded-[4px] border border-[#c3a15e]/70 bg-[#c3a15e]/[.14]" animate={{ width: px(e.g) + '%', height: px(e.g) + '%' }} transition={{ duration: .9, ease: E }} />
-          <motion.div className="absolute bottom-0 left-0 rounded-[3px] bg-[#efe8dc]" animate={{ width: px(e.h) + '%', height: px(e.h) + '%' }} transition={{ duration: .9, ease: E }} />
-        </div>
-      </div>
-      <div className="relative mt-5 aspect-[16/9] overflow-hidden rounded-[12px] md:aspect-auto md:min-h-[150px] md:flex-1">
+      <p className={`${lbl} mb-4 text-[#efe8dc]/55`}>{t(S.range)}</p>
+      <div className="grid gap-5">{RANGES.map((r, i) => <RangeBar key={r.k} r={r} i={i} />)}</div>
+      <div className={`${T.sans} mt-2 flex justify-between text-[11px] tabular-nums text-[#efe8dc]/35`} aria-hidden><span>0</span><span>{SCALE_MAX} m²</span></div>
+      <div className="relative mt-5 aspect-[16/9] overflow-hidden rounded-[12px] lg:aspect-auto lg:min-h-[150px] lg:flex-1">
         <img src={img(95, true)} alt={t(S.render)} loading="lazy" decoding="async" width="720" height="405" className={`absolute inset-0 h-full w-full object-cover ${GRADE}`} />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0a08]/50 to-transparent" />
       </div>
@@ -203,17 +200,17 @@ function Details({ innerRef }) {
     <div ref={innerRef} className="relative z-10 bg-[#0b0a08] pb-14 pt-6 text-[#efe8dc] md:pb-20 md:pt-12">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         {/* lead + facts */}
-        <div className="grid gap-8 md:grid-cols-12 md:gap-10">
-          <Reveal className="md:col-span-5">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
+          <Reveal className="lg:col-span-5">
             <p className={`${lbl} flex items-center gap-3 text-[#c3a15e]`}><span className="h-px w-8 bg-[#c3a15e]" />{COMO.name}</p>
             <p className={`${T.serif} mt-4 text-[27px] leading-[1.1] md:text-[clamp(30px,2.6vw,40px)] md:leading-[1.06]`}>{t(COMO.lead)}</p>
             <p className={`${T.sans} mt-5 text-[15px] leading-relaxed text-[#efe8dc]/60`}>{t(COMO.views)}</p>
           </Reveal>
-          <Reveal d={.06} className="md:col-span-7 md:pt-9">
-            <dl className="grid grid-cols-2 border-t border-[#efe8dc]/[.12] md:grid-cols-4">
+          <Reveal d={.06} className="lg:col-span-7 lg:pt-9">
+            <dl className="grid grid-cols-2 border-t border-[#efe8dc]/[.12] lg:grid-cols-4">
               {COMO.facts.map((f, k) => (
                 <div key={k} className={`border-b border-[#efe8dc]/[.12] py-5 md:border-b-0 md:py-6 ${k % 2 ? 'pl-5' : 'pr-5'} ${k % 2 ? 'border-l md:border-l' : ''} md:px-5 ${k === 0 ? 'md:pl-0' : 'md:border-l'} border-[#efe8dc]/[.12]`}>
-                  <dd className={`${T.serif} whitespace-nowrap text-[40px] leading-none tabular-nums md:text-[clamp(40px,3.6vw,56px)]`}>{f.v}<span className={`${T.sans} ml-1 text-[13px] font-semibold text-[#c3a15e]`}>{f.u}</span></dd>
+                  <dd className={`${T.serif} whitespace-nowrap text-[40px] leading-none tabular-nums lg:text-[clamp(40px,3.6vw,56px)]`}>{f.v}<span className={`${T.sans} ml-1 text-[13px] font-semibold text-[#c3a15e]`}>{f.u}</span></dd>
                   <dt className={`${T.sans} mt-2 text-[13px] leading-snug text-[#efe8dc]/60`}>{t(f.l)}</dt>
                 </div>
               ))}
@@ -222,8 +219,8 @@ function Details({ innerRef }) {
         </div>
 
         {/* includes + range */}
-        <div className="mt-10 grid gap-8 md:mt-14 md:grid-cols-12 md:gap-10">
-          <Reveal className="md:col-span-5">
+        <div className="mt-10 grid gap-8 md:mt-14 md:grid-cols-2 md:gap-10 lg:grid-cols-12">
+          <Reveal className="lg:col-span-5">
             <p className={`${lbl} text-[#efe8dc]/55`}>{t(S.every)}</p>
             <ul className="mt-3">
               {every.map((x, k) => (
@@ -235,7 +232,7 @@ function Details({ innerRef }) {
             </ul>
             <p className={`${T.sans} mt-5 text-[15px] leading-relaxed text-[#efe8dc]/60`}>{t(COMO.model)}</p>
           </Reveal>
-          <Reveal d={.08} className="md:col-span-7"><Range /></Reveal>
+          <Reveal d={.08} className="lg:col-span-7"><Range /></Reveal>
         </div>
 
         {/* build phases: one row of steps + real site photos */}
@@ -274,7 +271,7 @@ function Details({ innerRef }) {
         <div className="mt-12 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#efe8dc]/[.12] pt-6 md:mt-16">
           <span className={`${lbl} w-full text-[#efe8dc]/45 md:w-auto`}>{t(S.next)}</span>
           <span className={`${T.serif} text-[30px] leading-none md:text-[34px]`}>{SARDEGNA.name}</span>
-          <span className={`${T.sans} text-[14px] text-[#efe8dc]/55`}>{SARDEGNA.place}</span>
+          <span className={`${T.sans} text-[14px] text-[#efe8dc]/55`}>{t(SARDEGNA.place)}</span>
           <span className={`${T.sans} rounded-full border border-[#c3a15e]/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[.16em] text-[#c3a15e]`}>{t(SARDEGNA.note)}</span>
         </div>
       </div>

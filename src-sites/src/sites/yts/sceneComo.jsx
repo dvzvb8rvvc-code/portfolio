@@ -106,6 +106,7 @@ void main(){
   float mx = max(d0, max(max(d1, d2), max(d3, d4)));
   float av = (d0 * 2. + d1 + d2 + d3 + d4) / 6.;
   float d = mix(av, mx, uDilate);
+  d *= smoothstep(0., .06, vUv.x) * smoothstep(0., .06, 1. - vUv.x) * mix(1., smoothstep(0., .08, vUv.y) * smoothstep(0., .06, 1. - vUv.y), 1. - uDilate); // flat at photo borders
   vD = d0;
   vec3 p = position + normal * d * uAmount;
   vec4 w = modelMatrix * vec4(p, 1.0);
@@ -137,7 +138,7 @@ void main(){
     uv += flow * wide * .05;
   }
   vec4 c = texture2D(uMap, uv);
-  if (uExt > 0. && vX < .015) { float e = smoothstep(.015, -.03, vX); c.rgb = mix(c.rgb, vec3(.045, .07, .04), e * (1. - c.a * .25)); c.a = mix(c.a, 1., e); }
+  if (uExt > 0. && vX < .05) { float e = smoothstep(.05, -.04, vX); c.rgb = mix(c.rgb, vec3(.012, .016, .01), e); c.a = mix(c.a, 1., e); }
   float a = c.a * uOpacity * uFade * k;
   a *= smoothstep(0., uEdgeX, vUv.x) * smoothstep(0., uEdgeX, 1. - vUv.x) * smoothstep(0., uEdgeY, vUv.y) * smoothstep(0., uEdgeTop, 1. - vUv.y);
   if (a < .004) discard;
@@ -383,6 +384,7 @@ function Rig({ track, reg, sh, mobile }) {
     g.visible = tr.on && sh.uFade.value > .005
     const labels = stage.labels && stage.labels.como
     // warm-up: render once (fully transparent) right after textures arrive → shaders compiled & textures uploaded at load, not mid-scroll
+    if (R.ready && !R.flag) { R.flag = true; document.documentElement.dataset.comoReady = '1' }
     if (R.ready && !R.warmed) { R.warm = (R.warm || 0) + 1; if (R.warm > 4) R.warmed = true; if (!active) { g.visible = true; return } }
     if (!g.visible || !active) {
       st.was = false
@@ -439,7 +441,8 @@ function Rig({ track, reg, sh, mobile }) {
       for (const [a, b] of LBL[k].win) op = Math.max(op, ss(a, a + .05, p) * (1 - ss(b - .05, b, p)))
       tmp.v.set(...LBL[k].p).multiplyScalar(K).add(OFF).project(camera)
       if (tmp.v.z > 1 || Math.abs(tmp.v.x) > 1.1 || Math.abs(tmp.v.y) > 1.1) op = 0
-      const x = (tmp.v.x * .5 + .5) * size.width, y = (-tmp.v.y * .5 + .5) * size.height
+      const hw = (el._w || (el._w = el.offsetWidth || 120)) / 2 + 14
+      const x = Math.min(size.width - hw, Math.max(hw, (tmp.v.x * .5 + .5) * size.width)), y = Math.max(96 + (el._h || (el._h = el.offsetHeight || 60)), (-tmp.v.y * .5 + .5) * size.height)
       el.style.opacity = op.toFixed(3)
       el.style.transform = `translate3d(${x.toFixed(1)}px,${(y + (1 - op) * 10).toFixed(1)}px,0) translate(-50%,-100%)`
     }

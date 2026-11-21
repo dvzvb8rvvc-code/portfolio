@@ -110,7 +110,7 @@ function Card() {
         {['left-0 top-0 border-l border-t', 'right-0 top-0 border-r border-t', 'left-0 bottom-0 border-l border-b', 'right-0 bottom-0 border-r border-b'].map(c => (
           <span key={c} aria-hidden className={`pointer-events-none absolute h-3 w-3 border-[#c3a15e]/80 ${c} -m-[18px] md:-m-[24px]`} />
         ))}
-        <div ref={box} className={`relative aspect-[4/5] w-full overflow-hidden md:aspect-[5/6] ${gl ? '' : 'bg-[#14120f]'}`}>
+        <div ref={box} className={`relative aspect-[4/5] w-full overflow-hidden lg:aspect-[5/6] ${gl ? '' : 'bg-[#14120f]'}`}>
           <img ref={im} src={img(SLIDES[0].id)} alt={t(sl.l)} loading="lazy" decoding="async" width={sl.w} height={sl.h}
             className="yts-grade absolute inset-0 h-full w-full object-cover transition-opacity duration-300" style={{ objectPosition: SLIDES[0].pos }} />
         </div>
@@ -141,13 +141,13 @@ function Intro() {
           <span className="relative h-px flex-1 overflow-hidden bg-[rgba(239,232,220,.08)]"><motion.span style={{ scaleX: rule }} className="absolute inset-0 origin-left bg-[#c3a15e]" /></span>
           <span className="hidden tabular-nums md:inline">Est. {PERSON.studioSince}</span>
         </div>
-        <div className="mt-10 grid gap-14 md:mt-14 md:grid-cols-12 md:gap-10">
-          <div className="min-w-0 px-[10px] md:col-span-5 md:col-start-8 md:row-start-1 md:px-[14px]"><Card /></div>
-          <div className="min-w-0 md:col-span-6 md:row-start-1 md:pt-2">
-            <p ref={ref} key={lang} className={`${T.serif} text-[34px] leading-[1.06] tracking-[-.01em] text-[#efe8dc] sm:text-[44px] md:text-[clamp(44px,4.1vw,68px)]`}>
+        <div className="mt-10 grid gap-14 md:mt-14 lg:grid-cols-12 lg:gap-10">
+          <div className="min-w-0 px-[10px] md:mx-auto md:w-full md:max-w-[560px] md:px-[14px] lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:max-w-none"><Card /></div>
+          <div className="min-w-0 lg:col-span-6 lg:row-start-1 lg:pt-2">
+            <p ref={ref} key={lang} className={`${T.serif} text-[34px] leading-[1.06] tracking-[-.01em] text-[#efe8dc] sm:text-[44px] md:text-[52px] lg:text-[clamp(44px,4.1vw,68px)]`}>
               {words.map((w, i) => <Word key={i} w={w} i={i} n={words.length} p={p} />)}
             </p>
-            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-[rgba(239,232,220,.12)] pt-6 md:mt-14 md:grid-cols-4">
+            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-[rgba(239,232,220,.12)] pt-6 md:mt-14 lg:grid-cols-4">
               {facts.map(([k, v]) => (
                 <div key={k}>
                   <dt className={`${CAP} text-[#efe8dc]/45`}>{k}</dt>
@@ -190,16 +190,18 @@ function Film() {
   const r = useTransform(p, v => { const S = clamp01(v) * 4 * .9999; return ss(.06, .72, S - Math.floor(S)) })
   const bar = useTransform(p, v => clamp01(v))
   const titleY = useTransform(p, [0, 1], ['0%', '-18%'])
-  const skip = () => { const el = ref.current; if (el) to(el.getBoundingClientRect().bottom + window.scrollY - window.innerHeight * 0.6) }
+  // skip past the film completely: land on the next chapter's top (Como), else the film's end + 1px
+  const skip = () => { const n = document.getElementById('como'), el = ref.current; const y = n ? n.getBoundingClientRect().top + window.scrollY : el ? el.getBoundingClientRect().bottom + window.scrollY + 1 : 0; to(y) }
+  const out = useTransform(p, [.9, .985], [1, 0])
   const pair = PAIRS[idx]
   return (
-    <div ref={ref} className="relative h-[200vh]" aria-label={t(S.filmLabel)}>
+    <div ref={ref} className="relative h-[170vh] md:h-[200vh]" aria-label={t(S.filmLabel)}>
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        <div className="pointer-events-none mx-auto flex h-full max-w-[1440px] flex-col px-5 pb-24 pt-20 md:px-10 md:pb-10 md:pt-24">
+        <motion.div style={{ opacity: out }} className="pointer-events-none mx-auto flex h-full max-w-[1440px] flex-col px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-[76px] md:px-10 md:pb-10 md:pt-24">
           {/* title */}
           <motion.div style={{ y: mobile ? 0 : titleY }} className="md:max-w-[40%]">
             <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/62`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.filmLabel)}</p>
-            <h2 className={`${T.serif} mt-4 text-[34px] leading-[.98] tracking-[-.015em] text-[#efe8dc] md:mt-6 md:text-[clamp(54px,5.6vw,96px)]`}>
+            <h2 className={`${T.serif} mt-3 text-[28px] leading-[1] max-[380px]:text-[25px] tracking-[-.015em] text-[#efe8dc] md:mt-6 md:text-[clamp(54px,5.6vw,96px)]`}>
               <motion.span className="block" initial="h" whileInView="s" viewport={{ once: true }}>
                 <span className="block overflow-hidden pb-[.08em]"><motion.span className="block" variants={{ h: { y: '105%' }, s: { y: 0, transition: { duration: 1.1, ease: E } } }}>{t(S.filmA)}</motion.span></span>
                 <span className="block overflow-hidden pb-[.08em]"><motion.span className="block italic text-[#d9bf86]" variants={{ h: { y: '105%' }, s: { y: 0, transition: { duration: 1.1, ease: E, delay: .1 } } }}>{t(S.filmB)}</motion.span></span>
@@ -210,21 +212,21 @@ function Film() {
 
           {/* caption + counter */}
           <div className="mt-auto md:max-w-[34%]">
-            <div className={`${T.serif} flex items-baseline gap-3 text-[30px] leading-none text-[#efe8dc] md:text-[44px]`}>
+            <div className={`${T.serif} flex items-baseline gap-3 text-[26px] leading-none text-[#efe8dc] md:text-[44px]`}>
               <StageLabel key={idx} r={r} i={idx} />
             </div>
-            <div className="mt-3 h-[22px] overflow-hidden md:h-[24px]">
+            <div className="mt-2 h-[22px] overflow-hidden md:mt-3 md:h-[24px]">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.p key={idx} initial={{ y: 22, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -22, opacity: 0 }} transition={{ duration: .5, ease: E }} className={`${T.sans} truncate text-[13.5px] font-medium text-[#efe8dc]/72 md:text-[15px]`}>{t(pair.t)}</motion.p>
               </AnimatePresence>
             </div>
-            <div className="mt-4 flex items-center gap-4">
+            <div className="mt-2 flex items-center gap-4 md:mt-4">
               <span className={`${T.sans} text-[12px] font-semibold tabular-nums tracking-[.14em] text-[#efe8dc]`}>{String(idx + 1).padStart(2, '0')}<span className="text-[#efe8dc]/40"> / 04</span></span>
               <span className="relative h-px flex-1 bg-[rgba(239,232,220,.14)]"><motion.span style={{ scaleX: bar }} className="absolute inset-0 origin-left bg-[#c3a15e]" /></span>
               <button onClick={skip} className={`${T.sans} pointer-events-auto inline-flex h-11 items-center rounded-full border border-[rgba(239,232,220,.22)] px-5 text-[11px] font-semibold uppercase tracking-[.16em] text-[#efe8dc]/72 transition-colors hover:border-[#c3a15e] hover:text-[#efe8dc]`}>{t('skip')} ↓</button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )
@@ -244,7 +246,7 @@ function FilmLite() {
               {[p.a, p.b].map((id, k) => (
                 <div key={id} className="relative aspect-[4/5] overflow-hidden bg-[#14120f]">
                   <img src={img(id, true)} alt={`${t(PAIR_LAB[i][k])} — ${t(p.t)}`} loading="lazy" decoding="async" width="720" height="900" className={`h-full w-full object-cover ${k === 0 && i === 0 ? '' : ''}`} />
-                  <span className={`${T.sans} absolute left-2 top-2 rounded-full bg-[#0b0a08]/75 text-[#efe8dc] backdrop-blur px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[.14em]`}>{t(PAIR_LAB[i][k])}</span>
+                  <span className={`${T.sans} absolute left-2 top-2 rounded-full bg-[#0b0a08]/75 text-[#efe8dc] backdrop-blur px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[.2em]`}>{t(PAIR_LAB[i][k])}</span>
                 </div>
               ))}
             </div>

@@ -13,16 +13,16 @@ const INTERESTS = [
 ]
 const LANGS = [{ k: 'en', l: 'English' }, { k: 'it', l: 'Italiano' }, { k: 'he', l: 'עברית' }]
 
-function Field({ id, label, value, onChange, type = 'text', error, area, autoComplete }) {
+function Field({ id, label, value, onChange, type = 'text', error, area, autoComplete, name, required, inputMode }) {
   const Tag = area ? 'textarea' : 'input'
   return (
     <label htmlFor={id} className="group relative block pt-5">
-      <Tag id={id} type={area ? undefined : type} value={value} onChange={e => onChange(e.target.value)} placeholder=" " rows={area ? 2 : undefined} autoComplete={autoComplete}
+      <Tag id={id} type={area ? undefined : type} value={value} onChange={e => onChange(e.target.value)} placeholder=" " rows={area ? 2 : undefined} autoComplete={autoComplete} name={name || id} required={required} aria-required={required || undefined} inputMode={inputMode} aria-describedby={error ? id + '-err' : undefined}
         aria-invalid={!!error}
         className={`peer block w-full resize-none border-0 border-b bg-transparent pb-3 pt-1.5 text-[18px] text-[#efe8dc] min-h-[48px] outline-none transition-colors placeholder:text-transparent ${error ? 'border-[#d9a066]' : 'border-[rgba(239,232,220,.22)] focus:border-[rgba(239,232,220,.4)]'}`} />
       <span className="pointer-events-none absolute left-0 top-7 origin-left text-[17px] text-[#efe8dc]/55 transition-all duration-300 peer-focus:top-0 peer-focus:text-[11px] peer-focus:font-semibold peer-focus:uppercase peer-focus:tracking-[.26em] peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-[.26em]">{label}</span>
       <span className="pointer-events-none absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-[#c3a15e] transition-transform duration-500 peer-focus:scale-x-100" />
-      {error && <span className="absolute -bottom-5 left-0 text-[11.5px] text-[#e6b980]">{error}</span>}
+      {error && <span id={id + '-err'} role="alert" className="absolute -bottom-5 left-0 text-[12.5px] text-[#e6b980]">{error}</span>}
     </label>
   )
 }
@@ -58,7 +58,7 @@ function Thanks({ name, interest, reset }) {
         <motion.circle cx="104" cy="104" r="14" stroke="#c3a15e" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, delay: 1, ease: EASE }} />
       </svg>
       <h3 className={`${T.serif} mt-6 text-[56px] leading-[.92] md:text-[76px]`}>
-        <span className="block overflow-hidden"><motion.span className="inline-block" initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, ease: EASE, delay: 0.3 }}>Grazie{first ? ',' : '.'}</motion.span></span>
+        <span className="block overflow-hidden"><motion.span className="inline-block" initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, ease: EASE, delay: 0.3 }}>{t({ en: 'Thank you', it: 'Grazie' })}{first ? ',' : '.'}</motion.span></span>
         {first && <span className="block overflow-hidden"><motion.span className="inline-block italic text-[#d9bf86]" initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, ease: EASE, delay: 0.42 }}>{first}.</motion.span></span>}
       </h3>
       <p className="mt-6 max-w-[40ch] text-[16px] leading-relaxed text-[#efe8dc]/75">
@@ -92,8 +92,8 @@ function Form() {
       {sent ? <Thanks key="ok" name={s.name} interest={s.interest} reset={() => { setS(empty); setSent(false) }} /> : (
         <motion.form key="form" onSubmit={submit} noValidate initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.5 }}>
           <div className="grid gap-x-8 md:grid-cols-2">
-            <Field id="q-name" label={t({ en: 'Your name', it: 'Il tuo nome' })} value={s.name} onChange={v => upd('name', v)} error={err.name} autoComplete="name" />
-            <Field id="q-reach" label={t({ en: 'Email or phone', it: 'Email o telefono' })} value={s.reach} onChange={v => upd('reach', v)} error={err.reach} autoComplete="email" />
+            <Field id="q-name" label={t({ en: 'Your name', it: 'Il tuo nome' })} value={s.name} onChange={v => upd('name', v)} error={err.name} autoComplete="name" name="name" required />
+            <Field id="q-reach" label={t({ en: 'Email or phone', it: 'Email o telefono' })} value={s.reach} onChange={v => upd('reach', v)} error={err.reach} autoComplete="email" name="contact" inputMode="email" required />
           </div>
           <Chips name="interest" label={t({ en: 'I’m interested in', it: 'Mi interessa' })} value={s.interest} onChange={v => upd('interest', v)} options={INTERESTS.map(o => ({ k: o.k, label: t(o.t) }))} />
           <Chips name="pref" label={t({ en: 'Preferred language', it: 'Lingua preferita' })} value={s.pref || lang} onChange={v => upd('pref', v)} options={LANGS.map(o => ({ k: o.k, label: o.l }))} />
@@ -176,9 +176,16 @@ export default function Contact() {
             </h2>
             <p className="mt-6 max-w-[38ch] text-[15.5px] leading-relaxed text-[#efe8dc]/75">{t({ en: 'About a residence on Lake Como or in Volterra, a building of your own, or an invitation to the club — tell the studio a little, in the language you prefer.', it: 'Per una residenza sul Lago di Como o a Volterra, un edificio tutto vostro o un invito al club — raccontate qualcosa allo studio, nella lingua che preferite.' })}</p>
             <div className="mt-8 border-t border-[rgba(239,232,220,.14)] pt-5">
-              <div className="text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/50">{t({ en: 'Offices', it: 'Sedi' })}</div>
-              <div className={`${T.serif} mt-2 text-[22px] leading-[1.2] md:text-[24px]`}>Ramat Gan <span className="text-[#efe8dc]/45">·</span> Como <span className="text-[#efe8dc]/45">·</span> Volterra</div>
-              <div className="mt-1 text-[12px] text-[#efe8dc]/50">{t({ en: 'Studio in Israel · residences in Italy', it: 'Studio in Israele · residenze in Italia' })}</div>
+              <dl className="grid grid-cols-2 gap-6">
+                <div>
+                  <dt className="text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/50">{t({ en: 'Studio', it: 'Studio' })}</dt>
+                  <dd className={`${T.serif} mt-2 text-[22px] leading-[1.2] md:text-[24px]`}>Ramat Gan<span className="block text-[13px] not-italic text-[#efe8dc]/50 [font-family:'Inter_Tight',sans-serif]">{t({ en: 'Israel', it: 'Israele' })}</span></dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/50">{t({ en: 'Projects', it: 'Progetti' })}</dt>
+                  <dd className={`${T.serif} mt-2 text-[22px] leading-[1.2] md:text-[24px]`}>{t({ en: 'Lake Como', it: 'Lago di Como' })}, Volterra<span className="block text-[13px] text-[#efe8dc]/50 [font-family:'Inter_Tight',sans-serif]">{t({ en: 'Italy', it: 'Italia' })}</span></dd>
+                </div>
+              </dl>
             </div>
             <div className="mt-6 h-[130px] overflow-hidden rounded-[4px] bg-white/5 ring-1 ring-[rgba(239,232,220,.14)]">
               <iframe title={t({ en: 'Map — Ramat Gan', it: 'Mappa — Ramat Gan' })} loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="h-full w-full border-0 opacity-80 [filter:grayscale(1)_invert(.9)_contrast(.9)]"

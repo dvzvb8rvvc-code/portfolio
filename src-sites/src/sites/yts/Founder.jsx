@@ -57,7 +57,7 @@ function Portrait() {
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0b0a08]/75 via-transparent to-transparent" />
           <motion.div aria-hidden style={{ left: gx }} className="pointer-events-none absolute top-0 h-full w-[60%] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(217,191,134,.14),transparent)] mix-blend-screen" />
           <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/75">
-            <span>Ramat Gan · Milano</span><span className="tabular-nums">YTS</span>
+            <span>Ramat Gan · {t({ en: 'Israel', it: 'Israele' })}</span><span className="tabular-nums">YTS</span>
           </div>
         </div>
         {/* b/w inset floats on its own depth */}
@@ -92,12 +92,12 @@ function MottoBand() {
   const { t } = useLang()
   const ref = useRef(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const a = useTransform(scrollYProgress, [0, 1], ['10%', '-8%'])
-  const b = useTransform(scrollYProgress, [0, 1], ['-10%', '8%'])
+  const a = useTransform(scrollYProgress, [0, 1], ['2%', '-7%'])
+  const b = useTransform(scrollYProgress, [0, 1], ['-2%', '7%'])
   const [w1, ...rest] = t(PERSON.motto).split(' ')
   return (
     <div ref={ref} className="relative overflow-hidden border-y border-[rgba(195,161,94,.22)] bg-[#3a2412] py-8 text-[#efe8dc] md:py-10">
-      <div className="flex flex-col items-center justify-center whitespace-nowrap text-[15vw] leading-[.9] md:flex-row md:gap-[.25em] md:text-[9vw] 2xl:text-[132px]">
+      <div className="flex flex-col items-center justify-center whitespace-nowrap text-[clamp(34px,10.5vw,64px)] leading-[.92] md:flex-row md:gap-[.4em] md:text-[7.2vw] 2xl:text-[112px]">
         <motion.span style={{ x: a }} className="font-black uppercase tracking-[-.04em] text-[#efe8dc]/90">{w1}</motion.span>
         <motion.span style={{ x: b }} className={`${T.serif} italic text-[#d9bf86]`}>{rest.join(' ')}.</motion.span>
       </div>

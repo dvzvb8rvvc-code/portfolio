@@ -134,7 +134,7 @@ function Ribbon() {
   return (
     <div className={`relative z-[61] border-b border-[rgba(239,232,220,.08)] bg-[#14120f] px-4 py-2 text-center text-[11.5px] font-medium leading-snug tracking-[.02em] text-[#efe8dc]/70 ${T.sans}`}>
       {t({ en: 'Website concept for YTS · Yehiel Tsubery — independent demo, not affiliated · ', it: 'Concept di sito per YTS · Yehiel Tsubery — demo indipendente, non affiliata · ' })}
-      <a className="text-[#d9bf86] underline decoration-[#c3a15e]/50 underline-offset-[3px]" href={PORTFOLIO} target="_blank" rel="noopener">by Artem</a>
+      <a className="-my-3 inline-flex min-h-[44px] items-center text-[#d9bf86] underline decoration-[#c3a15e]/50 underline-offset-[3px]" href={PORTFOLIO} target="_blank" rel="noopener">by Artem</a>
     </div>
   )
 }

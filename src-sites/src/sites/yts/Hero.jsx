@@ -74,7 +74,7 @@ function TopLine({ p }) {
   const { t } = useLang()
   const o = useTransform(p, [0, .25], [1, 0])
   return (
-    <motion.div style={{ opacity: o }} className="pointer-events-none absolute inset-x-0 top-[76px] z-20 max-md:hidden md:top-[92px]">
+    <motion.div style={{ opacity: o }} className="pointer-events-none absolute inset-x-0 top-[76px] z-20 max-md:hidden md:top-[128px]">
       <Fade d={.5} className={`${T.sans} mx-auto flex max-w-[1440px] items-center gap-4 px-6 text-[11px] font-medium uppercase tracking-[.32em] text-[#f3ede3]/75 md:px-12 md:text-[11px] md:tracking-[.38em]`}>
         <span className="hidden md:inline">{t(S.top)}</span>
         <span className="md:hidden">YTS Architects · {t(S.topS)}</span>
@@ -98,7 +98,7 @@ function Reel({ p, i, bar }) {
   const go = n => { if (stage.hero) stage.hero.go = n }
   return (
     <motion.div style={{ opacity: o }} className="pointer-events-none absolute right-6 top-[122px] z-30 w-[150px] md:bottom-16 md:right-12 md:top-auto md:w-[280px]">
-      <Fade d={1.4}>
+      <Fade d={1.4} className="max-md:rounded-[4px] max-md:border max-md:border-[rgba(239,232,220,.12)] max-md:bg-[#0b0a08]/45 max-md:px-3 max-md:pb-1 max-md:pt-2 max-md:backdrop-blur-md">
         <div className={`${T.sans} flex items-baseline justify-between text-[#f3ede3]`}>
           <span className="text-[11px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/60 max-md:hidden">{t(S.reel)}</span>
           <span className="tabular-nums tracking-[.2em]">

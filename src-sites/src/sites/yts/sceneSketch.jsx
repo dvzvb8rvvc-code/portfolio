@@ -257,10 +257,10 @@ export default function SceneSketch({ track }) {
     const k = Math.min(3, Math.floor(C.c)), fr = C.c - k
     const fa = THREE.MathUtils.lerp(ASPECT[k], ASPECT[Math.min(3, k + 1)], fr)
     const desk = va > 1.05
-    const bh = desk ? 0.66 : 0.4, bw = desk ? 0.48 : 0.8
+    const bh = desk ? 0.66 : 0.31, bw = desk ? 0.48 : 0.78
     const D = Math.max(H / (bh * tan2), (H * fa) / (bw * va * tan2))
     const visH = D * tan2, visW = visH * va
-    const sx = desk ? -0.17 * visW : 0, sy = desk ? 0.02 * visH : 0.06 * visH
+    const sx = desk ? -0.17 * visW : 0, sy = desk ? 0.02 * visH : 0.015 * visH
     const travel = Math.sin(Math.PI * fr)
     // one damping stage only (C.c, rr, pointer) → camera and look target move together, no skew while panning
     C.rr = damp(C.rr ?? 0, s.r[Math.round(C.c)] ?? 0, 4, dt)
@@ -278,6 +278,8 @@ export default function SceneSketch({ track }) {
       if (r.top > 0) sh = r.top / vh
       else if (r.bottom < vh) sh = -(vh - r.bottom) / vh
     }
+    // leaving: the print dissolves into the dark page while it scrolls away (nothing left over the next title)
+    s.op = C.op * (1 - ss(0.05, 0.45, -sh))
     camera.position.y = C.y + sh * visH
     tmpLook.set(px + ox * .35, py + sh * visH + oy * .35, 0)
     camera.lookAt(tmpLook)
