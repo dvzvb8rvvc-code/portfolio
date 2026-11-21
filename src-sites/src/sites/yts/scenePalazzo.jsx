@@ -270,6 +270,7 @@ export default function ScenePalazzo({ track }) {
     const ratio = buf.y / H
     U.uRes.value.copy(buf)
     U.uClip.value.set((H - r.top - r.height) * ratio - 0.5, (H - r.top) * ratio + 0.5)
+    if (hub.noClip) U.uClip.value.set(-1e5, 1e5)
     const sc = r.height / H
     U.uNdc.value.set(sc, 1 - (2 * r.top) / H - sc)
     U.uPlane.value = pa

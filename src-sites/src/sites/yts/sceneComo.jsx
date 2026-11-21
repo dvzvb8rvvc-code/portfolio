@@ -264,7 +264,7 @@ void main(){
     vec2 uv = vec2(.5 - (h.x - uHillR.x) / uHillR.z, (h.y - uHillR.y) / uHillR.w + .5);
     if (uv.x > 0. && uv.x < 1. && uv.y > 0. && uv.y < 1.) {
       vec4 c = texture2D(uHill, uv);
-      rH = mix(refl, c.rgb * uTint * uExp, c.a * uHillOn * smoothstep(0., .16, uv.x) * smoothstep(0., .16, 1. - uv.x));
+      rH = mix(refl, c.rgb * uTint * uExp, c.a * uHillOn * smoothstep(0., .3, uv.x) * smoothstep(0., .3, 1. - uv.x) * smoothstep(0., .2, uv.y));
     }
   }
   refl = mix(rF, rH, smoothstep(-.05, .05, r.z));
@@ -429,7 +429,7 @@ function Rig({ track, reg, sh, mobile }) {
     const hillOn = Math.min(1, Math.max(0, (p - .57) / .3))
     if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uReveal.value = hillOn; R.hill140.u.uOpacity.value = 1 }
     if (R.water) {
-      R.water.uHillOn.value = hillOn
+      R.water.uHillOn.value = ss(.45, 1, hillOn) // reflection only once the render has actually bled in
       if (!R.water.uFar.value && R.far129) R.water.uFar.value = R.far129.map
       if (!R.water.uHill.value && R.hill140) R.water.uHill.value = R.hill140.map
     }

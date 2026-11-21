@@ -257,7 +257,7 @@ export default function SceneSketch({ track }) {
     const k = Math.min(3, Math.floor(C.c)), fr = C.c - k
     const fa = THREE.MathUtils.lerp(ASPECT[k], ASPECT[Math.min(3, k + 1)], fr)
     const desk = va > 1.05
-    const bh = desk ? 0.66 : 0.31, bw = desk ? 0.48 : 0.78
+    const bh = desk ? 0.66 : 0.31, bw = desk ? 0.48 : 0.72
     const D = Math.max(H / (bh * tan2), (H * fa) / (bw * va * tan2))
     const visH = D * tan2, visW = visH * va
     const sx = desk ? -0.17 * visW : 0, sy = desk ? 0.02 * visH : 0.015 * visH
@@ -266,9 +266,9 @@ export default function SceneSketch({ track }) {
     C.rr = damp(C.rr ?? 0, s.r[Math.round(C.c)] ?? 0, 4, dt)
     C.mx = damp(C.mx ?? 0, ptr.x, 2.5, dt); C.my = damp(C.my ?? 0, ptr.y, 2.5, dt)
     const rr = C.rr
-    const ox = (rr - 0.5) * 0.5 * (desk ? 1 : 0.4) + C.mx * 0.2, oy = -0.15 + rr * 0.26 + C.my * 0.1
+    const ox = desk ? (rr - 0.5) * 0.5 + C.mx * 0.2 : 0, oy = desk ? -0.15 + rr * 0.26 + C.my * 0.1 : -0.06 + rr * 0.12 // phones: dead-centre, no sideways drift
     const px = ORIGIN.x + C.c * GAP + sx, py = ORIGIN.y + sy
-    const tx = px + ox, ty = py + oy, tz = D + travel * 1.4 - rr * 0.25
+    const tx = px + ox, ty = py + oy, tz = D + travel * (desk ? 1.4 : 2.2) - rr * (desk ? 0.25 : 0.1)
     camera.position.x = tx; camera.position.z = tz; C.y = ty; C.wasActive = true
     // emulated sticky: while the film enters/leaves, the frame scrolls 1:1 with the page (not damped)
     const el = stage.els.sketch
