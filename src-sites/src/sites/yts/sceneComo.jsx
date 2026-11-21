@@ -328,10 +328,10 @@ function Mist({ sh }) {
 const ST_D = [
   [0, [0, EYE, 0], 0, -.13, 47],
   [.18, [0, 16.6, -8], -.02, -.12, 46],
-  [.36, [-4, 8.8, -33], .05, -.065, 46],
-  [.52, [-9, 4.8, -56], .14, -.02, 46],
-  [.65, [-7.5, 8, -54], PI * .62, .0, 46],
-  [.8, [-2, 19, -32], PI - .04, .02, 44],
+  [.34, [-4, 8.8, -33], .05, -.065, 46],
+  [.48, [-9, 4.8, -55], .14, -.02, 46],
+  [.59, [-7.5, 8, -53], PI * .64, .0, 46],
+  [.74, [-2, 19, -32], PI - .04, .02, 44],
   [1, [0, 25, -16], PI, .01, 41],
 ]
 const ST_M = ST_D.map(([p, pos, y, pt, f], i) => [p, pos, y + (i > 0 && i < 4 ? .06 : 0), pt + (i >= 5 ? .05 : 0), Math.min(72, f + (i >= 5 ? 14 : 20))])
@@ -356,8 +356,8 @@ function sample(S, p, out) {
 const LBL = {
   varenna: { p: onPlane(1205, 575, KN), win: [[-.1, .2]] },
   bellagio: { p: [far(560, 296)[0], far(560, 296)[1] + 3, ZF], win: [[.2, .5]] },
-  triangle: { p: [far(1050, 300)[0], 6, ZF], win: [[.36, .64]] },
-  home: { p: [-6, 32, 30], win: [[.78, 1.2]] },
+  triangle: { p: [far(1050, 300)[0], 6, ZF], win: [[.34, .56]] },
+  home: { p: [-6, 32, 30], win: [[.72, 1.2]] },
 }
 
 function Rig({ track, reg, sh, mobile }) {
@@ -428,7 +428,7 @@ function Rig({ track, reg, sh, mobile }) {
     const lay = (k, z, lo, hi) => { const L = R[k]; if (!L) return; const lin = Math.min(1, Math.max(0, (tmp.cam.z - z - lo) / (hi - lo))) * (1 - back); L.u.uReveal.value = lin; L.u.uOpacity.value = 1; L.mesh.visible = lin > .004 }
     lay('fg129', ZFG, .5, 9)
     lay('near129', ZN, 1, 15)
-    const hillOn = Math.min(1, Math.max(0, (p - .5) / .26))
+    const hillOn = Math.min(1, Math.max(0, (p - .45) / .23))
     if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uReveal.value = hillOn; R.hill140.u.uOpacity.value = 1 }
     if (R.water) {
       R.water.uHillOn.value = ss(.45, 1, hillOn) // reflection only once the render has actually bled in

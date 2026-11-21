@@ -142,8 +142,10 @@ function Pair({ i, texA, texB, texD, state, hi, mobile }) {
     if (!s.on) return
     const g = grp.current
     const near = Math.abs(s.cam - i) < 1.2
+    const was = g.visible
     g.visible = near
     if (!near) return
+    if (!was || s.jump) u.uMix.value = s.r[i] // re-entering (or jumped by skip/anchor): show the right state at once, never a stale frame
     const h = hi.current[i]
     if (h) { if (h.a && u.uA.value !== h.a) u.uA.value = h.a; if (h.b && u.uB.value !== h.b) u.uB.value = h.b }
     dt = Math.min(dt, 1 / 20)
@@ -229,6 +231,7 @@ export default function SceneSketch({ track }) {
 
   useFrame((st, dt) => {
     const t = track.current, g = root.current, s = state.current
+    s.jump = !s.on && t.on
     s.on = t.on
     if (!g) return
     g.visible = t.on
@@ -279,7 +282,7 @@ export default function SceneSketch({ track }) {
       else if (r.bottom < vh) sh = -(vh - r.bottom) / vh
     }
     // leaving: the print dissolves into the dark page while it scrolls away (nothing left over the next title)
-    s.op = C.op * (1 - ss(0.2, 0.7, -sh))
+    s.op = C.op * (1 - ss(0.0, 0.35, -sh))
     camera.position.y = C.y + sh * visH
     tmpLook.set(px + ox * .35, py + sh * visH + oy * .35, 0)
     camera.lookAt(tmpLook)
