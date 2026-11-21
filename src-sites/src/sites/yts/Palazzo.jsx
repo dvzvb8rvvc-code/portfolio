@@ -144,12 +144,18 @@ function Film() {
   const lookO = useTransform(prog, lw, [0, 1, 1, 1])
   const lookS = useTransform(prog, [lw[0], 1], [0.94, 1.02])
   const bar = useTransform(prog, [0, 0.98], [0, 1])
+  // while the film scrolls in, a DOM still of 145 (same framing/grade) stands in for the canvas;
+  // it melts away as the frame pins and the shader takes over
+  const { scrollYProgress: enter } = useScroll({ target: ref, offset: ['start end', 'start start'] })
+  const stillO = useTransform([enter, scrollYProgress], ([e, q]) => (e < 0.97 ? 1 : Math.max(0, 1 - q / 0.025)))
   const skip = () => goTo('palazzo-residences')
 
   return (
     <div ref={ref} className="relative h-[160vh] md:h-[220vh]">
       {/* transparent sticky frame: the canvas draws the film exactly inside it */}
       <div ref={frame} className="sticky top-0 h-[100svh] overflow-hidden text-[#efe8dc]">
+        <motion.img aria-hidden alt="" src={img(145)} srcSet={`${img(145, 1)} 720w, ${img(145)} 1800w`} sizes="100vw" decoding="async" width="1800" height="1609" style={{ opacity: stillO, ...LITE_GRADE }}
+          className="pointer-events-none absolute inset-0 h-full w-full scale-[1.16] object-cover object-[66%_50%] md:object-[50%_38%]" />
         {/* legibility (CSS, over the canvas) */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0b0a08]/70 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-[#0b0a08]/88 via-[#0b0a08]/35 to-transparent" />

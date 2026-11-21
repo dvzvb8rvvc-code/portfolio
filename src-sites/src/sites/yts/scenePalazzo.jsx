@@ -268,9 +268,8 @@ export default function ScenePalazzo({ track }) {
     gl.getDrawingBufferSize(buf)
     const ratio = buf.y / H
     U.uRes.value.copy(buf)
-    // entering: draw full-viewport, fixed (the page above scrolls away and reveals it — no clip edge);
-    // pinned / leaving: follow the sticky frame so the picture scrolls out with it
-    const ft = Math.min(0, r.top)
+    // follow the sticky frame (while entering, Palazzo.jsx covers it with the DOM still of 145)
+    const ft = r.top
     U.uClip.value.set((H - ft - r.height) * ratio - 0.5, (H - ft) * ratio + 0.5)
     const sc = r.height / H
     U.uNdc.value.set(sc, 1 - (2 * ft) / H - sc)
