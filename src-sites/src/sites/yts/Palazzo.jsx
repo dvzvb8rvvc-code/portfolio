@@ -448,9 +448,10 @@ function Amenities() {
       const b = box.current?.getBoundingClientRect(); if (!b) return
       rects.current = cards.current.map(el => { if (!el) return null; const r = el.getBoundingClientRect(); return { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height } })
     }
-    measure(); window.__amen = rects
+    measure()
+    const iv = setInterval(measure, 500)
     const ro = new ResizeObserver(measure); if (box.current) ro.observe(box.current)
-    return () => ro.disconnect()
+    return () => { ro.disconnect(); clearInterval(iv) }
   }, [])
   const onMove = ev => {
     cards.current.forEach((el, i) => {
@@ -475,8 +476,8 @@ function Amenities() {
 
         <div ref={box} onPointerMove={onMove} onPointerLeave={onLeave} className="relative mt-12 grid grid-cols-2 gap-3 md:mt-16 md:grid-cols-4 md:gap-5">
           {CARDS.map((c, i) => (
-            <motion.figure key={c.id} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-10% 0px' }} transition={{ duration: 1.1, ease: E, delay: i * 0.08 }} className={`relative ${i % 2 ? 'md:mt-16' : ''}`}>
-              <div ref={el => { cards.current[i] = el }} className="relative aspect-[4/5] overflow-hidden rounded-[8px] bg-white/[.04]">
+            <motion.figure key={c.id} initial={{ opacity: 0, y: 60 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-10% 0px' }} transition={{ duration: 1.1, ease: E, delay: i * 0.08 }} className={`relative z-10 ${i % 2 ? 'md:mt-16' : ''}`}>
+              <div ref={el => { cards.current[i] = el }} className={`relative aspect-[4/5] overflow-hidden rounded-[8px] ${lite ? '' : 'bg-transparent'}`}>
                 {lite && <img src={img(c.id, 1)} alt={t(c.t)} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />}
               </div>
               <figcaption className="relative z-10 mt-3 flex items-baseline justify-between gap-3">

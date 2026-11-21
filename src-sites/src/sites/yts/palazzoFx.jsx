@@ -76,11 +76,12 @@ void main(){
   vec2 p = (vUv - 0.5) * uSize; vec2 q = abs(p) - uSize * 0.5 + 8.0;
   float r = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 8.0;
   float a = (1.0 - smoothstep(-1.0, 0.5, r)) * uIn;
-  gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+  gl_FragColor = vec4(c, a);
   #include <colorspace_fragment>
 }`
 
 function Card({ id, i, rects, ptr, mob }) {
+  window.__cardR = (window.__cardR || 0) + 1
   const [map, dmap] = useLoader(THREE.TextureLoader, [url(id, mob), durl(id)])
   map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4
   const ia = map.image ? map.image.height / map.image.width : 0.8
@@ -92,6 +93,7 @@ function Card({ id, i, rects, ptr, mob }) {
   }), [map, dmap])
   useFrame((st, dt) => {
     dt = Math.min(dt, 0.05)
+    window.__cardF = (window.__cardF || 0) + 1
     const r = rects.current[i], m = mesh.current; if (!r || !m) return
     const { width: Wc, height: Hc } = st.size
     m.position.set(r.x + r.w / 2 - Wc / 2, -(r.y + r.h / 2 - Hc / 2), 0)
@@ -131,9 +133,10 @@ function PixelCamera() {
   }, [size, camera])
   return null
 }
-export function CardsCanvas({ ids, rects, ptr, active, mob }) {
+export function CardsCanvas({ ids, rects, ptr, active, mob, bg = '#1b2a33' }) {
   return (
-    <Canvas frameloop="always" dpr={[1, mob ? 1.5 : 1.6]} gl={{ antialias: true, alpha: true }} camera={{ fov: 30, near: 10, far: 20000, position: [0, 0, 1000] }} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+    <Canvas frameloop={active ? 'always' : 'demand'} dpr={[1, mob ? 1.5 : 1.6]} gl={{ antialias: true }} camera={{ fov: 30, near: 10, far: 20000, position: [0, 0, 1000] }} style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+      <color attach="background" args={[bg]} />
       <PixelCamera />
       <Suspense fallback={null}>{ids.map((id, i) => <Card key={id} id={id} i={i} rects={rects} ptr={ptr} mob={mob} />)}</Suspense>
     </Canvas>
