@@ -24,6 +24,7 @@ const CFG = {
   157: { pitch: 0.05, depth: 1.2, beam: [0.95, -0.4] },
   152: { pitch: 0.09, depth: 1.1, beam: [-0.75, 0.36] },
 }
+const Q = (typeof location !== 'undefined' && (location.search.match(/palx=(\w+)/) || [])[1]) || ''
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const smooth = (a, b, v) => { const x = clamp((v - a) / (b - a)); return x * x * (3 - 2 * x) }
 // eased room-time: lingers inside each room, moves quicker through the doorway
@@ -112,7 +113,8 @@ function Room({ id, k, mob, beamTex, cover }) {
   useFrame((st) => {
     const U = u.current; if (!U || !grp.current) return
     const t = S.t
-    const vis = t > k - 1.15 && t < k + 1.05
+    // the next room is only needed once this one starts to dissolve → at most two rooms drawn
+    const vis = t > k - 0.62 && t < k + 1.03
     grp.current.visible = vis
     if (!vis) return
     U.uCamZ.value = S.camZ
@@ -124,8 +126,8 @@ function Room({ id, k, mob, beamTex, cover }) {
   })
   return (
     <group ref={grp} position={[0, 0, -k * L]} visible={false}>
-      <DepthMesh id={id} small={mob} segs={mob ? 96 : 200} width={width} depth={cfg.depth} uref={u} />
-      <mesh ref={beam} position={[cfg.beam[0], 0.45, 1.2]} rotation={[0, 0, cfg.beam[1]]}>
+      <DepthMesh id={id} small={mob} segs={Q.includes('5') ? 48 : mob ? 96 : 170} width={width} depth={cfg.depth} uref={u} />
+      <mesh visible={!Q.includes('3')} ref={beam} position={[cfg.beam[0], 0.45, 1.2]} rotation={[0, 0, cfg.beam[1]]}>
         <planeGeometry args={[1.05, 4.4]} />
         <meshBasicMaterial map={beamTex} transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} color="#ffc98a" toneMapped={false} />
       </mesh>
@@ -197,7 +199,7 @@ function Dust({ mob }) {
     u.uOpacity.value = 0.85 * (1 - S.look * 0.5)
   })
   return (
-    <points geometry={geo} frustumCulled={false}>
+    <points geometry={geo} frustumCulled={false} visible={!Q.includes('2')}>
       <shaderMaterial ref={mat} uniforms={uniforms} vertexShader={dustVert} fragmentShader={dustFrag} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
     </points>
   )
@@ -208,7 +210,7 @@ const bgVert = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(posi
 const bgFrag = `varying vec2 vUv; void main(){ float r = distance(vUv, vec2(0.5, 0.55)); vec3 c = mix(vec3(0.09, 0.065, 0.045), vec3(0.025, 0.02, 0.016), smoothstep(0.1, 0.8, r)); gl_FragColor = vec4(c, 1.0); }`
 function Backdrop() {
   const m = useRef()
-  useFrame(() => { if (m.current) m.current.visible = S.active })
+  useFrame(() => { if (m.current) m.current.visible = S.active && !Q.includes('4') })
   return (
     <mesh ref={m} frustumCulled={false} renderOrder={-10}>
       <planeGeometry args={[1, 1]} />
@@ -234,9 +236,11 @@ export default function ScenePalazzo({ track }) {
     const tr = track.current
     dt = Math.min(dt, 0.05)
     if (!root.current) return
-    root.current.visible = tr.on && !/palx=1/.test(location.search)
     S.active = tr.on && stage.active === 'palazzo'
+    // draw only while we own the camera (other scenes' cameras never look here anyway)
+    root.current.visible = S.active
     if (!tr.on) { wasActive.current = false; return }
+    if (Q) { const q = Q; if (q.includes('1')) root.current.visible = false }
     // one damped progress drives everything; snap on big jumps (nav / skip)
     if (!wasActive.current || Math.abs(tr.p - pd.current) > 0.35) pd.current = tr.p
     else pd.current = THREE.MathUtils.damp(pd.current, tr.p, 4.5, dt)
