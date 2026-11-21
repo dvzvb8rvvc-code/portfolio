@@ -40,6 +40,7 @@ function Nav() {
   const [open, setOpen] = useState(false)
   return (
     <header className={`fixed inset-x-0 top-0 z-[60] transition-[background,backdrop-filter] duration-500 ${solid ? 'bg-[#ece7df]/80 backdrop-blur-xl' : ''}`}>
+      <div className={`overflow-hidden transition-[max-height] duration-500 ${solid ? 'max-h-0' : 'max-h-16'}`}><Ribbon /></div>
       <div className={`mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 md:px-10 ${T.sans}`}>
         <a href="#top" className="flex items-baseline gap-2 text-[#151412]">
           <span className="text-[19px] font-black tracking-[-.02em]">YTS</span>
@@ -82,7 +83,6 @@ function App() {
     <MotionConfig reducedMotion="user">
       <div id="top" className={`bg-[#ece7df] text-[#151412] ${T.sans}`} style={{ '--sel': '#151412', '--selc': '#ece7df' }}>
         <Stage lite={lite} />
-        <div className="relative z-[61]"><Ribbon /></div>
         <Nav />
         <main className="relative z-10">
           <Hero />

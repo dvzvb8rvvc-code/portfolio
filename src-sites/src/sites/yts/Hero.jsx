@@ -14,10 +14,10 @@ const GOLD = '#c3a15e'
 
 // keep in sync with IDS in sceneHero.jsx
 const SLIDES = [
-  { id: 111, pos: '57% 50%', l: { en: 'Residential · Studio work', it: 'Residenziale · Progetto dello studio' } },
-  { id: 5, pos: '47% 45%', l: { en: 'Il Giardino di Teodolinda · Lake Como', it: 'Il Giardino di Teodolinda · Lago di Como' } },
-  { id: 103, pos: '79% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
-  { id: 84, pos: '55% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
+  { id: 5, w: 1440, h: 1800, pos: '47% 44%', l: { en: 'Il Giardino di Teodolinda · Lake Como', it: 'Il Giardino di Teodolinda · Lago di Como' } },
+  { id: 103, w: 1800, h: 1519, pos: '79% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
+  { id: 111, w: 1800, h: 1125, pos: '57% 50%', l: { en: 'Residential · Studio work', it: 'Residenziale · Progetto dello studio' } },
+  { id: 84, w: 1800, h: 900, pos: '55% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
 ]
 
 const S = {
@@ -25,13 +25,12 @@ const S = {
   topS: { en: 'Israel — Italy', it: 'Israele — Italia' },
   explore: { en: 'Explore residences', it: 'Scopri le residenze' },
   scroll: { en: 'Scroll', it: 'Scorri' },
-  alt: { en: 'Residential render by YTS Architects', it: 'Render residenziale di YTS Architects' },
   reel: { en: 'Selected work', it: 'Progetti scelti' },
   show: { en: 'Show project', it: 'Mostra progetto' },
 }
 
 /* the transparent nav sits on a dark film here → flip its ink to light until it turns solid (owned by yts.jsx) */
-const NAV_CSS = `#top header:not(.backdrop-blur-xl)>div:first-child{filter:invert(1) hue-rotate(180deg) brightness(1.04)}#top header>div:first-child{transition:filter .6s ease}`
+const NAV_CSS = `#top header:not(.backdrop-blur-xl)>div:nth-child(2){filter:invert(1) hue-rotate(180deg) brightness(1.04)}#top header>div:nth-child(2){transition:filter .6s ease}`
 
 function Rise({ children, d = 0, className = '' }) {
   return (
@@ -77,7 +76,7 @@ function TopLine({ p }) {
   const { t } = useLang()
   const o = useTransform(p, [0, .25], [1, 0])
   return (
-    <motion.div style={{ opacity: o }} className="pointer-events-none absolute inset-x-0 top-[76px] z-20 md:top-[92px]">
+    <motion.div style={{ opacity: o }} className="pointer-events-none absolute inset-x-0 top-[76px] z-20 max-md:hidden md:top-[92px]">
       <Fade d={.5} className={`${T.sans} mx-auto flex max-w-[1440px] items-center gap-4 px-6 text-[10px] font-medium uppercase tracking-[.32em] text-[#f3ede3]/75 md:px-12 md:text-[11px] md:tracking-[.38em]`}>
         <span className="hidden md:inline">{t(S.top)}</span>
         <span className="md:hidden">YTS Architects · {t(S.topS)}</span>
@@ -100,7 +99,7 @@ function Reel({ p, i, bar }) {
   const o = useTransform(p, [0, .3], [1, 0])
   const go = n => { if (stage.hero) stage.hero.go = n }
   return (
-    <motion.div style={{ opacity: o }} className="pointer-events-none absolute right-6 top-[108px] z-30 w-[150px] md:bottom-16 md:right-12 md:top-auto md:w-[280px]">
+    <motion.div style={{ opacity: o }} className="pointer-events-none absolute right-6 top-[122px] z-30 w-[150px] md:bottom-16 md:right-12 md:top-auto md:w-[280px]">
       <Fade d={1.4}>
         <div className={`${T.sans} flex items-baseline justify-between text-[#f3ede3]`}>
           <span className="text-[10px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/60 max-md:hidden">{t(S.reel)}</span>
@@ -119,7 +118,7 @@ function Reel({ p, i, bar }) {
         <div className="relative mt-2 h-[30px] overflow-hidden md:h-4">
           <AnimatePresence mode="wait" initial={false}>
             <motion.p key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: .9, ease: E }}
-              className={`${T.sans} text-right text-[9.5px] font-medium uppercase leading-[1.5] tracking-[.24em] text-[#f3ede3]/70 md:text-[10px] md:tracking-[.3em]`}>
+              className={`${T.sans} max-md:hidden text-right text-[9.5px] font-medium uppercase leading-[1.5] tracking-[.24em] text-[#f3ede3]/70 md:text-[10px] md:tracking-[.3em]`}>
               {t(SLIDES[i].l)}
             </motion.p>
           </AnimatePresence>
@@ -156,7 +155,7 @@ function Film() {
   const bar = useRef()
   const iR = useRef(0)
   useEffect(() => {
-    let raf, done = false
+    let raf, done = false, rbV = -1, rbS = -1
     const loop = () => {
       const h = stage.hero
       if (h && window.scrollY < window.innerHeight * 2) {
@@ -164,13 +163,16 @@ function Film() {
         if (h.i !== iR.current) { iR.current = h.i; setI(h.i) }
         if (bar.current) bar.current.style.transform = `scaleX(${h.k.toFixed(4)})`
       }
+      // demo ribbon offset above the film (fonts can re-wrap it) + floor mask that follows it until the film pins
+      if (ref.current && window.scrollY < window.innerHeight * 2) {
+        const top = ref.current.getBoundingClientRect().top, r = Math.max(0, Math.round(top + window.scrollY)), v = Math.max(0, Math.round(top))
+        if (r !== rbV) { rbV = r; ref.current.style.setProperty('--rb', r + 'px') }
+        if (v !== rbS) { rbS = v; ref.current.style.setProperty('--rbs', v + 'px') }
+      }
       raf = requestAnimationFrame(loop)
     }
     raf = requestAnimationFrame(loop)
-    // the demo ribbon sits above the hero: keep the composition inside the first visible screen
-    const rb = () => ref.current && ref.current.style.setProperty('--rb', ref.current.offsetTop + 'px')
-    rb(); window.addEventListener('resize', rb)
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', rb) }
+    return () => cancelAnimationFrame(raf)
   }, [])
   // paper hand-off for the DOM poster too (if WebGL is slow or missing, the poster still dissolves to paper)
   const paper = useTransform(p, [.56, .94], [0, 1])
@@ -181,16 +183,20 @@ function Film() {
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* instant first frame: poster of slide 01 (same framing), dissolves into the live depth film */}
         <motion.div initial={false} animate={{ opacity: ready ? 0 : 1 }} transition={{ duration: 1.6, ease: E, delay: ready ? .2 : 0 }} className="absolute inset-0 bg-[#0c0b09]">
-          <img src={img(s0.id)} alt={t(S.alt)} width="1800" height="1125" decoding="async" fetchpriority="high"
+          <img src={img(s0.id)} alt={t(s0.l)} width={s0.w} height={s0.h} decoding="async" fetchpriority="high"
             className="h-full w-full scale-[1.1] object-cover [filter:saturate(.84)_brightness(.86)]" style={{ objectPosition: s0.pos }} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/35" />
         </motion.div>
-        <div className="absolute inset-x-0 top-0 h-[calc(100%-var(--rb,0px))]">
+        <div className="absolute inset-x-0 top-0 h-[calc(100%-2*var(--rb,0px))]">
           <TopLine p={p} />
           <Title p={p} />
           <Reel p={p} i={i} bar={bar} />
           <ScrollCue p={p} />
         </div>
+        {/* deep cinematic floor; also masks a Chrome compositing gap under the canvas while the demo ribbon is still in view */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[22vh] bg-gradient-to-b from-transparent to-[#0a0907]/80" />
+        <div className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-r from-black/55 via-black/15 to-transparent max-md:bg-gradient-to-t max-md:from-black/70 max-md:via-black/20" />
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] h-[calc(var(--rbs,0px)*1.25)] bg-gradient-to-b from-[#0a0907]/0 via-[#0a0907] via-[20%] to-[#0a0907]" />
         <motion.div style={{ opacity: paper }} className="pointer-events-none absolute inset-0 z-[25] bg-[#ece7df]" />
       </div>
     </section>
@@ -204,7 +210,7 @@ function StaticHero() {
   return (
     <section id="hero" className="relative min-h-[100svh] overflow-hidden bg-[#0c0b09]">
       <style>{NAV_CSS}</style>
-      <img src={img(s0.id)} srcSet={`${img(s0.id, 1)} 720w, ${img(s0.id)} 1800w`} sizes="100vw" alt={t(S.alt)} width="1800" height="1125" decoding="async" fetchpriority="high"
+      <img src={img(s0.id)} srcSet={`${img(s0.id, 1)} 720w, ${img(s0.id)} 1800w`} sizes="100vw" alt={t(s0.l)} width={s0.w} height={s0.h} decoding="async" fetchpriority="high"
         className="absolute inset-0 h-full w-full object-cover [filter:saturate(.84)_brightness(.86)]" style={{ objectPosition: s0.pos }} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
       <div className="relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-end px-6 pb-12 pt-32 md:px-12 md:pb-16">

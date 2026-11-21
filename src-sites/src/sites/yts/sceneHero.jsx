@@ -14,7 +14,7 @@ import { stage } from './engine'
    Talks to the DOM (Hero.jsx) through stage.hero = { i, k, ready, go } — no React state per frame. */
 
 // keep in sync with SLIDES in Hero.jsx
-const IDS = [111, 5, 103, 84]
+const IDS = [5, 103, 111, 84]
 // cover focus [desktop landscape, mobile portrait] in uv (y up)
 const FOCUS = { 111: [[.52, .5], [.57, .5]], 5: [[.5, .56], [.47, .5]], 103: [[.6, .5], [.79, .5]], 84: [[.5, .5], [.55, .5]] }
 const ASPECT = { 111: 1800 / 1125, 5: 1440 / 1800, 103: 1800 / 1519, 84: 1800 / 900 }
@@ -84,10 +84,10 @@ void main(){
   c = grade(c);
   // legibility + cinema: bottom/left gradients, top for the nav, vignette
   vec2 s = gl_FragCoord.xy / uRes;
-  c *= 1. - .62 * smoothstep(.62, .0, s.y);
-  c *= 1. - .35 * smoothstep(.62, .0, s.x) * smoothstep(.9, .2, s.y) * (1. - uMobile);
+  c *= 1. - .66 * (1. - smoothstep(0., .6, s.y));
+  c *= 1. - .4 * (1. - smoothstep(0., .62, s.x)) * (1. - smoothstep(.2, .9, s.y)) * (1. - uMobile);
   c *= 1. - .4 * smoothstep(.8, 1., s.y);
-  c *= mix(1., smoothstep(1.2, .3, length((s - .5) * vec2(1.1, 1.))), .6);
+  c *= mix(1., 1. - smoothstep(.3, 1.2, length((s - .5) * vec2(1.1, 1.))), .6);
   c *= 1. - uDark;
   // film grain (fine, animated) — fades out with the paper hand-off
   float g = h21(gl_FragCoord.xy + fract(uTime * 7.31) * 113.) - .5;
@@ -121,7 +121,7 @@ function coverVec(out, ta, pa, zoom, f) {
 }
 
 const hub = (stage.hero = stage.hero || { i: 0, k: 0, ready: false, go: -1, f: 0 })
-if (typeof window !== 'undefined') { window.__ytsHero = hub; window.__ytsStage = stage } // debug / QA hook
+if (typeof window !== 'undefined') window.__ytsHero = hub // QA hook: __ytsHero.fixed = 0.1 → fixed time-step (inspect transitions on slow GPUs)
 
 export default function SceneHero({ track }) {
   const { size, gl } = useThree()
@@ -199,18 +199,17 @@ export default function SceneHero({ track }) {
     // ---- intro + scroll beat
     const intro = ease3(clamp((now - .1) / 3.6))
     const dolly = ease3(seg(p, 0, .85))
-    U.uAmt.value = hub.amt ?? (.22 + .43 * intro) * (1 + 1.1 * dolly)
+    U.uAmt.value = (.22 + .43 * intro) * (1 + 1.1 * dolly)
     U.uSoft.value = ease(seg(p, .3, .85)) * 2.5
     U.uDark.value = ease(seg(p, .2, .7)) * .55
     U.uFade.value = ease(seg(p, .56, .94))
 
     // plane covers the frustum at z=0 (+ overscan for parallax)
     const fh = 2 * D * Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * OVER
-    mesh.current.scale.set(fh * pa, fh, 1).multiplyScalar(hub.sc || 1)
+    mesh.current.scale.set(fh * pa, fh, 1)
 
     if (++s.frames === 3) hub.ready = true
     hub.f = s.frames; hub.T = s.t
-    hub.dbg = [state.camera.position.toArray().map(v => +v.toFixed(3)), mesh.current.scale.toArray().map(v => +v.toFixed(3)), size.width, size.height, stage.active, U.uAmt.value.toFixed(2)]
     if (stage.active !== 'hero') return
 
     // ---- camera: slow cinematic drift + pointer parallax, intro settle, dolly in on scroll
