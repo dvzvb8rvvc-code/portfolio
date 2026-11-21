@@ -100,7 +100,7 @@ function Film({ after }) {
   const titleY = useTransform(p, [0, .2], [0, -60])
   const titleO = useTransform(p, [.1, .2], [1, 0])
   const imgS = useTransform(p, [0, 1], [1.04, 1.18])
-  const renderO = useTransform(p, [.86, .92], [0, 1])
+  const renderO = useTransform(p, [.78, .86], [0, 1])
   const renderCapO = useTransform(p, [.86, .9, .93, .98], [0, 1, 1, 0]) // QA: caption leaves before the tail
   return (
     <div ref={ref} className="relative h-[150vh] md:h-[220vh]">
@@ -142,7 +142,7 @@ function Film({ after }) {
 
         <Caption p={p} a={.22} b={.44} l1={t(S.c1a)} l2={t(S.c1b)} className="bottom-[150px] left-5 md:bottom-[18%] md:left-10" />
         <Caption p={p} a={.44} b={.68} l1={t(S.c2a)} l2={t(S.c2b)} className="bottom-[150px] right-5 text-right md:bottom-[18%] md:right-10" />
-        <Caption p={p} a={.8} b={.98} l1={t(S.c3a)} l2={t(S.c3b)} className="bottom-[150px] left-5 md:bottom-[16%] md:left-10" />
+        <Caption p={p} a={.74} b={.98} l1={t(S.c3a)} l2={t(S.c3b)} className="bottom-[150px] left-5 md:bottom-[16%] md:left-10" />
         <motion.p style={{ opacity: renderCapO }} className={`${T.sans} pointer-events-none absolute bottom-[112px] left-5 z-20 text-[11px] font-semibold uppercase tracking-[.18em] text-[#efe8dc]/70 md:bottom-[11%] md:left-10`}>{t(S.render)}</motion.p>
 
         <Tod p={p} />

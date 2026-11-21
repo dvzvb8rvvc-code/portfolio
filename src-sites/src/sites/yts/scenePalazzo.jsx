@@ -268,9 +268,12 @@ export default function ScenePalazzo({ track }) {
     gl.getDrawingBufferSize(buf)
     const ratio = buf.y / H
     U.uRes.value.copy(buf)
-    U.uClip.value.set((H - r.top - r.height) * ratio - 0.5, (H - r.top) * ratio + 0.5)
+    // entering: draw full-viewport, fixed (the page above scrolls away and reveals it — no clip edge);
+    // pinned / leaving: follow the sticky frame so the picture scrolls out with it
+    const ft = Math.min(0, r.top)
+    U.uClip.value.set((H - ft - r.height) * ratio - 0.5, (H - ft) * ratio + 0.5)
     const sc = r.height / H
-    U.uNdc.value.set(sc, 1 - (2 * r.top) / H - sc)
+    U.uNdc.value.set(sc, 1 - (2 * ft) / H - sc)
     U.uPlane.value = pa
     // leaving: the picture sinks into the dark page as the frame scrolls away (no hard edge)
     U.uExit.value = Math.pow(clamp(-r.top / r.height), 1.3) * 0.85

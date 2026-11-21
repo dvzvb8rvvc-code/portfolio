@@ -237,13 +237,13 @@ export default function SceneSketch({ track }) {
     s.t += dt
     // scroll → beats. each quarter: settle → liquid reveal → hold → pan to next
     const S = Math.min(t.p, 0.9999) * 4
-    for (let j = 0; j < 4; j++) s.r[j] = ss(0.04, 0.7, S - j)
+    for (let j = 0; j < 4; j++) s.r[j] = ss(0.04, j === 3 ? 0.5 : 0.7, S - j) // last 'after' is fully present well before the end
     let c = 0
     for (let j = 0; j < 3; j++) c += ss(0.76, 1.0, S - j)
     const C = cam.current
     C.c = C.wasActive ? damp(C.c, c, 4, dt) : c
     s.cam = C.c
-    C.op = damp(C.op, ss(0.15, 0.6, t.v), 6, dt)
+    C.op = damp(C.op, ss(0.1, 0.45, t.v), 6, dt)
     s.op = C.op
 
     bgU.uA.value = stage.active === 'sketch' ? 1 : 0
@@ -279,7 +279,7 @@ export default function SceneSketch({ track }) {
       else if (r.bottom < vh) sh = -(vh - r.bottom) / vh
     }
     // leaving: the print dissolves into the dark page while it scrolls away (nothing left over the next title)
-    s.op = C.op * (1 - ss(0.05, 0.45, -sh))
+    s.op = C.op * (1 - ss(0.2, 0.7, -sh))
     camera.position.y = C.y + sh * visH
     tmpLook.set(px + ox * .35, py + sh * visH + oy * .35, 0)
     camera.lookAt(tmpLook)

@@ -58,7 +58,7 @@ function makeShared() {
     uTint: { value: C('#fff') }, uHaze: { value: C('#b8cad7') }, uExp: { value: 1 }, uHazeAmt: { value: .2 },
     uTop: { value: C('#4a7aac') }, uHor: { value: C('#d6e1e8') }, uSunCol: { value: C('#fff3dc') },
     uSun: { value: new THREE.Vector3(0, .5, -1).normalize() }, uGlow: { value: .2 },
-    uRes: { value: new THREE.Vector2(1, 1) }, uEdge: { value: new THREE.Vector2(-1e4, 1e5) }, uBg: { value: C('#0b0a08') },
+    uDim: { value: 0 }, uRes: { value: new THREE.Vector2(1, 1) }, uEdge: { value: new THREE.Vector2(-1e4, 1e5) }, uBg: { value: C('#0b0a08') },
   }
 }
 
@@ -68,7 +68,7 @@ function makeShared() {
    caption gradients → the film's edges melt into the dark page (uEdge = film element top/bottom in
    drawing-buffer px) → fine animated grain. Linear in colour → identical on stacked transparent layers. */
 const CINE = /* glsl */`
-uniform vec2 uRes, uEdge; uniform vec3 uBg;
+uniform vec2 uRes, uEdge; uniform vec3 uBg; uniform float uDim;
 float cineHash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 vec3 cine(vec3 c){
   float l = dot(c, vec3(.2126, .7152, .0722));
@@ -80,9 +80,9 @@ vec3 cine(vec3 c){
   c *= 1. - .5 * (1. - smoothstep(0., .42, s.y));
   c *= 1. - .32 * smoothstep(.78, 1., s.y);
   c *= mix(1., 1. - smoothstep(.32, 1.2, length((s - .5) * vec2(1.1, 1.))), .55);
-  float fe = uRes.y * .14;
+  float fe = uRes.y * .3;
   float m = smoothstep(uEdge.x, uEdge.x + fe, gl_FragCoord.y) * (1. - smoothstep(uEdge.y - fe, uEdge.y, gl_FragCoord.y));
-  c = mix(uBg, c, m);
+  c = mix(uBg, c, m * m * (1. - uDim));
   float g = cineHash(gl_FragCoord.xy + fract(uTime * 7.31) * 113.) - .5;
   return c + g * .022 * (.35 + sqrt(max(c.g, 0.)));
 }`
@@ -313,7 +313,7 @@ void main(){
 }`
 function Mist({ sh }) {
   const banks = [[[10, 7, -143], 520, 24, .4], [[-30, 4, -105], 380, 12, .2]]
-  const us = useMemo(() => banks.map(b => ({ uHaze: sh.uHaze, uTime: sh.uTime, uFade: sh.uFade, uRes: sh.uRes, uEdge: sh.uEdge, uBg: sh.uBg, uAmt: { value: b[3] } })), [])
+  const us = useMemo(() => banks.map(b => ({ uHaze: sh.uHaze, uTime: sh.uTime, uFade: sh.uFade, uRes: sh.uRes, uEdge: sh.uEdge, uBg: sh.uBg, uDim: sh.uDim, uAmt: { value: b[3] } })), [])
   return banks.map(([p, w, h], i) => (
     <mesh key={i} position={p} renderOrder={3}>
       <planeGeometry args={[w, h]} />
@@ -328,10 +328,10 @@ function Mist({ sh }) {
 const ST_D = [
   [0, [0, EYE, 0], 0, -.13, 47],
   [.18, [0, 16.6, -8], -.02, -.12, 46],
-  [.38, [-4, 8.8, -33], .05, -.065, 46],
-  [.56, [-9, 4.8, -58], .14, -.02, 46],
-  [.72, [-7.5, 8, -56], PI * .58, .0, 46],
-  [.86, [-2, 19, -32], PI - .04, .02, 44],
+  [.36, [-4, 8.8, -33], .05, -.065, 46],
+  [.52, [-9, 4.8, -56], .14, -.02, 46],
+  [.65, [-7.5, 8, -54], PI * .62, .0, 46],
+  [.8, [-2, 19, -32], PI - .04, .02, 44],
   [1, [0, 25, -16], PI, .01, 41],
 ]
 const ST_M = ST_D.map(([p, pos, y, pt, f], i) => [p, pos, y + (i > 0 && i < 4 ? .06 : 0), pt + (i >= 5 ? .05 : 0), Math.min(72, f + (i >= 5 ? 14 : 20))])
@@ -357,7 +357,7 @@ const LBL = {
   varenna: { p: onPlane(1205, 575, KN), win: [[-.1, .2]] },
   bellagio: { p: [far(560, 296)[0], far(560, 296)[1] + 3, ZF], win: [[.2, .5]] },
   triangle: { p: [far(1050, 300)[0], 6, ZF], win: [[.36, .64]] },
-  home: { p: [-6, 32, 30], win: [[.88, 1.2]] },
+  home: { p: [-6, 32, 30], win: [[.78, 1.2]] },
 }
 
 function Rig({ track, reg, sh, mobile }) {
@@ -378,6 +378,8 @@ function Rig({ track, reg, sh, mobile }) {
     if (el) {
       const r = el.getBoundingClientRect(), k = sh.uRes.value.y / size.height
       sh.uEdge.value.set((size.height - r.bottom) * k, (size.height - r.top) * k)
+      // leaving: the whole frame sinks into the page while the details rise (no hard band)
+      sh.uDim.value = ss(0, .55, (size.height - r.bottom) / size.height)
     }
     // fade in/out with ownership of the camera; nothing rendered when off
     sh.uFade.value = THREE.MathUtils.damp(sh.uFade.value, active && tr.on ? 1 : 0, 7, dt)
@@ -426,7 +428,7 @@ function Rig({ track, reg, sh, mobile }) {
     const lay = (k, z, lo, hi) => { const L = R[k]; if (!L) return; const lin = Math.min(1, Math.max(0, (tmp.cam.z - z - lo) / (hi - lo))) * (1 - back); L.u.uReveal.value = lin; L.u.uOpacity.value = 1; L.mesh.visible = lin > .004 }
     lay('fg129', ZFG, .5, 9)
     lay('near129', ZN, 1, 15)
-    const hillOn = Math.min(1, Math.max(0, (p - .57) / .3))
+    const hillOn = Math.min(1, Math.max(0, (p - .5) / .26))
     if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uReveal.value = hillOn; R.hill140.u.uOpacity.value = 1 }
     if (R.water) {
       R.water.uHillOn.value = ss(.45, 1, hillOn) // reflection only once the render has actually bled in
