@@ -448,7 +448,7 @@ function Amenities() {
       const b = box.current?.getBoundingClientRect(); if (!b) return
       rects.current = cards.current.map(el => { if (!el) return null; const r = el.getBoundingClientRect(); return { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height } })
     }
-    measure()
+    measure(); window.__amen = rects
     const ro = new ResizeObserver(measure); if (box.current) ro.observe(box.current)
     return () => ro.disconnect()
   }, [])

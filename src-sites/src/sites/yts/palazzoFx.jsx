@@ -76,7 +76,7 @@ void main(){
   vec2 p = (vUv - 0.5) * uSize; vec2 q = abs(p) - uSize * 0.5 + 8.0;
   float r = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - 8.0;
   float a = (1.0 - smoothstep(-1.0, 0.5, r)) * uIn;
-  gl_FragColor = vec4(c, a);
+  gl_FragColor = vec4(1.0,0.0,0.0,1.0);
   #include <colorspace_fragment>
 }`
 
@@ -133,7 +133,7 @@ function PixelCamera() {
 }
 export function CardsCanvas({ ids, rects, ptr, active, mob }) {
   return (
-    <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, mob ? 1.5 : 1.6]} gl={{ antialias: true, alpha: true }} camera={{ fov: 30, position: [0, 0, 1000] }} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+    <Canvas frameloop="always" dpr={[1, mob ? 1.5 : 1.6]} gl={{ antialias: true, alpha: true }} camera={{ fov: 30, near: 10, far: 20000, position: [0, 0, 1000] }} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
       <PixelCamera />
       <Suspense fallback={null}>{ids.map((id, i) => <Card key={id} id={id} i={i} rects={rects} ptr={ptr} mob={mob} />)}</Suspense>
     </Canvas>

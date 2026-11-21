@@ -35,7 +35,7 @@ const MOB = {
   A: { th: -.5, el: .3, R: 44, ty: 0, ly: -3.4, sh: 0 },
   B: { th: -.2, el: .26, R: 42, ty: 0, ly: -3, sh: 0 },
   C: { th: .3, el: .22, R: 40, ty: 0, ly: -2.6, sh: 0 },
-  D: { th: .45, el: .16, R: 46, ty: 2.0, ly: -1.6, sh: 1.6 },
+  D: { th: .45, el: .16, R: 50, ty: 2.0, ly: -1.6, sh: -3.2 },
   E: { th: .05, el: .08, R: 42, ty: .6, ly: -.5, sh: 0 },
 }
 function lerpPose(a, b, k) { const o = {}; for (const key in a) o[key] = lerp(a[key], b[key], k); return o }
@@ -141,7 +141,7 @@ function Label({ L, i, text, refFn }) {
           <span className="h-[7px] w-[7px] rounded-full bg-[#c3a15e] shadow-[0_0_12px_#c3a15e]" />
           <span data-line className="h-px w-[40px] origin-left bg-gradient-to-r from-[#c3a15e] to-white/50 md:w-[120px]" style={{ transform: 'scaleX(0)', transition: `transform .9s cubic-bezier(.16,1,.3,1) ${i * 110 + 80}ms` }} />
           <span className="ml-3 text-[10px] font-semibold tabular-nums tracking-[.18em] text-[#c3a15e] md:text-[11px]">0{i + 1}</span>
-          <span className="ml-2 font-['Instrument_Serif',serif] text-[24px] leading-none text-white md:text-[40px]">{text}</span>
+          <span className="ml-2 font-['Instrument_Serif',serif] text-[20px] leading-none text-white md:text-[40px]">{text}</span>
         </div>
       </div>
     </Html>
@@ -236,7 +236,7 @@ function World({ film, labels, mobile }) {
   photoS.colorSpace = THREE.SRGBColorSpace
   const model = useMemo(buildModel, [])
   const pose = useMemo(() => openingPose(mobile), [mobile])
-  const geometry = useMemo(() => buildParticleGeometry({ N, build: samplePoints(model, N), sketchImage: sketch.image, pose, sketchH: mobile ? 13.5 : 11.6, photoAspect: PHOTO.aspect }), [model, sketch, pose, N])
+  const geometry = useMemo(() => buildParticleGeometry({ N, build: samplePoints(model, N), sketchImage: sketch.image, pose, sketchH: mobile ? 11.2 : 11.6, photoAspect: PHOTO.aspect }), [model, sketch, pose, N])
   return (
     <>
       <Building model={model} film={film} labels={labels} mobile={mobile} />

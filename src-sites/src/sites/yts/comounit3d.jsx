@@ -84,7 +84,7 @@ function Unit({ t, hi }) {
     const px = hx + D.w / 2 + .62
     R.park.current.position.set(px, .045, z0 + 1.15)
     const tx = gx + D.gw / 2 - .62, tz = z0 + D.d + D.gd - .7
-    R.deck.current.position.set(tx, .1, tz); R.tub.current.position.set(tx, .135, tz)
+    R.deck.current.position.set(tx, .1, tz); R.tub.current.position.set(tx, .156, tz)
     R.heat.current.position.set(hx - D.w / 2 + .45, H + .32, z0 + .45)
     R.lamp.current.position.set(hx, H * .45, z0 + D.d - .35); R.lamp.current.intensity = 2.5 + S.t * 3
     if (dimRef.current) dimRef.current.position.set(gx, .1, z0 + D.d + D.gd + .35)
@@ -133,7 +133,7 @@ function Unit({ t, hi }) {
       <mesh ref={R.park} rotation-x={-Math.PI / 2}><planeGeometry args={[1.05, 2.1]} /><meshStandardMaterial ref={reg('park')} map={park} roughness={.9} emissive={HL} emissiveIntensity={0} /></mesh>
       {/* hot-tub preparation: deck + water */}
       <mesh ref={R.deck}><boxGeometry args={[.95, .1, .95]} /><meshStandardMaterial {...wood} color="#a37a55" roughness={.75} /></mesh>
-      <mesh ref={R.tub} rotation-x={-Math.PI / 2}><planeGeometry args={[.66, .66]} /><meshStandardMaterial ref={reg('tub')} color="#7fd0da" roughness={.05} emissive={HL} emissiveIntensity={0} envMapIntensity={2} /></mesh>
+      <mesh ref={R.tub} rotation-x={-Math.PI / 2}><planeGeometry args={[.66, .66]} /><meshStandardMaterial ref={reg('tub')} color="#8fdbe4" roughness={.2} metalness={0} emissive={HL} emissiveIntensity={0} envMapIntensity={1.2} /></mesh>
       <group ref={dimRef}>
         <Html center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
           <div style={{ whiteSpace: 'nowrap', fontFamily: "'Inter Tight',sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '.18em', color: '#151412', background: 'rgba(236,231,223,.85)', padding: '4px 9px', borderRadius: 99 }}>

@@ -68,7 +68,7 @@ void main(){
   float a = c.a * uOpacity;
   a *= smoothstep(0., uEdgeX, vUv.x) * smoothstep(0., uEdgeX, 1. - vUv.x) * smoothstep(0., uEdgeY, vUv.y);
   // dissolve: near pixels (white depth) arrive first, with a noisy edge
-  float key = (1. - vD) * .7 + n2(vUv * vec2(60., 30.)) * .3;
+  float key = (1. - vD) * .8 + n2(vUv * vec2(220., 90.)) * .2;
   float r = uReveal * 1.25 - .12;
   a *= smoothstep(r, r - .1, key);
   if (a < .003) discard;
@@ -441,7 +441,7 @@ function Rig({ progress, mobile, reg, clockRef }) {
     for (const k in vis) {
       const L = R[k]; if (!L) continue
       const u = L.u
-      u.uTint.value.copy(T.tint); u.uHaze.value.copy(T.haze); u.uExp.value = T.exp * (k === 'fg129' ? .82 : k === 'near129' ? .92 : 1)
+      u.uTint.value.copy(T.tint); u.uHaze.value.copy(T.haze); u.uExp.value = T.exp * (k === 'fg129' ? 1 : k === 'near129' ? 1.08 : 1)
       u.uHazeAmt.value = T.hazeAmt * L.hazeScale; u.uDesat.value = .35 * T.stars
       u.uLift.value = k === 'far129' || k.startsWith('band') ? .05 * T.stars : 0
       const v = vis[k]
