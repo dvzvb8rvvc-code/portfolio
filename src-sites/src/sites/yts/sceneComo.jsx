@@ -35,12 +35,12 @@ const HILL = { w: 112, h: 112 * 890 / 1600, pos: [0, 31, 32] }
 /* ───────────── time of day: afternoon → late afternoon → golden hour ───────────── */
 const TOD = {
   k: [0, .55, 1],
-  top: ['#4a7aac', '#5f77a3', '#566596'].map(C),
-  hor: ['#d6e1e8', '#f2d4a8', '#f7b77c'].map(C),
-  sun: ['#fff3dc', '#ffd8a2', '#ffb066'].map(C),
-  tint: ['#ffffff', '#ffeed8', '#ffd9b0'].map(C),
-  haze: ['#b8cad7', '#dfc7a6', '#e9b486'].map(C),
-  exp: [1, 1.02, .97], el: [.55, .3, .13], glow: [.15, .5, .9], hazeAmt: [.17, .24, .3],
+  top: ['#3d6488', '#4b6189', '#46507c'].map(C),
+  hor: ['#c9d2d4', '#ecc999', '#efa66c'].map(C),
+  sun: ['#fff0d6', '#ffd39a', '#ffa95c'].map(C),
+  tint: ['#fff7ec', '#ffead0', '#ffd4a6'].map(C),
+  haze: ['#a3b2b9', '#c8b192', '#d4a074'].map(C),
+  exp: [.93, .95, .9], el: [.5, .28, .12], glow: [.2, .55, .95], hazeAmt: [.13, .18, .23],
 }
 function todAt(t, out) {
   const k = TOD.k; let i = 0; while (i < k.length - 2 && t > k[i + 1]) i++
@@ -58,53 +58,109 @@ function makeShared() {
     uTint: { value: C('#fff') }, uHaze: { value: C('#b8cad7') }, uExp: { value: 1 }, uHazeAmt: { value: .2 },
     uTop: { value: C('#4a7aac') }, uHor: { value: C('#d6e1e8') }, uSunCol: { value: C('#fff3dc') },
     uSun: { value: new THREE.Vector3(0, .5, -1).normalize() }, uGlow: { value: .2 },
+    uRes: { value: new THREE.Vector2(1, 1) }, uEdge: { value: new THREE.Vector2(-1e4, 1e5) }, uBg: { value: C('#0b0a08') },
   }
 }
 
+
+/* ───────────── cinematic finish, shared by every material (hero's grade family) ─────────────
+   grade (restrained saturation, cool shadows / warm highlights, lifted warm blacks) → vignette, nav +
+   caption gradients → the film's edges melt into the dark page (uEdge = film element top/bottom in
+   drawing-buffer px) → fine animated grain. Linear in colour → identical on stacked transparent layers. */
+const CINE = /* glsl */`
+uniform vec2 uRes, uEdge; uniform vec3 uBg;
+float cineHash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+vec3 cine(vec3 c){
+  float l = dot(c, vec3(.2126, .7152, .0722));
+  c = mix(vec3(l), c, .86);
+  c *= mix(vec3(.92, .96, 1.03), vec3(1.07, 1., .87), smoothstep(.04, .62, l));
+  c = c * .94 + vec3(.010, .0085, .0065);
+  vec2 s = gl_FragCoord.xy / uRes;
+  c *= 1. - .5 * (1. - smoothstep(0., .42, s.y));
+  c *= 1. - .32 * smoothstep(.78, 1., s.y);
+  c *= mix(1., 1. - smoothstep(.32, 1.2, length((s - .5) * vec2(1.1, 1.))), .55);
+  float fe = uRes.y * .14;
+  float m = smoothstep(uEdge.x, uEdge.x + fe, gl_FragCoord.y) * smoothstep(uEdge.y, uEdge.y - fe, gl_FragCoord.y);
+  c = mix(uBg, c, m);
+  float g = cineHash(gl_FragCoord.xy + fract(uTime * 7.31) * 113.) - .5;
+  return c + g * .022 * (.35 + sqrt(max(c.g, 0.)));
+}`
+const FIN = `#include <tonemapping_fragment>
+  gl_FragColor.rgb = cine(gl_FragColor.rgb);
+  #include <colorspace_fragment>`
+
 /* ───────────── photo layer: depth displacement + grading + aerial haze ───────────── */
 const layerVS = /* glsl */`
-uniform sampler2D uDepth; uniform float uAmount; uniform vec3 uOff; uniform float uK; uniform float uExt;
+uniform sampler2D uDepth; uniform float uAmount; uniform vec3 uOff; uniform float uK; uniform float uExt, uDilate; uniform vec2 uTap;
 varying vec2 vUv; varying float vD; varying vec3 vL; varying float vX;
 void main(){
   vX = uv.y * (1.0 + uExt) - uExt;
   // uExt > 0: geometry is taller than the photo; the bottom photo row is extended downwards
   vUv = vec2(uv.x, max(0.003, uv.y * (1.0 + uExt) - uExt));
-  float d = texture2D(uDepth, vUv).r;
-  vD = d;
+  // edge-safe depth: 5 taps one vertex apart. Cut-out layers dilate (max) so the silhouette stays rigid with
+  // its foreground; full photos average → no stretched "curtains" at depth discontinuities.
+  float d0 = texture2D(uDepth, vUv).r;
+  float d1 = texture2D(uDepth, vUv + vec2(uTap.x, 0.)).r, d2 = texture2D(uDepth, vUv - vec2(uTap.x, 0.)).r;
+  float d3 = texture2D(uDepth, vUv + vec2(0., uTap.y)).r, d4 = texture2D(uDepth, vUv - vec2(0., uTap.y)).r;
+  float mx = max(d0, max(max(d1, d2), max(d3, d4)));
+  float av = (d0 * 2. + d1 + d2 + d3 + d4) / 6.;
+  float d = mix(av, mx, uDilate);
+  vD = d0;
   vec3 p = position + normal * d * uAmount;
   vec4 w = modelMatrix * vec4(p, 1.0);
   vL = (w.xyz - uOff) / uK;
   gl_Position = projectionMatrix * viewMatrix * w;
 }`
 const layerFS = /* glsl */`
-uniform sampler2D uMap; uniform float uOpacity, uHazeAmt, uHazeScale, uExp, uEdgeX, uEdgeY, uEdgeTop, uBaseHaze, uFade, uReveal, uExt;
+uniform sampler2D uMap; uniform float uOpacity, uHazeAmt, uHazeScale, uExp, uEdgeX, uEdgeY, uEdgeTop, uBaseHaze, uFade, uReveal, uExt, uTime, uAsp;
 uniform vec3 uTint, uHaze;
 varying vec2 vUv; varying float vD; varying vec3 vL; varying float vX;
+${CINE}
 float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
 float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
   return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
+float fbm(vec2 p){ float a = .5, s = 0.; for(int i = 0; i < 4; i++){ s += a * n2(p); p = p * 2.03 + 17.1; a *= .5; } return s / .9375; }
 void main(){
-  vec4 c = texture2D(uMap, vUv);
-  if (uExt > 0. && vX < .015) { float k = smoothstep(.015, -.03, vX); c.rgb = mix(c.rgb, vec3(.045, .07, .04), k * (1. - c.a * .25)); c.a = mix(c.a, 1., k); }
-  float a = c.a * uOpacity * uFade;
-  // depth dissolve: near pixels (white) materialise first, with a soft noisy front
-  if (uReveal < .999) { float key = (1. - vD) * .78 + n2(vUv * vec2(160., 90.)) * .22; float r = uReveal * 1.3 - .15; a *= smoothstep(r + .02, r - .12, key); }
+  vec2 uv = vUv;
+  float k = 1., wide = 0.;
+  // liquid depth dissolve (same family as the hero): near pixels flow first, fbm front, wet dark edge, gold rim
+  if (uReveal < .999) {
+    vec2 q = uv * vec2(uAsp, 1.);
+    float n = fbm(q * 1.3 + vec2(0., uTime * .02));
+    float nn = fbm(q * 4.2 - vec2(uTime * .03, 0.));
+    float f = clamp(n * .6 + (1. - vD) * .4, 0., 1.) + (nn - .5) * .1;
+    float front = uReveal * 1.4 - .2;
+    wide = 1. - abs(2. * smoothstep(f - .2, f + .2, front) - 1.);
+    k = smoothstep(f - .05, f + .05, front);
+    vec2 flow = vec2(fbm(q * 2.1 + 3.1 + uTime * .04), fbm(q * 2.1 - 7.3 - uTime * .04)) - .5;
+    uv += flow * wide * .05;
+  }
+  vec4 c = texture2D(uMap, uv);
+  if (uExt > 0. && vX < .015) { float e = smoothstep(.015, -.03, vX); c.rgb = mix(c.rgb, vec3(.045, .07, .04), e * (1. - c.a * .25)); c.a = mix(c.a, 1., e); }
+  float a = c.a * uOpacity * uFade * k;
   a *= smoothstep(0., uEdgeX, vUv.x) * smoothstep(0., uEdgeX, 1. - vUv.x) * smoothstep(0., uEdgeY, vUv.y) * smoothstep(0., uEdgeTop, 1. - vUv.y);
   if (a < .004) discard;
   vec3 col = c.rgb * uTint * uExp;
   float hz = uHazeAmt * uHazeScale * (1. - vD) * (1. - uBaseHaze + uBaseHaze * (1. - smoothstep(0., 26., vL.y)));
   col = mix(col, uHaze, clamp(hz, 0., 1.));
+  float edge = 1. - abs(2. * k - 1.);
+  col *= 1. - wide * .22 - edge * .3;
+  col += vec3(1., .74, .42) * pow(edge, 3.) * .08;
   gl_FragColor = vec4(col, a);
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
+  ${FIN}
 }`
 
 function useTex(urls) {
   const tex = useLoader(THREE.TextureLoader, urls)
-  tex.forEach((t, i) => { if (i % 2 === 0) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4 } })
+  const { gl } = useThree()
+  const an = Math.min(8, gl.capabilities.getMaxAnisotropy())
+  tex.forEach((t, i) => {
+    if (i % 2 === 0) { if (t.colorSpace !== THREE.SRGBColorSpace || t.anisotropy !== an) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = an; t.needsUpdate = true } }
+    else if (t.minFilter !== THREE.LinearFilter) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter; t.needsUpdate = true }
+  })
   return tex
 }
-function Layer({ ext = 0, name, depthId, width, seg, position, rotation, amount = 0, hazeScale = 1, renderOrder = 0, depthTest = true, small, reg, sh, edgeX = .02, edgeY = .001, edgeTop = .0001, baseHaze = .5 }) {
+function Layer({ ext = 0, name, depthId, width, seg, position, rotation, amount = 0, hazeScale = 1, renderOrder = 0, depthTest = true, small, reg, sh, edgeX = .02, edgeY = .001, edgeTop = .0001, baseHaze = .5, dilate = 1 }) {
   const [map, dmap] = useTex([asset(name, small), depthUrl(depthId)])
   const aspect = map.image.height / map.image.width
   const geo = useMemo(() => {
@@ -115,6 +171,7 @@ function Layer({ ext = 0, name, depthId, width, seg, position, rotation, amount 
   const uniforms = useMemo(() => ({
     ...sh, uExt: { value: ext }, uReveal: { value: 1 }, uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: amount }, uOpacity: { value: 1 }, uHazeScale: { value: hazeScale },
     uEdgeX: { value: edgeX }, uEdgeY: { value: edgeY }, uEdgeTop: { value: edgeTop }, uBaseHaze: { value: baseHaze },
+    uDilate: { value: dilate }, uAsp: { value: 1 / aspect }, uTap: { value: new THREE.Vector2(1 / seg, 1 / Math.max(2, Math.round(seg * aspect))) },
   }), [map, dmap])
   const m = useRef()
   useLayoutEffect(() => { reg.current[name] = { u: uniforms, mesh: m.current, map } }, [])
@@ -138,9 +195,10 @@ vec3 skyCol(vec3 d){
 }`
 const skyVS = `uniform vec3 uOff; uniform float uK; varying vec3 vL; void main(){ vec4 w = modelMatrix*vec4(position,1.); vL = (w.xyz-uOff)/uK; gl_Position = projectionMatrix*viewMatrix*w; }`
 const skyFS = /* glsl */`
-uniform vec3 uTop, uHor, uSunCol, uSun, uOff; uniform float uGlow, uFade, uK;
+uniform vec3 uTop, uHor, uSunCol, uSun, uOff; uniform float uGlow, uFade, uK, uTime;
 varying vec3 vL;
 ${SKY_FN}
+${CINE}
 void main(){
   vec3 camL = (cameraPosition - uOff) / uK;
   vec3 d = normalize(vL - camL);
@@ -149,8 +207,7 @@ void main(){
   col += uSunCol * (pow(max(cs, 0.), 220.) * 1.4 + smoothstep(.99955, .9997, cs) * 6.);
   if (d.y < 0.) col = mix(col, uHor * .92, smoothstep(0., -.2, d.y));
   gl_FragColor = vec4(col, uFade);
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
+  ${FIN}
 }`
 function Sky({ sh, reg }) {
   const m = useRef()
@@ -170,6 +227,7 @@ uniform vec3 uTop, uHor, uSunCol, uSun, uOff, uHaze, uTint; uniform float uGlow,
 uniform sampler2D uFar, uHill; uniform vec4 uFarR, uHillR; uniform float uHillOn;
 varying vec3 vL;
 ${SKY_FN}
+${CINE}
 float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
 void main(){
   vec3 camL = (cameraPosition - uOff) / uK;
@@ -208,13 +266,12 @@ void main(){
   vec3 deep = mix(vec3(.05, .11, .14), uTop * .32, .5) * uExp;
   vec3 col = mix(deep, refl * .92, F);
   // sun glitter — sharp highlights from the ripple normals, sparkling cells
-  float sp = pow(max(dot(r, uSun), 0.), 900.);
-  float tw = step(.55, h21(floor(q * 2.2) + floor(t * 6.)));
-  col += uSunCol * (sp * (2.5 + 4. * tw) + pow(max(dot(r, uSun), 0.), 60.) * .12 * uGlow);
+  float sp = pow(max(dot(r, uSun), 0.), 1400.) * smoothstep(8., 40., dist);
+  float tw = step(.62, h21(floor(q * 7.) + floor(t * 5.)));
+  col += uSunCol * (sp * (1.4 + 2.6 * tw) + pow(max(dot(r, uSun), 0.), 60.) * .1 * uGlow);
   col = mix(col, uHaze, clamp(smoothstep(30., 260., dist) * uHazeAmt * 2.4, 0., .85));
   gl_FragColor = vec4(col, uFade);
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
+  ${FIN}
 }`
 function Water({ sh, reg }) {
   const uniforms = useMemo(() => ({
@@ -235,6 +292,7 @@ function Water({ sh, reg }) {
 const mistVS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`
 const mistFS = /* glsl */`
 uniform vec3 uHaze; uniform float uAmt, uTime, uFade; varying vec2 vUv;
+${CINE}
 float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
 float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
   return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
@@ -245,12 +303,11 @@ void main(){
   float a = pow(1. - vUv.y, 1.6) * smoothstep(0., .08, vUv.y + .02) * smoothstep(.0, .25, vUv.x) * smoothstep(1., .75, vUv.x);
   a *= smoothstep(.25, .85, f) * uAmt * uFade;
   gl_FragColor = vec4(uHaze * 1.04, a);
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
+  ${FIN}
 }`
 function Mist({ sh }) {
   const banks = [[[10, 7, -143], 520, 24, .55], [[-30, 4, -105], 380, 12, .28]]
-  const us = useMemo(() => banks.map(b => ({ uHaze: sh.uHaze, uTime: sh.uTime, uFade: sh.uFade, uAmt: { value: b[3] } })), [])
+  const us = useMemo(() => banks.map(b => ({ uHaze: sh.uHaze, uTime: sh.uTime, uFade: sh.uFade, uRes: sh.uRes, uEdge: sh.uEdge, uBg: sh.uBg, uAmt: { value: b[3] } })), [])
   return banks.map(([p, w, h], i) => (
     <mesh key={i} position={p} renderOrder={3}>
       <planeGeometry args={[w, h]} />
@@ -259,25 +316,33 @@ function Mist({ sh }) {
   ))
 }
 
-/* ───────────── camera film: [p, position, yaw, pitch, fov] (yaw 0 looks across the lake, −z) ───────────── */
+/* ───────────── camera film: [p, position, yaw, pitch, fov] (yaw 0 looks across the lake, −z) ─────────────
+   Every channel is a non-uniform cubic Hermite spline (tangents from neighbours, zero at both ends) → the
+   camera never stops between keys; scroll progress is damped twice (2nd-order) → silk. */
 const ST_D = [
   [0, [0, EYE, 0], 0, -.13, 47],
-  [.2, [0, 16.8, -7], -.02, -.12, 46],
-  [.42, [-4, 8.5, -34], .05, -.06, 46],
-  [.6, [-9, 4.6, -62], .13, -.015, 46],
-  [.76, [-7, 7, -60], PI * .6, .01, 46],
-  [.9, [-1.5, 20, -30], PI - .03, .02, 44],
-  [1, [0, 26, -14], PI, .01, 41],
+  [.18, [0, 16.6, -8], -.02, -.12, 46],
+  [.38, [-4, 8.8, -33], .05, -.065, 46],
+  [.56, [-9, 4.8, -58], .14, -.02, 46],
+  [.72, [-7.5, 8, -56], PI * .58, .0, 46],
+  [.86, [-2, 19, -32], PI - .04, .02, 44],
+  [1, [0, 25, -16], PI, .01, 41],
 ]
 const ST_M = ST_D.map(([p, pos, y, pt, f], i) => [p, pos, y + (i > 0 && i < 4 ? .06 : 0), pt + (i >= 5 ? .05 : 0), Math.min(72, f + (i >= 5 ? 14 : 20))])
-function sample(st, p, out) {
+const CH = st => {
+  const n = st.length, get = (i, c) => (c < 3 ? st[i][1][c] : st[i][c - 1])
+  const m = st.map((_, i) => [0, 1, 2, 3, 4, 5].map(c => (i === 0 || i === n - 1) ? 0 : (get(i + 1, c) - get(i - 1, c)) / (st[i + 1][0] - st[i - 1][0])))
+  return { st, m, get }
+}
+const SPL_D = CH(ST_D), SPL_M = CH(ST_M)
+function sample(S, p, out) {
+  const { st, m, get } = S
   let i = 0; while (i < st.length - 2 && p > st[i + 1][0]) i++
-  const a = st[i], b = st[i + 1], u0 = Math.min(1, Math.max(0, (p - a[0]) / (b[0] - a[0])))
-  const u = u0 * u0 * (3 - 2 * u0)
-  const pa = st[Math.max(0, i - 1)][1], p0 = a[1], p1 = b[1], pb = st[Math.min(st.length - 1, i + 2)][1]
-  const v = u0, v2 = v * v, v3 = v2 * v // Catmull-Rom on positions (continuous velocity)
-  for (let k = 0; k < 3; k++) out.pos[k] = .5 * ((2 * p0[k]) + (-pa[k] + p1[k]) * v + (2 * pa[k] - 5 * p0[k] + 4 * p1[k] - pb[k]) * v2 + (-pa[k] + 3 * p0[k] - 3 * p1[k] + pb[k]) * v3)
-  out.yaw = a[2] + (b[2] - a[2]) * u; out.pitch = a[3] + (b[3] - a[3]) * u; out.fov = a[4] + (b[4] - a[4]) * u
+  const h = st[i + 1][0] - st[i][0], u = Math.min(1, Math.max(0, (p - st[i][0]) / h))
+  const u2 = u * u, u3 = u2 * u
+  const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = -2 * u3 + 3 * u2, h11 = u3 - u2
+  const v = c => h00 * get(i, c) + h10 * h * m[i][c] + h01 * get(i + 1, c) + h11 * h * m[i + 1][c]
+  out.pos[0] = v(0); out.pos[1] = v(1); out.pos[2] = v(2); out.yaw = v(3); out.pitch = v(4); out.fov = v(5)
   return out
 }
 
@@ -286,12 +351,12 @@ const LBL = {
   varenna: { p: onPlane(1205, 575, KN), win: [[-.1, .2]] },
   bellagio: { p: [far(560, 296)[0], far(560, 296)[1] + 3, ZF], win: [[.2, .5]] },
   triangle: { p: [far(1050, 300)[0], 6, ZF], win: [[.36, .64]] },
-  home: { p: [-6, 36, 30], win: [[.9, 1.2]] },
+  home: { p: [-6, 36, 30], win: [[.88, 1.2]] },
 }
 
 function Rig({ track, reg, sh, mobile }) {
   const { camera, size } = useThree()
-  const s = useRef({ p: 0, mx: 0, my: 0, was: false })
+  const s = useRef({ p: 0, p1: 0, mx: 0, my: 0, was: false, t: 0 })
   const tmp = useMemo(() => ({
     o: { pos: [0, 0, 0] }, dir: new THREE.Vector3(), right: new THREE.Vector3(), tgt: new THREE.Vector3(), cam: new THREE.Vector3(), v: new THREE.Vector3(),
     tod: { top: new THREE.Color(), hor: new THREE.Color(), sun: new THREE.Color(), tint: new THREE.Color(), haze: new THREE.Color() },
@@ -301,6 +366,13 @@ function Rig({ track, reg, sh, mobile }) {
     if (!g) return
     const active = stage.active === 'como'
     const dt = Math.min(dt0, .05)
+    // film element → drawing-buffer px: the scene melts into the page above/below the film
+    state.gl.getDrawingBufferSize(sh.uRes.value)
+    const el = stage.els.como
+    if (el) {
+      const r = el.getBoundingClientRect(), k = sh.uRes.value.y / size.height
+      sh.uEdge.value.set((size.height - r.bottom) * k, (size.height - r.top) * k)
+    }
     // fade in/out with ownership of the camera; nothing rendered when off
     sh.uFade.value = THREE.MathUtils.damp(sh.uFade.value, active && tr.on ? 1 : 0, 7, dt)
     g.visible = tr.on && sh.uFade.value > .005
@@ -312,17 +384,22 @@ function Rig({ track, reg, sh, mobile }) {
       if (labels && !active) for (const k in labels) if (labels[k]) labels[k].style.opacity = 0
       return
     }
-    if (!st.was) { st.p = tr.p; st.was = true; sh.uFade.value = Math.max(sh.uFade.value, .35) }
-    st.p = THREE.MathUtils.damp(st.p, tr.p, 4.5, dt)
+    if (!st.was) { st.p = st.p1 = tr.p; st.was = true; sh.uFade.value = Math.max(sh.uFade.value, .35) }
+    st.p1 = THREE.MathUtils.damp(st.p1, tr.p, 6, dt)
+    st.p = THREE.MathUtils.damp(st.p, st.p1, 6, dt)
+    st.t += dt
     st.mx = THREE.MathUtils.damp(st.mx, state.pointer.x, 2.4, dt); st.my = THREE.MathUtils.damp(st.my, state.pointer.y, 2.4, dt)
     sh.uTime.value += dt
     const p = st.p
-    const o = sample(mobile ? ST_M : ST_D, p, tmp.o)
+    const o = sample(mobile ? SPL_M : SPL_D, p, tmp.o)
     const yaw = o.yaw - st.mx * .03, pitch = o.pitch + st.my * .018
     tmp.dir.set(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch))
     tmp.right.set(-tmp.dir.z, 0, tmp.dir.x).normalize()
     tmp.cam.set(o.pos[0], o.pos[1], o.pos[2]).addScaledVector(tmp.right, mobile ? 0 : st.mx * .8)
     tmp.cam.y += mobile ? 0 : st.my * .4
+    // the last frame keeps breathing (slow drift) so the end of the film is never a still
+    const hold = ss(.9, 1, p)
+    tmp.cam.x += Math.sin(st.t * .21) * .9 * hold; tmp.cam.y += Math.sin(st.t * .16 + 1.2) * .45 * hold; tmp.cam.z += (Math.sin(st.t * .12) * .5 + .5) * -1.6 * hold
     // local → world
     camera.position.copy(tmp.cam).multiplyScalar(K).add(OFF)
     tmp.tgt.copy(camera.position).add(tmp.dir)
@@ -338,11 +415,12 @@ function Rig({ track, reg, sh, mobile }) {
 
     // near layers: dissolve as the camera slips through them, and when we turn around
     const back = ss(.25, .45, yaw / PI)
-    const lay = (k, z, lo, hi) => { const L = R[k]; if (!L) return; const op = ss(lo, hi, tmp.cam.z - z) * (1 - back); L.u.uOpacity.value = op; L.mesh.visible = op > .004 }
-    lay('fg129', ZFG, 1.5, 7)
-    lay('near129', ZN, 2, 12)
-    const hillOn = ss(.4, .85, yaw / PI) * .5 + ss(.78, .94, p) * .5
-    if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uReveal.value = hillOn; R.hill140.u.uOpacity.value = ss(0, .15, hillOn) }
+    // (same liquid dissolve as the hero, run backwards: the foreground bleeds away as we pass through it)
+    const lay = (k, z, lo, hi) => { const L = R[k]; if (!L) return; const lin = Math.min(1, Math.max(0, (tmp.cam.z - z - lo) / (hi - lo))) * (1 - back); L.u.uReveal.value = lin; L.u.uOpacity.value = 1; L.mesh.visible = lin > .004 }
+    lay('fg129', ZFG, .5, 9)
+    lay('near129', ZN, 1, 15)
+    const hillOn = Math.min(1, Math.max(0, (p - .62) / .26))
+    if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uReveal.value = hillOn; R.hill140.u.uOpacity.value = 1 }
     if (R.water) {
       R.water.uHillOn.value = hillOn
       if (!R.water.uFar.value && R.far129) R.water.uFar.value = R.far129.map
@@ -374,18 +452,19 @@ function World({ track, mobile }) {
   const sm = !!mobile
   return (
     <group ref={g} position={OFF} scale={K} visible={false}>
-      <Sky sh={sh} reg={reg} />
+      {/* everything in ONE suspense boundary → the film never shows a half-built world (sky without mountains) */}
       <Suspense fallback={null}>
-        <Layer name="far129" depthId={129} width={FAR.w} seg={sm ? 96 : 160} position={FAR.pos} amount={14} reg={reg} sh={sh} renderOrder={0} edgeX={.05} baseHaze={.55} small={false} />
-        <Layer name="band142" depthId={142} width={520} seg={sm ? 48 : 72} position={[-185, -3.5, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.16} baseHaze={.6} small />
-        <Layer name="band141" depthId={141} width={520} seg={sm ? 48 : 72} position={[185, -6.4, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.16} baseHaze={.6} small />
-        <Layer name="hill140" depthId={140} width={HILL.w} seg={sm ? 96 : 180} position={HILL.pos} rotation={[0, PI, 0]} amount={7} hazeScale={.3} reg={reg} sh={sh} renderOrder={1} edgeX={.16} edgeY={.07} baseHaze={.15} small={sm} />
-        <Layer name="near129" depthId={129} width={FAR.w * KN} seg={sm ? 96 : 160} position={onPlane(900, 350.5, KN)} amount={3.5} hazeScale={.4} renderOrder={10} depthTest={false} reg={reg} sh={sh} edgeX={.005} ext={.8} baseHaze={0} small={sm} />
+        <Sky sh={sh} reg={reg} />
+        <Layer name="far129" depthId={129} width={FAR.w} seg={sm ? 112 : 192} position={FAR.pos} amount={14} reg={reg} sh={sh} renderOrder={0} edgeX={.05} baseHaze={.55} />
+        <Layer name="band142" depthId={142} width={520} seg={sm ? 48 : 80} position={[-185, -3.5, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.16} baseHaze={.6} small />
+        <Layer name="band141" depthId={141} width={520} seg={sm ? 48 : 80} position={[185, -6.4, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.16} baseHaze={.6} small />
+        <Layer name="hill140" depthId={140} width={HILL.w} seg={sm ? 112 : 224} position={HILL.pos} rotation={[0, PI, 0]} amount={7} hazeScale={.3} reg={reg} sh={sh} renderOrder={1} edgeX={.16} edgeY={.07} baseHaze={.15} dilate={.25} />
+        <Layer name="near129" depthId={129} width={FAR.w * KN} seg={sm ? 112 : 192} position={onPlane(900, 350.5, KN)} amount={3.5} hazeScale={.4} renderOrder={10} depthTest={false} reg={reg} sh={sh} edgeX={.005} ext={.8} baseHaze={0} />
+        <Layer name="fg129" depthId={129} width={FAR.w * KFG} seg={sm ? 96 : 160} position={onPlane(900, 350.5, KFG)} amount={2.2} hazeScale={.1} renderOrder={11} depthTest={false} reg={reg} sh={sh} edgeX={.004} ext={1.6} baseHaze={0} />
+        <Water sh={sh} reg={reg} />
+        <Mist sh={sh} />
         <Ready reg={reg} />
-        <Layer name="fg129" depthId={129} width={FAR.w * KFG} seg={sm ? 72 : 128} position={onPlane(900, 350.5, KFG)} amount={2.2} hazeScale={.1} renderOrder={11} depthTest={false} reg={reg} sh={sh} edgeX={.004} ext={1.6} baseHaze={0} small={sm} />
       </Suspense>
-      <Water sh={sh} reg={reg} />
-      <Mist sh={sh} />
       <Rig track={track} reg={reg} sh={sh} mobile={mobile} />
     </group>
   )

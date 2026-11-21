@@ -47,9 +47,9 @@ function KLine({ p, a, b, children, className = '' }) {
 function Caption({ p, a, b, l1, l2, className = '' }) {
   return (
     <div className={`pointer-events-none absolute z-20 ${className}`}>
-      <p className={`${T.serif} text-[36px] leading-[.96] text-white [text-shadow:0_2px_30px_rgba(0,0,0,.25)] md:text-[clamp(46px,4.4vw,74px)]`}>
+      <p className={`${T.serif} text-[clamp(32px,9vw,38px)] leading-[.96] text-[#efe8dc] [text-shadow:0_2px_30px_rgba(0,0,0,.35)] md:text-[clamp(46px,4.4vw,74px)]`}>
         <KLine p={p} a={a} b={b}>{l1}</KLine>
-        <KLine p={p} a={a + .02} b={b} className="italic text-[#f3dca6]">{l2}</KLine>
+        <KLine p={p} a={a + .02} b={b} className="italic text-[#d9bd84]">{l2}</KLine>
       </p>
     </div>
   )
@@ -57,10 +57,10 @@ function Caption({ p, a, b, l1, l2, className = '' }) {
 function Label({ k, title, sub, gold, reg }) {
   return (
     <div ref={el => (reg.current[k] = el)} style={{ opacity: 0 }} className="pointer-events-none absolute left-0 top-0 z-10 flex flex-col items-center whitespace-nowrap will-change-transform">
-      <span className={`${T.serif} italic leading-none [text-shadow:0_1px_16px_rgba(0,0,0,.45)] ${gold ? 'text-[26px] text-[#f3dca6] md:text-[30px]' : 'text-[21px] text-white md:text-[24px]'}`}>{title}</span>
-      {sub && <span className={`${T.sans} mt-1.5 text-[9.5px] font-semibold uppercase tracking-[.2em] text-white/85 [text-shadow:0_1px_10px_rgba(0,0,0,.5)] md:text-[10.5px]`}>{sub}</span>}
-      <span className="mt-2 block h-9 w-px bg-gradient-to-b from-white to-white/0" />
-      <span className="-mt-px block h-[7px] w-[7px] rounded-full border border-white shadow-[0_0_12px_rgba(255,220,170,.9)]" />
+      <span className={`${T.serif} italic leading-none [text-shadow:0_1px_16px_rgba(0,0,0,.45)] ${gold ? 'text-[26px] text-[#d9bd84] md:text-[30px]' : 'text-[22px] text-[#efe8dc] md:text-[24px]'}`}>{title}</span>
+      {sub && <span className={`${T.sans} mt-1.5 text-[11px] font-semibold uppercase tracking-[.16em] text-[#efe8dc]/85 [text-shadow:0_1px_10px_rgba(0,0,0,.6)] md:tracking-[.2em]`}>{sub}</span>}
+      <span className="mt-2 block h-9 w-px bg-gradient-to-b from-[#efe8dc] to-[#efe8dc]/0" />
+      <span className="-mt-px block h-[7px] w-[7px] rounded-full border border-[#c3a15e] shadow-[0_0_12px_rgba(195,161,94,.9)]" />
     </div>
   )
 }
@@ -69,10 +69,10 @@ function Tod({ p }) {
   const x = useTransform(p, [0, 1], ['0%', '100%'])
   const names = t(S.tod)
   return (
-    <div className={`${T.sans} pointer-events-none absolute bottom-6 left-5 z-30 w-[200px] whitespace-nowrap text-[10px] font-semibold uppercase tracking-[.18em] text-white/80 md:bottom-8 md:left-10 md:w-[220px] md:text-[11px]`}>
-      <div className="mb-2 flex justify-between"><span>{names[0]}</span><span className="text-[#f3dca6]">{names[1]}</span></div>
-      <div className="relative h-px bg-white/30">
-        <motion.span style={{ left: x }} className="absolute -top-[3.5px] -ml-1 block h-2 w-2 rounded-full bg-[#f3dca6] shadow-[0_0_14px_#f3c27a]" />
+    <div className={`${T.sans} pointer-events-none absolute bottom-[34px] left-5 z-30 w-[min(200px,48vw)] whitespace-nowrap text-[11px] font-semibold uppercase tracking-[.16em] text-[#efe8dc]/75 md:bottom-10 md:left-10 md:w-[220px] md:tracking-[.18em]`}>
+      <div className="mb-2 flex justify-between gap-3"><span>{names[0]}</span><span className="text-[#c3a15e]">{names[1]}</span></div>
+      <div className="relative h-px bg-[#efe8dc]/25">
+        <motion.span style={{ left: x }} className="absolute -top-[3.5px] -ml-1 block h-2 w-2 rounded-full bg-[#c3a15e] shadow-[0_0_14px_#c3a15e]" />
       </div>
     </div>
   )
@@ -82,7 +82,7 @@ function Skip({ p, target }) {
   const o = useTransform(p, [.86, .96], [1, 0])
   const go = () => { const el = target.current; if (!el) return; const y = el.getBoundingClientRect().top + scrollY - 64; window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.4 }) : scrollTo({ top: y, behavior: 'smooth' }) }
   return (
-    <motion.button style={{ opacity: o }} onClick={go} className={`${T.sans} absolute bottom-6 right-5 z-40 h-9 rounded-full border border-white/30 bg-black/20 px-4 text-[11px] font-semibold uppercase tracking-[.14em] text-white backdrop-blur-md transition-colors hover:bg-white hover:text-[#151412] md:bottom-8 md:right-10 md:h-10 md:text-[12px]`}>
+    <motion.button style={{ opacity: o }} onClick={go} className={`${T.sans} absolute bottom-5 right-4 z-40 h-11 rounded-full border border-[#efe8dc]/25 bg-[#0b0a08]/30 px-5 text-[11px] font-semibold uppercase tracking-[.16em] text-[#efe8dc] backdrop-blur-md transition-colors hover:border-[#c3a15e] hover:text-[#c3a15e] md:bottom-8 md:right-10 md:text-[12px]`}>
       {t('skip')} <span aria-hidden>↓</span>
     </motion.button>
   )
@@ -101,15 +101,15 @@ function Film({ after }) {
   const imgS = useTransform(p, [0, 1], [1.04, 1.18])
   const renderO = useTransform(p, [.86, .92], [0, 1])
   return (
-    <div ref={ref} className="relative h-[220vh]">
+    <div ref={ref} className="relative h-[175vh] md:h-[220vh]">
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {lite && (
-          <motion.img src={img(129)} alt={t(S.alt)} style={{ scale: imgS }} className="absolute inset-0 h-full w-full object-cover" />
-        )}
-        {/* legibility + vignette (CSS instead of a post pass) */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_45%,transparent_55%,rgba(10,14,18,.38))]" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-black/30 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[30%] bg-gradient-to-t from-black/35 to-transparent" />
+        {lite && <>
+          <motion.img src={img(129)} alt={t(S.alt)} style={{ scale: imgS }} className="absolute inset-0 h-full w-full object-cover [filter:saturate(.85)_sepia(.12)_brightness(.86)_contrast(1.05)]" />
+          {/* lite only: grade/vignette in CSS (the WebGL film does this in its shaders) */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_45%,transparent_50%,rgba(11,10,8,.55))]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[38%] bg-gradient-to-b from-[#0b0a08]/70 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-[#0b0a08] to-transparent" />
+        </>}
 
         {!lite && <>
           <Label k="varenna" reg={labels} title={t(S.varenna)} sub={t(S.varennaSub)} />
@@ -120,22 +120,22 @@ function Film({ after }) {
 
         <motion.div style={{ y: titleY, opacity: titleO }} className="absolute inset-x-0 top-[92px] z-20 md:top-[110px]">
           <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-            <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: .9, ease: E }} className={`${T.sans} mb-4 flex items-center gap-3 text-[10.5px] font-semibold uppercase tracking-[.24em] text-white/85 md:text-[12px]`}><span className="h-px w-8 bg-white/60" />{t(S.eyebrow)}</motion.p>
-            <h2 className={`${T.serif} max-w-[12ch] text-[50px] leading-[.88] tracking-[-.015em] text-white [text-shadow:0_2px_40px_rgba(0,0,0,.25)] md:text-[clamp(76px,8.4vw,140px)]`}>
+            <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: .9, ease: E }} className={`${T.sans} mb-4 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.24em] text-[#efe8dc]/80 md:text-[12px]`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.eyebrow)}</motion.p>
+            <h2 className={`${T.serif} max-w-[12ch] text-[clamp(44px,13vw,52px)] leading-[.88] tracking-[-.015em] text-[#efe8dc] [text-shadow:0_2px_40px_rgba(0,0,0,.3)] md:text-[clamp(76px,8.4vw,140px)]`}>
               {['Il Giardino', 'di Teodolinda'].map((l, i) => (
                 <span key={i} className="block overflow-hidden pb-[.06em]">
-                  <motion.span initial={{ y: '105%' }} whileInView={{ y: '0%' }} viewport={{ once: true }} transition={{ duration: 1.2, ease: E, delay: .1 + i * .1 }} className={`block ${i ? 'italic text-[#f3dca6]' : ''}`}>{l}</motion.span>
+                  <motion.span initial={{ y: '105%' }} whileInView={{ y: '0%' }} viewport={{ once: true }} transition={{ duration: 1.2, ease: E, delay: .1 + i * .1 }} className={`block ${i ? 'italic text-[#d9bd84]' : ''}`}>{l}</motion.span>
                 </span>
               ))}
             </h2>
-            <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1, delay: .45 }} className={`${T.sans} mt-5 text-[12px] font-medium uppercase tracking-[.2em] text-white/80 md:text-[13px]`}>{t(S.place)}</motion.p>
+            <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1, delay: .45 }} className={`${T.sans} mt-5 text-[11px] font-medium uppercase tracking-[.2em] text-[#efe8dc]/75 md:text-[13px]`}>{t(S.place)}</motion.p>
           </div>
         </motion.div>
 
-        <Caption p={p} a={.22} b={.44} l1={t(S.c1a)} l2={t(S.c1b)} className="bottom-[22%] left-5 md:bottom-[18%] md:left-10" />
-        <Caption p={p} a={.44} b={.68} l1={t(S.c2a)} l2={t(S.c2b)} className="bottom-[22%] right-5 text-right md:bottom-[18%] md:right-10" />
-        <Caption p={p} a={.8} b={1.06} l1={t(S.c3a)} l2={t(S.c3b)} className="bottom-[20%] left-5 md:bottom-[16%] md:left-10" />
-        <motion.p style={{ opacity: renderO }} className={`${T.sans} pointer-events-none absolute bottom-[14%] left-5 z-20 text-[10px] font-semibold uppercase tracking-[.2em] text-white/75 md:bottom-[11%] md:left-10 md:text-[11px]`}>{t(S.render)}</motion.p>
+        <Caption p={p} a={.22} b={.44} l1={t(S.c1a)} l2={t(S.c1b)} className="bottom-[150px] left-5 md:bottom-[18%] md:left-10" />
+        <Caption p={p} a={.44} b={.68} l1={t(S.c2a)} l2={t(S.c2b)} className="bottom-[150px] right-5 text-right md:bottom-[18%] md:right-10" />
+        <Caption p={p} a={.8} b={1.06} l1={t(S.c3a)} l2={t(S.c3b)} className="bottom-[150px] left-5 md:bottom-[16%] md:left-10" />
+        <motion.p style={{ opacity: renderO }} className={`${T.sans} pointer-events-none absolute bottom-[112px] left-5 z-20 text-[11px] font-semibold uppercase tracking-[.18em] text-[#efe8dc]/70 md:bottom-[11%] md:left-10`}>{t(S.render)}</motion.p>
 
         <Tod p={p} />
         <Skip p={p} target={after} />
@@ -156,37 +156,41 @@ function Count({ to, className }) {
 }
 
 const ENDS = [{ h: 35, g: 25 }, { h: 95, g: 160 }]
+const INK = '#efe8dc', GOLD = '#c3a15e'
+const GRADE = '[filter:saturate(.86)_sepia(.1)_brightness(.9)_contrast(1.05)]'
+const lbl = `${T.sans} text-[11px] font-semibold uppercase tracking-[.22em]`
+
 function Range() {
   const { t } = useLang()
   const [i, setI] = useState(0)
   const e = ENDS[i]
   const px = v => Math.sqrt(v / 160) * 100 // side ∝ √area, garden 160 m² = 100%
   return (
-    <div className="flex h-full flex-col rounded-[22px] bg-[#151412] p-5 text-[#ece7df] md:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <p className={`${T.sans} text-[10.5px] font-semibold uppercase tracking-[.2em] text-[#ece7df]/60`}>{t(S.range)}</p>
-      </div>
-      <div role="radiogroup" className={`${T.sans} relative mt-4 grid grid-cols-2 rounded-full bg-white/10 p-1 text-[12px] font-semibold`}>
-        <motion.span className="absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#ece7df]" animate={{ x: i ? '100%' : '0%' }} transition={{ type: 'spring', stiffness: 420, damping: 38 }} />
+    <div className="flex h-full flex-col rounded-[20px] border border-[#efe8dc]/[.12] bg-[#14120f] p-5 text-[#efe8dc] md:p-6">
+      <p className={`${lbl} text-[#efe8dc]/55`}>{t(S.range)}</p>
+      <div role="radiogroup" aria-label={t(S.range)} className={`${T.sans} relative mt-4 grid grid-cols-2 rounded-full border border-[#efe8dc]/[.12] p-1 text-[12.5px] font-semibold`}>
+        <motion.span className="absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-[#c3a15e]" animate={{ x: i ? '100%' : '0%' }} transition={{ type: 'spring', stiffness: 420, damping: 38 }} />
         {[S.small, S.large].map((l, k) => (
-          <button key={k} role="radio" aria-checked={i === k} onClick={() => setI(k)} className={`relative z-10 h-9 rounded-full transition-colors duration-300 ${i === k ? 'text-[#151412]' : 'text-[#ece7df]/75'}`}>{t(l)}</button>
+          <button key={k} role="radio" aria-checked={i === k} onClick={() => setI(k)} className={`relative z-10 h-11 rounded-full transition-colors duration-300 md:h-10 ${i === k ? 'text-[#0b0a08]' : 'text-[#efe8dc]/70 hover:text-[#efe8dc]'}`}>{t(l)}</button>
         ))}
       </div>
       <div className="mt-5 grid grid-cols-[1fr_auto] items-end gap-4">
         <div className={`${T.serif} leading-none`}>
-          <div className="text-[56px] md:text-[64px]"><Count to={e.h} /><span className={`${T.sans} ml-1 text-[14px] font-semibold text-[#ece7df]/60`}>m² {t(S.home2)}</span></div>
-          <div className="mt-1 text-[56px] italic text-[#c3a15e] md:text-[64px]">+<Count to={e.g} /><span className={`${T.sans} ml-1 text-[14px] font-semibold not-italic text-[#c3a15e]/70`}>m² {t(S.garden)}</span></div>
+          <div className="text-[52px] tabular-nums md:text-[60px]"><Count to={e.h} /><span className={`${T.sans} ml-1.5 text-[13px] font-semibold text-[#efe8dc]/55`}>m² {t(S.home2)}</span></div>
+          <div className="mt-1 text-[52px] italic tabular-nums text-[#c3a15e] md:text-[60px]">+<Count to={e.g} /><span className={`${T.sans} ml-1.5 text-[13px] font-semibold not-italic text-[#c3a15e]/75`}>m² {t(S.garden)}</span></div>
         </div>
         {/* plan glyph: garden square with the home inside, sides ∝ √area */}
-        <div className="relative h-[104px] w-[104px]">
-          <motion.div className="absolute bottom-0 left-0 rounded-[4px] border border-[#c3a15e]/70 bg-[#c3a15e]/15" animate={{ width: px(e.g) + '%', height: px(e.g) + '%' }} transition={{ duration: .9, ease: E }} />
-          <motion.div className="absolute bottom-0 left-0 rounded-[3px] bg-[#ece7df]" animate={{ width: px(e.h) + '%', height: px(e.h) + '%' }} transition={{ duration: .9, ease: E }} />
+        <div className="relative h-[92px] w-[92px] md:h-[104px] md:w-[104px]" aria-hidden>
+          <span className="absolute inset-0 rounded-[4px] border border-dashed border-[#efe8dc]/15" />
+          <motion.div className="absolute bottom-0 left-0 rounded-[4px] border border-[#c3a15e]/70 bg-[#c3a15e]/[.14]" animate={{ width: px(e.g) + '%', height: px(e.g) + '%' }} transition={{ duration: .9, ease: E }} />
+          <motion.div className="absolute bottom-0 left-0 rounded-[3px] bg-[#efe8dc]" animate={{ width: px(e.h) + '%', height: px(e.h) + '%' }} transition={{ duration: .9, ease: E }} />
         </div>
       </div>
-      <div className="relative mt-5 min-h-[130px] flex-1 overflow-hidden rounded-[14px]">
-        <img src={img(95, true)} alt={t(S.render)} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      <div className="relative mt-5 aspect-[16/9] overflow-hidden rounded-[12px] md:aspect-auto md:min-h-[150px] md:flex-1">
+        <img src={img(95, true)} alt={t(S.render)} loading="lazy" decoding="async" width="720" height="405" className={`absolute inset-0 h-full w-full object-cover ${GRADE}`} />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0a08]/50 to-transparent" />
       </div>
-      <p className={`${T.sans} mt-3 text-[12px] leading-snug text-[#ece7df]/55`}>{t(S.rangeNote)}</p>
+      <p className={`${T.sans} mt-3 text-[13px] leading-snug text-[#efe8dc]/55`}>{t(S.rangeNote)}</p>
     </div>
   )
 }
@@ -196,74 +200,82 @@ function Details({ innerRef }) {
   const { t } = useLang()
   const every = t(COMO.every)
   return (
-    <div ref={innerRef} className="relative z-10 bg-[#ece7df] pb-14 pt-12 md:pb-16 md:pt-16">
+    <div ref={innerRef} className="relative z-10 bg-[#0b0a08] pb-14 pt-6 text-[#efe8dc] md:pb-20 md:pt-12">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <div className="grid gap-8 md:grid-cols-12 md:gap-8">
+        {/* lead + facts */}
+        <div className="grid gap-8 md:grid-cols-12 md:gap-10">
           <Reveal className="md:col-span-5">
-            <p className={`${T.sans} text-[11px] font-semibold uppercase tracking-[.22em] text-[#151412]/55`}>{COMO.name}</p>
-            <p className={`${T.serif} mt-3 text-[28px] leading-[1.06] md:text-[clamp(30px,2.6vw,40px)]`}>{t(COMO.lead)}</p>
-            <div className="mt-7 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-[#151412]/15 pt-6">
+            <p className={`${lbl} flex items-center gap-3 text-[#c3a15e]`}><span className="h-px w-8 bg-[#c3a15e]" />{COMO.name}</p>
+            <p className={`${T.serif} mt-4 text-[27px] leading-[1.1] md:text-[clamp(30px,2.6vw,40px)] md:leading-[1.06]`}>{t(COMO.lead)}</p>
+            <p className={`${T.sans} mt-5 text-[15px] leading-relaxed text-[#efe8dc]/60`}>{t(COMO.views)}</p>
+          </Reveal>
+          <Reveal d={.06} className="md:col-span-7 md:pt-9">
+            <dl className="grid grid-cols-2 border-t border-[#efe8dc]/[.12] md:grid-cols-4">
               {COMO.facts.map((f, k) => (
-                <div key={k}>
-                  <div className={`${T.serif} text-[44px] leading-none tabular-nums md:text-[54px]`}>{f.v}<span className={`${T.sans} ml-1 text-[13px] font-semibold text-[#151412]/50`}>{f.u}</span></div>
-                  <div className={`${T.sans} mt-1.5 text-[12.5px] text-[#151412]/65`}>{t(f.l)}</div>
+                <div key={k} className={`border-b border-[#efe8dc]/[.12] py-5 md:border-b-0 md:py-6 ${k % 2 ? 'pl-5' : 'pr-5'} ${k % 2 ? 'border-l md:border-l' : ''} md:px-5 ${k === 0 ? 'md:pl-0' : 'md:border-l'} border-[#efe8dc]/[.12]`}>
+                  <dd className={`${T.serif} whitespace-nowrap text-[40px] leading-none tabular-nums md:text-[clamp(40px,3.6vw,56px)]`}>{f.v}<span className={`${T.sans} ml-1 text-[13px] font-semibold text-[#c3a15e]`}>{f.u}</span></dd>
+                  <dt className={`${T.sans} mt-2 text-[13px] leading-snug text-[#efe8dc]/60`}>{t(f.l)}</dt>
                 </div>
               ))}
-            </div>
-            <p className={`${T.sans} mt-6 text-[13px] leading-relaxed text-[#151412]/60`}>{t(COMO.views)}</p>
+            </dl>
           </Reveal>
-          <Reveal d={.08} className="md:col-span-3">
-            <p className={`${T.sans} text-[11px] font-semibold uppercase tracking-[.22em] text-[#151412]/55`}>{t(S.every)}</p>
-            <ul className="mt-4">
+        </div>
+
+        {/* includes + range */}
+        <div className="mt-10 grid gap-8 md:mt-14 md:grid-cols-12 md:gap-10">
+          <Reveal className="md:col-span-5">
+            <p className={`${lbl} text-[#efe8dc]/55`}>{t(S.every)}</p>
+            <ul className="mt-3">
               {every.map((x, k) => (
-                <li key={k} className="flex items-baseline gap-3 border-b border-[#151412]/12 py-3">
-                  <span className={`${T.sans} text-[10.5px] font-semibold tabular-nums text-[#b06a35]`}>{String(k + 1).padStart(2, '0')}</span>
-                  <span className={`${T.serif} text-[21px] leading-tight md:text-[22px]`}>{x}</span>
+                <li key={k} className="flex items-baseline gap-4 border-b border-[#efe8dc]/[.12] py-3.5">
+                  <span className={`${T.sans} w-5 shrink-0 text-[11px] font-semibold tabular-nums text-[#c3a15e]`}>{String(k + 1).padStart(2, '0')}</span>
+                  <span className={`${T.serif} text-[21px] leading-tight md:text-[23px]`}>{x}</span>
                 </li>
               ))}
             </ul>
-            <p className={`${T.sans} mt-4 text-[12.5px] leading-relaxed text-[#151412]/60`}>{t(COMO.model)}</p>
+            <p className={`${T.sans} mt-5 text-[15px] leading-relaxed text-[#efe8dc]/60`}>{t(COMO.model)}</p>
           </Reveal>
-          <Reveal d={.16} className="md:col-span-4"><Range /></Reveal>
+          <Reveal d={.08} className="md:col-span-7"><Range /></Reveal>
         </div>
 
-        {/* build phases: one row of labels + real site photos */}
-        <Reveal className="mt-12 md:mt-12">
+        {/* build phases: one row of steps + real site photos */}
+        <Reveal className="mt-14 md:mt-20">
           <div className="flex items-end justify-between gap-4">
-            <p className={`${T.serif} text-[30px] leading-none md:text-[40px]`}>{t(S.phases)}</p>
-            <a href="#contact" className={`${T.sans} hidden h-10 shrink-0 items-center rounded-full bg-[#151412] px-5 text-[12.5px] font-semibold text-[#ece7df] md:inline-flex`}>{t(S.inquire)} →</a>
+            <p className={`${T.serif} text-[32px] leading-none md:text-[44px]`}>{t(S.phases)}</p>
+            <a href="#contact" className={`${T.sans} hidden h-11 shrink-0 items-center rounded-full border border-[#c3a15e]/60 px-6 text-[13px] font-semibold text-[#efe8dc] transition-colors hover:bg-[#c3a15e] hover:text-[#0b0a08] md:inline-flex`}>{t(S.inquire)} →</a>
           </div>
-          <ol className={`${T.sans} relative mt-6 flex gap-1 overflow-x-auto pb-1 [scrollbar-width:none] md:gap-0`}>
+          <ol className={`${T.sans} mt-6 grid grid-cols-2 gap-x-5 border-t border-[#efe8dc]/[.12] md:mt-8 md:flex md:gap-0 md:border-t-0`}>
             {t(COMO.phases).map((ph, k, a) => (
-              <li key={k} className="relative min-w-[110px] flex-1 pr-3">
-                <div className="flex items-center gap-2">
-                  <span className="block h-2 w-2 shrink-0 rounded-full bg-[#b06a35]" />
-                  {k < a.length - 1 && <span className="block h-px flex-1 bg-[#151412]/20" />}
+              <li key={k} className="relative flex items-baseline gap-3 border-b border-[#efe8dc]/[.12] py-3 md:block md:flex-1 md:border-b-0 md:py-0 md:pr-3">
+                <div className="hidden items-center gap-2 md:flex">
+                  <span className={`block h-2 w-2 shrink-0 rounded-full ${k === a.length - 1 ? 'bg-[#c3a15e] shadow-[0_0_12px_#c3a15e]' : 'border border-[#c3a15e] bg-[#0b0a08]'}`} />
+                  {k < a.length - 1 && <span className="block h-px flex-1 bg-gradient-to-r from-[#c3a15e]/60 to-[#efe8dc]/15" />}
                 </div>
-                <div className="mt-2.5 text-[10px] font-semibold tabular-nums tracking-[.16em] text-[#151412]/45">{String(k + 1).padStart(2, '0')}</div>
-                <div className="mt-0.5 text-[13px] font-semibold leading-tight">{ph}</div>
+                <div className="text-[11px] font-semibold tabular-nums tracking-[.16em] text-[#c3a15e] md:mt-3">{String(k + 1).padStart(2, '0')}</div>
+                <div className="text-[15px] font-medium leading-tight text-[#efe8dc] md:mt-1 md:text-[14px]">{ph}</div>
               </li>
             ))}
           </ol>
-          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            {SITE.map(([id, cap], k) => (
+          <div className="mt-7 grid grid-cols-2 gap-2.5 md:mt-8 md:grid-cols-4 md:gap-4">
+            {SITE.map(([id, cap]) => (
               <figure key={id} className="group">
-                <div className="aspect-[3/2] overflow-hidden rounded-[14px] bg-[#e2dcd2]">
-                  <img src={img(id, true)} alt={t(cap)} loading="lazy" className={`h-full w-full object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04] ${id === 104 ? '' : ''}`} />
+                <div className="aspect-[4/3] overflow-hidden rounded-[12px] bg-[#14120f] md:aspect-[3/2]">
+                  <img src={img(id, true)} alt={t(cap)} loading="lazy" decoding="async" width="720" height="480" className={`h-full w-full object-cover ${GRADE} transition-transform duration-[1.2s] ease-out group-hover:scale-[1.04]`} />
                 </div>
-                <figcaption className={`${T.sans} mt-2 text-[11.5px] ${id === 104 ? 'font-semibold text-[#151412]' : 'text-[#151412]/55'}`}>{t(cap)}</figcaption>
+                <figcaption className={`${T.sans} mt-2 text-[12px] leading-snug ${id === 104 ? 'font-semibold text-[#c3a15e]' : 'text-[#efe8dc]/55'}`}>{t(cap)}</figcaption>
               </figure>
             ))}
           </div>
-          <p className={`${T.sans} mt-5 max-w-[70ch] text-[13px] leading-relaxed text-[#151412]/65`}>{t(COMO.phasesNote)}</p>
+          <p className={`${T.sans} mt-6 max-w-[70ch] text-[15px] leading-relaxed text-[#efe8dc]/60`}>{t(COMO.phasesNote)}</p>
+          <a href="#contact" className={`${T.sans} mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#c3a15e] text-[14px] font-semibold text-[#0b0a08] md:hidden`}>{t(S.inquire)} →</a>
         </Reveal>
 
-        <div className={`${T.sans} mt-8 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-t border-[#151412]/15 pt-5 text-[13px]`}>
-          <span className="text-[10.5px] font-semibold uppercase tracking-[.22em] text-[#151412]/45">{t(S.next)}</span>
-          <span className={`${T.serif} text-[22px]`}>{SARDEGNA.name}</span>
-          <span className="text-[#151412]/55">{SARDEGNA.place}</span>
-          <span className="rounded-full border border-[#151412]/20 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[.14em] text-[#b06a35]">{t(SARDEGNA.note)}</span>
-          <a href="#contact" className="ml-auto font-semibold underline underline-offset-4 md:hidden">{t(S.inquire)} →</a>
+        {/* next: Sardegna */}
+        <div className="mt-12 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#efe8dc]/[.12] pt-6 md:mt-16">
+          <span className={`${lbl} w-full text-[#efe8dc]/45 md:w-auto`}>{t(S.next)}</span>
+          <span className={`${T.serif} text-[30px] leading-none md:text-[34px]`}>{SARDEGNA.name}</span>
+          <span className={`${T.sans} text-[14px] text-[#efe8dc]/55`}>{SARDEGNA.place}</span>
+          <span className={`${T.sans} rounded-full border border-[#c3a15e]/50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[.16em] text-[#c3a15e]`}>{t(SARDEGNA.note)}</span>
         </div>
       </div>
     </div>
@@ -273,7 +285,7 @@ function Details({ innerRef }) {
 export default function Como() {
   const after = useRef()
   return (
-    <section id="como" className="relative">
+    <section id="como" className="relative bg-[#0b0a08]">
       <Film after={after} />
       <Details innerRef={after} />
     </section>

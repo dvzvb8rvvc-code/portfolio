@@ -10,7 +10,9 @@ import { stage } from './engine'
      (dark ink edge + hairline gold rim), UVs of both images flow along the front
    - Ken Burns zoom per slide, slow light sweep riding the depth, warm cinematic grade,
      lifted blacks, vignette, legibility gradients, film grain — all in the fragment shader (no composer)
-   - scroll: dolly INTO the image (depth grows), soften + darken, then dissolve to paper #ece7df
+   - scroll (V5 hand-off): a short push INTO the depth, then the film recedes — the plane shrinks, flattens
+     and lands exactly on the framed card placeholder in Studio (stage.hero.cardEl, a DOM rect read per frame).
+     When it has landed, Studio swaps in a DOM <img> of the same frame (hub.landed) → no flat-colour cut, ever.
    Talks to the DOM (Hero.jsx) through stage.hero = { i, k, ready, go } — no React state per frame. */
 
 // keep in sync with SLIDES in Hero.jsx
@@ -31,7 +33,7 @@ float fbm(vec2 p){ float a = .5, s = 0.; for(int i = 0; i < 4; i++){ s += a * vn
 vec2 cover(vec2 uv, vec4 c){ return uv * c.xy + c.zw; }`
 
 const vert = /* glsl */`
-uniform sampler2D uDA, uDB; uniform vec4 uCA, uCB; uniform float uMix, uAmt, uTime, uPlane;
+uniform sampler2D uDA, uDB; uniform vec4 uCA, uCB; uniform float uMix, uAmt, uTime, uPlane, uCard;
 varying vec2 vUv; varying float vD;
 ${NOISE}
 void main(){
@@ -44,14 +46,15 @@ void main(){
   float d = mix(dA, dB, k);
   vD = d;
   vec3 p = position;
-  p.z += d * uAmt + band * .07;
+  float rim = smoothstep(0., .09, min(min(uv.x, 1. - uv.x), min(uv.y, 1. - uv.y)));
+  p.z += (d * uAmt + band * .07) * mix(1., rim, uCard);   // card edges stay straight while it lands
   gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
 }`
 
 const frag = /* glsl */`
 uniform sampler2D uA, uB, uDB; uniform vec4 uCA, uCB;
-uniform float uMix, uTime, uPlane, uSweep, uDark, uFade, uSoft, uMobile;
-uniform vec3 uPaper; uniform vec2 uRes;
+uniform float uMix, uTime, uPlane, uSweep, uDark, uCard, uSoft, uMobile;
+uniform vec2 uRes;
 varying vec2 vUv; varying float vD;
 ${NOISE}
 vec3 grade(vec3 c){
@@ -80,19 +83,20 @@ void main(){
   c += vec3(1., .74, .42) * pow(edge, 3.) * .05;
   // slow light sweep, riding the depth (only lights what is already lit)
   float sw = exp(-pow((uv.x * .85 + uv.y * .45 - uSweep + vD * .22) * 3.2, 2.));
-  c += c * vec3(1., .86, .66) * sw * .28;
+  c += c * vec3(1., .86, .66) * sw * .28 * (1. - uCard);
   c = grade(c);
   // legibility + cinema: bottom/left gradients, top for the nav, vignette
+  // (screen-space while full-bleed, they release as the film becomes a card)
   vec2 s = gl_FragCoord.xy / uRes;
-  c *= 1. - .66 * (1. - smoothstep(0., .6, s.y));
-  c *= 1. - .4 * (1. - smoothstep(0., .62, s.x)) * (1. - smoothstep(.2, .9, s.y)) * (1. - uMobile);
-  c *= 1. - .4 * smoothstep(.8, 1., s.y);
-  c *= mix(1., 1. - smoothstep(.3, 1.2, length((s - .5) * vec2(1.1, 1.))), .6);
+  float sc = 1. - uCard;
+  c *= 1. - .66 * (1. - smoothstep(0., .6, s.y)) * sc;
+  c *= 1. - .4 * (1. - smoothstep(0., .62, s.x)) * (1. - smoothstep(.2, .9, s.y)) * (1. - uMobile) * sc;
+  c *= 1. - .4 * smoothstep(.8, 1., s.y) * sc;
+  c *= mix(1., 1. - smoothstep(.3, 1.2, length((s - .5) * vec2(1.1, 1.))), .6 * sc);
   c *= 1. - uDark;
-  // film grain (fine, animated) — fades out with the paper hand-off
+  // film grain (fine, animated) — settles to still as the card lands (the page grain takes over)
   float g = h21(gl_FragCoord.xy + fract(uTime * 7.31) * 113.) - .5;
-  c += g * .028 * (.35 + sqrt(max(c.g, 0.))) * (1. - uFade);
-  c = mix(c, uPaper, uFade);
+  c += g * .028 * (.35 + sqrt(max(c.g, 0.))) * sc;
   gl_FragColor = vec4(max(c, 0.), 1.);
   #include <colorspace_fragment>
 }`
@@ -112,13 +116,18 @@ function bindPointer() {
 }
 
 // cover-fit (+ zoom, focus) of a texture of aspect ta on a plane of aspect pa → vec4(scale, offset)
-function coverVec(out, ta, pa, zoom, f) {
+// css = 0..1 blends to CSS object-fit:cover + object-position:f (so the landed card matches a DOM <img> 1:1)
+function coverVec(out, ta, pa, zoom, f, css = 0) {
   let sx = 1, sy = 1
   if (pa > ta) sy = ta / pa; else sx = pa / ta
   sx /= zoom; sy /= zoom
   const fx = clamp(f[0], sx / 2, 1 - sx / 2), fy = clamp(f[1], sy / 2, 1 - sy / 2)
-  return out.set(sx, sy, fx - sx / 2, fy - sy / 2)
+  let ox = fx - sx / 2, oy = fy - sy / 2
+  ox += (f[0] * (1 - sx) - ox) * css; oy += (f[1] * (1 - sy) - oy) * css
+  return out.set(sx, sy, ox, oy)
 }
+// CSS object-position for a focus point (uv, y up)
+export const focusCss = f => `${(f[0] * 100).toFixed(2)}% ${((1 - f[1]) * 100).toFixed(2)}%`
 
 const hub = (stage.hero = stage.hero || { i: 0, k: 0, ready: false, go: -1, f: 0 })
 if (typeof window !== 'undefined') window.__ytsHero = hub // QA hook: __ytsHero.fixed = 0.1 → fixed time-step (inspect transitions on slow GPUs)
@@ -144,8 +153,8 @@ export default function SceneHero({ track }) {
     uA: { value: maps[0] }, uB: { value: maps[1] }, uDA: { value: dmaps[0] }, uDB: { value: dmaps[1] },
     uCA: { value: new THREE.Vector4(1, 1, 0, 0) }, uCB: { value: new THREE.Vector4(1, 1, 0, 0) },
     uMix: { value: 0 }, uAmt: { value: .2 }, uTime: { value: 0 }, uPlane: { value: 1.6 }, uSweep: { value: -1 },
-    uDark: { value: 0 }, uFade: { value: 0 }, uSoft: { value: 0 }, uMobile: { value: mobile ? 1 : 0 },
-    uPaper: { value: new THREE.Color('#ece7df') }, uRes: { value: new THREE.Vector2(1, 1) },
+    uDark: { value: 0 }, uCard: { value: 0 }, uSoft: { value: 0 }, uMobile: { value: mobile ? 1 : 0 },
+    uRes: { value: new THREE.Vector2(1, 1) },
   }), [texs])
 
   const g = useRef(), mesh = useRef()
@@ -185,48 +194,85 @@ export default function SceneHero({ track }) {
 
     const A = IDS[s.cur], B = IDS[s.next]
     U.uA.value = maps[s.cur]; U.uB.value = maps[s.next]; U.uDA.value = dmaps[s.cur]; U.uDB.value = dmaps[s.next]
-    const L = CYCLE + TRANS
-    const fi = portrait ? 1 : 0
-    coverVec(U.uCA.value, ASPECT[A], pa, 1 + .085 * (s.c + TRANS) / L, FOCUS[A][fi])
-    coverVec(U.uCB.value, ASPECT[B], pa, 1 + .085 * Math.max(0, s.c - tStart) / L, FOCUS[B][fi])
+
+    // ---- hand-off: how far the film has receded into the Studio card (0 = full bleed, 1 = landed)
+    // k runs on the real (Lenis-smoothed) scroll so the landed card stays glued to its DOM placeholder.
+    let k = 0, rect = null
+    const hEl = stage.els.hero, ph = hub.cardEl
+    if (hEl && ph) {
+      const sv = -hEl.getBoundingClientRect().top / H
+      rect = ph.getBoundingClientRect()
+      const land = Math.max(mob ? 84 : 104, (H - rect.height) / 2)
+      const s1 = sv + (rect.top - land) / H
+      const s0 = Math.min(.2, s1 - .35)
+      k = ease3(clamp((sv - s0) / Math.max(.25, s1 - s0)))
+      if (rect.width < 2) { k = 0; rect = null }
+    }
+    if (!rect) k = 0
+    const kk = ease(seg(k, .55, 1)) // late phase: lights come up, image settles
+    U.uCard.value = k
+
     U.uMix.value = mix
     U.uTime.value = s.t
-    U.uPlane.value = pa
     U.uMobile.value = mob ? 1 : 0
     U.uSweep.value = ((s.t * .075) % 1.9) - .45
     state.gl.getDrawingBufferSize(U.uRes.value)
 
-    // ---- intro + scroll beat
+    // ---- intro + scroll beat: a short push into the depth, then the film recedes into the card
     const intro = ease3(clamp((now - .1) / 3.6))
-    const dolly = ease3(seg(p, 0, .85))
-    U.uAmt.value = (.22 + .43 * intro) * (1 + 1.1 * dolly)
-    U.uSoft.value = ease(seg(p, .3, .85)) * 2.5
-    U.uDark.value = ease(seg(p, .2, .7)) * .55
-    U.uFade.value = ease(seg(p, .56, .94))
+    const push = ease3(seg(p, 0, .7))
+    U.uAmt.value = (.22 + .43 * intro) * (1 + .9 * push) * Math.pow(1 - k, 1.6)
+    U.uSoft.value = Math.sin(Math.PI * k) * 1.5
+    U.uDark.value = ease(seg(p, .12, .7)) * .5 * (1 - kk)
 
-    // plane covers the frustum at z=0 (+ overscan for parallax)
-    const fh = 2 * D * Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * OVER
-    mesh.current.scale.set(fh * pa, fh, 1)
+    // ---- camera: slow cinematic drift + pointer parallax, intro settle, push in → pull back to a straight view
+    const cam = state.camera
+    if (stage.active === 'hero') {
+      s.px = damp(s.px, ptr.x, 2.2, dt); s.py = damp(s.py, ptr.y, 2.2, dt)
+      const free = 1 - k
+      const par = mob ? 0 : .3
+      const dx = (Math.sin(s.t * .11) * (mob ? .3 : .2) + s.px * par) * free
+      const dy = (Math.sin(s.t * .083 + 1.3) * .1 + s.py * par * .55 - .12 * push) * free
+      const z = D - .55 * (1 - intro) - 1.5 * push * free
+      s.cam.set(dx, dy, z)
+      s.look.set(dx * .4 * free + dx * k, (dy * .4 - .06 * push) * free + dy * k, 0)
+      if (cam.fov !== FOV) { cam.fov = FOV; cam.updateProjectionMatrix() }
+      cam.position.x = damp(cam.position.x, s.cam.x, 4, dt)
+      cam.position.y = damp(cam.position.y, s.cam.y, 4, dt)
+      cam.position.z = damp(cam.position.z, s.cam.z, 4, dt)
+      if (s.frames < 3) cam.position.copy(s.cam)
+      cam.lookAt(s.look)
+    }
+
+    // ---- plane: full-bleed (frustum at z=0 + overscan) → the card rect, mapped through the live camera
+    const tanH = Math.tan(THREE.MathUtils.degToRad(FOV / 2))
+    const fullH = 2 * D * tanH * OVER
+    let w = fullH * pa, h = fullH, x = 0, y = 0
+    if (rect && k > 0) {
+      const fh = 2 * Math.max(.5, cam.position.z) * tanH
+      const cw = (rect.width / W) * fh * pa, ch = (rect.height / H) * fh
+      const cx = cam.position.x + ((rect.left + rect.width / 2) / W - .5) * fh * pa
+      const cy = cam.position.y - ((rect.top + rect.height / 2) / H - .5) * fh
+      w += (cw - w) * k; h += (ch - h) * k; x = cx * k; y = cy * k
+    }
+    mesh.current.scale.set(w, h, 1)
+    mesh.current.position.set(x, y, 0)
+    const ma = w / h
+    U.uPlane.value = ma
+    const L = CYCLE + TRANS
+    const fi = portrait ? 1 : 0
+    coverVec(U.uCA.value, ASPECT[A], ma, 1 + .085 * (s.c + TRANS) / L * (1 - k), FOCUS[A][fi], kk)
+    coverVec(U.uCB.value, ASPECT[B], ma, 1 + .085 * Math.max(0, s.c - tStart) / L * (1 - k), FOCUS[B][fi], kk)
+
+    // ---- tell Studio which frame to show in DOM once the card has landed (discrete writes only)
+    const showId = mix > .5 ? B : A
+    hub.cardK = k
+    hub.cardId = showId
+    hub.cardPos = focusCss(FOCUS[showId][fi])
+    hub.landed = k > .995 && (mix < .002 || mix > .998)
 
     if (++s.frames === 3) hub.ready = true
     hub.f = s.frames; hub.T = s.t
-    if (stage.active !== 'hero') return
-
-    // ---- camera: slow cinematic drift + pointer parallax, intro settle, dolly in on scroll
-    s.px = damp(s.px, ptr.x, 2.2, dt); s.py = damp(s.py, ptr.y, 2.2, dt)
-    const par = mob ? 0 : .3
-    const dx = Math.sin(s.t * .11) * (mob ? .3 : .2) + s.px * par
-    const dy = Math.sin(s.t * .083 + 1.3) * .1 + s.py * par * .55
-    const z = D - .55 * (1 - intro) - 2.1 * dolly
-    s.cam.set(dx, dy - .12 * dolly, z)
-    s.look.set(dx * .4, dy * .4 - .08 * dolly, 0)
-    const cam = state.camera
-    if (cam.fov !== FOV) { cam.fov = FOV; cam.updateProjectionMatrix() }
-    cam.position.x = damp(cam.position.x, s.cam.x, 4, dt)
-    cam.position.y = damp(cam.position.y, s.cam.y, 4, dt)
-    cam.position.z = damp(cam.position.z, s.cam.z, 4, dt)
-    if (s.frames < 3) cam.position.copy(s.cam)
-    cam.lookAt(s.look)
   })
 
   return (

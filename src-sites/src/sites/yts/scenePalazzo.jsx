@@ -1,282 +1,320 @@
 import * as THREE from 'three'
-import React, { Suspense, useMemo, useRef } from 'react'
-import { useFrame, useLoader, useThree } from '@react-three/fiber'
+import React, { useEffect, useMemo, useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { stage } from './engine'
+import { PAL } from './Palazzo'
 
-/* ===================== PALAZZO — the frescoed walk =====================
-   His interior photos (148 → 156 → 157 → 152) become real geometry via their depth maps,
-   placed one behind another. The camera dollies through each room; the room's near geometry
-   dissolves with a warm ragged rim (portal) as you pass into the next. Warm dust drifts in
-   light shafts. At the end the camera tilts up into the ceiling fresco 154, bent on a gentle vault.
-   Everything is driven by one damped progress value → silk. No postprocessing.
-   Timeline is mirrored in Palazzo.jsx (captions) — keep both in sync. */
+/* ===================== PALAZZO v5 — one plane, one shader =====================
+   Volterra 145 → 148 → 156 → 157 → 152 → ceiling 154.
+   - ONE full-frame plane. The shader holds the current + next photo and both depth maps
+     (same family as the hero): vertex displacement from a mip-softened depth (no rubber-sheet
+     smearing at silhouettes), a slow liquid, depth-aware ink-bleed (near pixels first, faint gold
+     edge), mild sharpening for crisp 1920px detail, warm grade, lifted blacks, vignette, film grain.
+   - Every image has its own continuous "life": dolly (zoom + growing depth), pan, rotation are
+     functions of scroll for THAT image, so both images keep moving through a transition → no jumps.
+     152 tilts up into its ceiling and 154 continues the same upward drift while the plane bends
+     overhead (vault feel).
+   - Draws with its OWN camera matrices inside the film's sticky frame (stage.palazzoFrame): it
+     follows the frame while it scrolls in/out, so it never needs a DOM stand-in photo.
+   - Textures: decoded off-thread (createImageBitmap), uploaded one per frame long before use;
+     depth maps as single-channel R8 with mipmaps (cheap, smooth). No React state per frame. */
 
-const ORIGIN = [400, 0, 0] // far from other scenes (camera far = 200)
-const ROOMS = [148, 156, 157, 152]
-const VAULT = 154
-const ASPECT = { 148: 1800 / 1759, 156: 1800 / 1310, 157: 1800 / 1708, 152: 1800 / 1530, 154: 1800 / 1776 } // h / w
-const TL = { open: [0, 0.12], rooms: [0.06, 0.8], look: [0.8, 0.95] }
-const SPAN = ROOMS.length - 1 + 0.55
-const L = 2.6, D0 = 3.4
+const IDS = PAL.ids
+const TR = PAL.tr
+const FOV = 40, D = 5, OVER = 1.14
+
+// per image: depth amount, zoom [start,end] over its life, focus fractions [start,end] for
+// landscape (desktop) and portrait (phone) frames, rotation [start,end] (rad), optional phone zoom
 const CFG = {
-  148: { pitch: 0.07, depth: 1.25, beam: [0.35, -0.28] },
-  156: { pitch: 0.05, depth: 1.15, beam: [-0.9, 0.42] },
-  157: { pitch: 0.05, depth: 1.2, beam: [0.95, -0.4] },
-  152: { pitch: 0.09, depth: 1.1, beam: [-0.75, 0.36] },
+  145: { amt: 0.42, z: [1.0, 1.13], L: [[0.5, 0.62], [0.58, 0.5]], P: [[0.66, 0.5], [0.76, 0.5]], r: [0, 0] },
+  148: { amt: 0.6, z: [1.02, 1.16], L: [[0.5, 0.5], [0.5, 0.7]], P: [[0.46, 0.5], [0.54, 0.5]], r: [0, 0] },
+  156: { amt: 0.62, z: [1.02, 1.15], L: [[0.5, 0.4], [0.5, 0.56]], P: [[0.4, 0.5], [0.5, 0.5]], r: [0, 0] },
+  157: { amt: 0.58, z: [1.02, 1.15], L: [[0.5, 0.36], [0.5, 0.52]], P: [[0.42, 0.5], [0.52, 0.5]], r: [0, 0] },
+  152: { amt: 0.6, z: [1.0, 1.1], zp: [1.0, 1.32], L: [[0.5, 0.3], [0.5, 1.0]], P: [[0.5, 0.36], [0.5, 1.0]], r: [0, 0], tilt: 1 },
+  154: { amt: 0.5, z: [1.12, 1.07], L: [[0.5, 0.0], [0.5, 0.56]], P: [[0.5, 0.0], [0.5, 0.56]], r: [0, 0.07], up: 1 },
 }
-const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
-const smooth = (a, b, v) => { const x = clamp((v - a) / (b - a)); return x * x * (3 - 2 * x) }
-// eased room-time: lingers inside each room, moves quicker through the doorway
-function roomTime(p) {
-  const f = clamp((p - TL.rooms[0]) / (TL.rooms[1] - TL.rooms[0])) * SPAN
-  const k = Math.min(Math.floor(f), ROOMS.length - 1), fr = f - k
-  return k + fr - (0.6 * Math.sin(2 * Math.PI * (fr - 0.25))) / (2 * Math.PI)
-}
-const T_END = roomTime(1)
-const Z_END = D0 - T_END * L
 
-const url = (id, small) => `/portfolio/yts/img/${id}${small ? '-s' : ''}.webp`
-const durl = id => `/portfolio/yts/depth/${id}.webp`
+const NOISE = /* glsl */`
+float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+  return mix(mix(h21(i), h21(i+vec2(1.,0.)), f.x), mix(h21(i+vec2(0.,1.)), h21(i+vec2(1.,1.)), f.x), f.y); }
+float fbm(vec2 p){ float a = .5, s = 0.; for(int i = 0; i < 4; i++){ s += a * vn(p); p = p * 2.03 + 17.1; a *= .5; } return s / .9375; }
+uniform float uPlane;
+// cover (+zoom, pan, rotation) → texture coords (textures are uploaded top-down: flipY = false)
+vec2 tc(vec2 uv, vec4 c, vec2 r){
+  vec2 q = uv - .5; q.x *= uPlane; q = mat2(r.x, r.y, -r.y, r.x) * q; q.x /= uPlane; q += .5;
+  vec2 t = q * c.xy + c.zw; return vec2(t.x, 1. - t.y);
+}`
 
 const vert = /* glsl */`
-uniform sampler2D uDepth; uniform float uAmount; uniform float uCamZ; uniform float uCurve; uniform float uHalf;
-varying vec2 vUv; varying float vD; varying float vNear;
+uniform sampler2D uDA, uDB; uniform vec4 uCA, uCB; uniform vec2 uRA, uRB, uNdc;
+uniform float uMix, uAmtA, uAmtB, uTime, uBend; uniform mat4 uVP;
+varying vec2 vUv; varying float vD;
+${NOISE}
 void main(){
   vUv = uv;
-  float d = texture2D(uDepth, uv).r;
-  vD = d;
-  vec2 r = position.xy / uHalf;
-  vec3 p = position + normal * (d * uAmount + uCurve * dot(r, r));
-  vec4 wp = modelMatrix * vec4(p, 1.0);
-  vNear = uCamZ - wp.z;
-  gl_Position = projectionMatrix * viewMatrix * wp;
+  // mip-softened depth for the geometry: silhouettes stretch over a soft ramp instead of tearing
+  float dA = textureLod(uDA, tc(uv, uCA, uRA), 2.6).r;
+  float dB = textureLod(uDB, tc(uv, uCB, uRB), 2.6).r;
+  float n = fbm(uv * vec2(uPlane, 1.) * 1.3 + vec2(0., uTime * .015));
+  float f = clamp(n * .55 + (1. - dB) * .45, 0., 1.);
+  float k = smoothstep(f - .22, f + .22, uMix * 1.44 - .22);
+  float band = 1. - abs(2. * k - 1.);
+  vD = mix(dA, dB, k);
+  vec3 p = position;
+  float top = max(uv.y - .18, 0.) / .82;
+  p.z += mix(dA * uAmtA, dB * uAmtB, k) + band * .05 + uBend * top * top;
+  vec4 cp = uVP * modelMatrix * vec4(p, 1.);
+  cp.y = cp.y * uNdc.x + uNdc.y * cp.w;   // map the virtual viewport onto the sticky frame
+  gl_Position = cp;
 }`
+
 const frag = /* glsl */`
-uniform sampler2D uMap; uniform float uEdge; uniform float uOpacity; uniform float uDissolve; uniform float uPass; uniform float uExposure; uniform vec3 uTint;
-varying vec2 vUv; varying float vD; varying float vNear;
-float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
-  return mix(mix(hash(i), hash(i+vec2(1,0)), f.x), mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y); }
+uniform sampler2D uA, uB, uDB; uniform vec4 uCA, uCB; uniform vec2 uRA, uRB, uTA, uTB, uClip, uRes;
+uniform float uMix, uTime, uSharp, uSweep, uLive;
+varying vec2 vUv; varying float vD;
+${NOISE}
+vec3 tex(sampler2D s, vec2 t, vec2 px){
+  vec3 c = texture2D(s, t).rgb;
+  vec3 b = texture2D(s, t + vec2(px.x, 0.)).rgb + texture2D(s, t - vec2(px.x, 0.)).rgb
+         + texture2D(s, t + vec2(0., px.y)).rgb + texture2D(s, t - vec2(0., px.y)).rgb;
+  return max(c + (c - b * .25) * uSharp, 0.);
+}
+vec3 grade(vec3 c){
+  float l = dot(c, vec3(.2126, .7152, .0722));
+  c = mix(vec3(l), c, .86);
+  c *= mix(vec3(.92, .95, 1.02), vec3(1.07, 1., .87), smoothstep(.04, .6, l));
+  c = c * .94 + vec3(.0105, .0088, .0066);
+  return c;
+}
 void main(){
-  vec3 c = texture2D(uMap, vUv).rgb;
-  vec2 e = smoothstep(vec2(0.0), vec2(uEdge), vUv) * smoothstep(vec2(0.0), vec2(uEdge), 1.0 - vUv);
-  float a = e.x * e.y * uOpacity;
-  a *= mix(1.0, smoothstep(0.08, 0.5, vNear), uPass);           // never clip through the lens
-  float rim = 0.0;
-  if (uDissolve > 0.001) {                                      // portal: near surfaces dissolve first
-    float n = noise(vUv * 9.0) * 0.5 + noise(vUv * 31.0) * 0.25;
-    float far = 1.0 - vD + n * 0.35;
-    float cut = smoothstep(uDissolve - 0.08, uDissolve, far);
-    rim = (1.0 - smoothstep(uDissolve, uDissolve + 0.06, far)) * cut;
-    a *= cut;
-  }
-  if (a < 0.01) discard;
-  vec3 col = c * uExposure * uTint + vec3(1.0, 0.6, 0.26) * rim * 2.2;
-  gl_FragColor = vec4(col, a);
+  if (gl_FragCoord.y < uClip.x || gl_FragCoord.y > uClip.y) discard;
+  vec2 uv = vUv, q = uv * vec2(uPlane, 1.);
+  float front = uMix * 1.44 - .22;
+  float dB = textureLod(uDB, tc(uv, uCB, uRB), 1.2).r;
+  float n = fbm(q * 1.3 + vec2(0., uTime * .015));
+  float n2 = fbm(q * 4.4 - vec2(uTime * .025, 0.));
+  float f = clamp(n * .55 + (1. - dB) * .45, 0., 1.) + (n2 - .5) * .09;
+  float wide = 1. - abs(2. * smoothstep(f - .22, f + .22, front) - 1.);   // broad flow zone
+  float k = smoothstep(f - .05, f + .05, front);                           // ink edge
+  vec2 flow = vec2(fbm(q * 2.1 + 3.1 + uTime * .03), fbm(q * 2.1 - 7.3 - uTime * .03)) - .5;
+  vec3 a = tex(uA, tc(uv + flow * wide * .04, uCA, uRA), uTA);
+  vec3 b = uMix > .0005 ? tex(uB, tc(uv - flow * wide * .03, uCB, uRB), uTB) : a;
+  vec3 c = mix(a, b, k);
+  float edge = 1. - abs(2. * k - 1.);
+  c *= 1. - wide * .14 - edge * .2;                                        // wet, darker ink edge
+  c += vec3(1., .76, .44) * pow(edge, 4.) * .06;                           // faint gold rim
+  // slow warm light sweep riding the depth (lights only what is lit)
+  float sw = exp(-pow((uv.x * .8 + uv.y * .5 - uSweep + vD * .25) * 2.6, 2.));
+  c += c * vec3(1., .86, .66) * sw * .16;
+  c = grade(c);
+  vec2 s = vec2(gl_FragCoord.x / uRes.x, (gl_FragCoord.y - uClip.x) / max(uClip.y - uClip.x, 1.));
+  c *= mix(1., 1. - smoothstep(.32, 1.2, length((s - .5) * vec2(1.15, 1.))), .6);
+  float g = h21(gl_FragCoord.xy + fract(uTime * 7.31) * 113.) - .5;
+  c += g * .024 * (.35 + sqrt(max(c.g, 0.)));
+  c = mix(vec3(.0043, .0037, .0027), c, uLive);
+  gl_FragColor = vec4(max(c, 0.), 1.);
   #include <colorspace_fragment>
 }`
 
-function DepthMesh({ id, small, segs, width, depth, uref, pass = 1, curve = 0, ...props }) {
-  const [map, dmap] = useLoader(THREE.TextureLoader, [url(id, small), durl(id)])
-  map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; map.generateMipmaps = true
-  const aspect = ASPECT[id]
-  const geo = useMemo(() => new THREE.PlaneGeometry(width, width * aspect, segs, Math.round(segs * Math.min(aspect, 1.3))), [width, aspect, segs])
-  const uniforms = useMemo(() => ({
-    uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: depth }, uCamZ: { value: 0 }, uEdge: { value: 0.06 }, uOpacity: { value: 1 },
-    uDissolve: { value: 0 }, uPass: { value: pass }, uExposure: { value: 1 }, uCurve: { value: curve }, uHalf: { value: width / 2 }, uTint: { value: new THREE.Color(1, 1, 1) },
-  }), [map, dmap, width])
-  uref.current = uniforms
-  return (
-    <mesh geometry={geo} frustumCulled={false} {...props}>
-      <shaderMaterial uniforms={uniforms} vertexShader={vert} fragmentShader={frag} transparent depthWrite />
-    </mesh>
-  )
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+const seg = (p, a, b) => clamp((p - a) / (b - a))
+const ease3 = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
+const lerp = (a, b, t) => a + (b - a) * t
+const damp = THREE.MathUtils.damp
+
+/* ---------- textures: off-thread decode, staged upload ---------- */
+const TEX = { started: false, items: {}, upload: [] }
+const PH_C = new THREE.DataTexture(new Uint8Array([11, 10, 8, 255]), 1, 1); PH_C.needsUpdate = true
+const PH_D = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); PH_D.needsUpdate = true
+function decode(url) {
+  if (typeof createImageBitmap === 'function') return fetch(url).then(r => { if (!r.ok) throw new Error(url); return r.blob() }).then(b => createImageBitmap(b))
+  return new Promise((res, rej) => { const im = new Image(); im.decoding = 'async'; im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => res(im)); im.onerror = rej; im.src = url })
 }
-
-function beamTexture() {
-  const c = document.createElement('canvas'); c.width = 64; c.height = 256
-  const g = c.getContext('2d'), im = g.createImageData(64, 256)
-  for (let y = 0; y < 256; y++) for (let x = 0; x < 64; x++) {
-    const u = (x / 63) * 2 - 1, v = y / 255
-    const a = Math.exp(-u * u * 5) * Math.pow(Math.sin(v * Math.PI), 1.4) * (0.55 + 0.45 * (1 - v))
-    const i = (y * 64 + x) * 4; im.data[i] = 255; im.data[i + 1] = 214; im.data[i + 2] = 160; im.data[i + 3] = a * 255
-  }
-  g.putImageData(im, 0, 0)
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t
-}
-
-// shared per-frame state (no React state)
-const S = { t: 0, look: 0, camZ: D0, active: false }
-
-function Room({ id, k, mob, beamTex, cover }) {
-  const u = useRef(), grp = useRef(), beam = useRef()
-  const cfg = CFG[id], last = k === ROOMS.length - 1
-  const width = cover(ASPECT[id])
-  useFrame((st) => {
-    const U = u.current; if (!U || !grp.current) return
-    const t = S.t
-    // the next room is only needed once this one starts to dissolve → at most two rooms drawn
-    const vis = t > k - 0.62 && t < k + 1.03
-    grp.current.visible = vis
-    if (!vis) return
-    U.uCamZ.value = S.camZ
-    U.uDissolve.value = last ? 0 : smooth(k + 0.42, k + 1.0, t) * 1.45
-    U.uOpacity.value = last ? 1 - smooth(0.2, 0.62, S.look) : 1 - smooth(k + 0.85, k + 1.02, t)
-    // the room waiting behind is darker — like the next room seen through a doorway
-    U.uExposure.value = 0.5 + 0.5 * smooth(k - 0.95, k - 0.1, t) + 0.035 * Math.sin(st.clock.elapsedTime * 0.6 + k)
-    if (beam.current) beam.current.material.opacity = 0.3 * smooth(k - 0.75, k - 0.05, t) * (1 - smooth(k + 0.3, k + 0.8, t)) * (last ? 1 - S.look : 1)
+function startLoad(gl, xl) {
+  if (TEX.started) return
+  TEX.started = true
+  const an = Math.min(8, gl.capabilities.getMaxAnisotropy())
+  const q = []
+  IDS.forEach(id => {
+    TEX.items[id] = { c: null, d: null, a: 1, w: 1, h: 1 }
+    q.push([id, 'c', `/portfolio/yts/img/${id}${xl ? '-xl' : ''}.webp`], [id, 'd', `/portfolio/yts/depth/${id}${xl ? '-xl' : ''}.webp`])
   })
-  return (
-    <group ref={grp} position={[0, 0, -k * L]} visible={false}>
-      <DepthMesh id={id} small={mob} segs={mob ? 96 : 170} width={width} depth={cfg.depth} uref={u} />
-      <mesh ref={beam} position={[cfg.beam[0], 0.45, 1.2]} rotation={[0, 0, cfg.beam[1]]}>
-        <planeGeometry args={[1.05, 4.4]} />
-        <meshBasicMaterial map={beamTex} transparent opacity={0} blending={THREE.AdditiveBlending} depthWrite={false} color="#ffc98a" toneMapped={false} />
-      </mesh>
-    </group>
-  )
-}
-
-function Vault({ mob }) {
-  const u = useRef(), grp = useRef()
-  useFrame((st, dt) => {
-    const U = u.current; if (!U || !grp.current) return
-    grp.current.visible = S.look > 0.02
-    if (!grp.current.visible) return
-    U.uOpacity.value = smooth(0.12, 0.58, S.look)
-    U.uExposure.value = 0.7 + 0.38 * smooth(0.35, 1, S.look)
-    grp.current.rotation.y += Math.min(dt, 0.05) * 0.025 * S.look
-  })
-  return (
-    <group ref={grp} position={[0, 2.1, Z_END]} visible={false}>
-      <DepthMesh id={VAULT} small={mob} segs={mob ? 96 : 180} width={mob ? 6.4 : 7.4} depth={0.55} curve={-0.9} uref={u} pass={0} rotation={[Math.PI / 2, 0, 0]} />
-    </group>
-  )
-}
-
-/* warm dust motes — cheap additive points, drifting, twinkling, fading near the lens */
-const dustVert = /* glsl */`
-attribute float aSeed; uniform float uTime; uniform float uSize; uniform float uOpacity;
-varying float vA;
-void main(){
-  vec3 p = position;
-  float s = aSeed * 6.2831;
-  p.x += sin(uTime * 0.11 + s) * 0.18;
-  p.y += sin(uTime * 0.07 + s * 1.7) * 0.22 + fract(uTime * 0.006 * (0.4 + aSeed) + aSeed) * 0.6 - 0.3;
-  p.z += cos(uTime * 0.09 + s * 2.3) * 0.15;
-  vec4 mv = modelViewMatrix * vec4(p, 1.0);
-  float dist = -mv.z;
-  gl_PointSize = uSize * (0.45 + aSeed) / max(dist, 0.1);
-  vA = uOpacity * smoothstep(0.2, 0.8, dist) * (1.0 - smoothstep(3.0, 5.5, dist)) * (0.45 + 0.55 * sin(uTime * (0.5 + aSeed) + s * 7.0));
-  gl_Position = projectionMatrix * mv;
-}`
-const dustFrag = /* glsl */`
-varying float vA;
-void main(){ float d = length(gl_PointCoord - 0.5); float a = smoothstep(0.5, 0.0, d); a *= a; gl_FragColor = vec4(vec3(1.0, 0.8, 0.55) * 1.3, a * max(vA, 0.0)); }`
-
-function Dust({ mob }) {
-  const { gl } = useThree()
-  const mat = useRef()
-  const geo = useMemo(() => {
-    const n = mob ? 360 : 900, pos = new Float32Array(n * 3), seed = new Float32Array(n)
-    const beamsX = ROOMS.map(id => CFG[id].beam[0])
-    for (let i = 0; i < n; i++) {
-      const k = Math.floor(Math.random() * ROOMS.length)
-      const inBeam = Math.random() < 0.55
-      pos[i * 3] = inBeam ? beamsX[k] + (Math.random() - 0.5) * 0.7 : (Math.random() - 0.5) * 3.4
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 2.4 + (inBeam ? 0.3 : 0)
-      pos[i * 3 + 2] = -k * L + 0.6 + Math.random() * 2.8
-      seed[i] = Math.random()
+  let running = 0
+  const next = () => {
+    while (running < 2 && q.length) {
+      const [id, kind, url] = q.shift()
+      running++
+      decode(url).then(im => {
+        const t = new THREE.Texture(im)
+        t.flipY = false
+        t.generateMipmaps = true
+        t.minFilter = THREE.LinearMipmapLinearFilter
+        t.magFilter = THREE.LinearFilter
+        if (kind === 'c') { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = an; const it = TEX.items[id]; it.w = im.width; it.h = im.height; it.a = im.width / im.height }
+        else { t.format = THREE.RedFormat; t.colorSpace = THREE.NoColorSpace }
+        t.needsUpdate = true
+        TEX.upload.push([id, kind, t])
+      }).catch(() => {}).finally(() => { running--; next() })
     }
-    const g = new THREE.BufferGeometry()
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1))
-    return g
-  }, [mob])
-  const uniforms = useMemo(() => ({ uTime: { value: 0 }, uSize: { value: 26 }, uOpacity: { value: 0.8 } }), [])
-  useFrame((st) => {
-    if (!mat.current) return
-    const u = mat.current.uniforms
-    u.uTime.value = st.clock.elapsedTime
-    u.uSize.value = (mob ? 30 : 24) * gl.getPixelRatio()
-    u.uOpacity.value = 0.85 * (1 - S.look * 0.5)
-  })
-  return (
-    <points geometry={geo} frustumCulled={false}>
-      <shaderMaterial ref={mat} uniforms={uniforms} vertexShader={dustVert} fragmentShader={dustFrag} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
-    </points>
-  )
+  }
+  next()
 }
 
-/* full-screen warm-dark backdrop (only while this scene owns the camera) */
-const bgVert = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy * 2.0, 0.9999, 1.0); }`
-const bgFrag = `varying vec2 vUv; void main(){ float r = distance(vUv, vec2(0.5, 0.55)); vec3 c = mix(vec3(0.09, 0.065, 0.045), vec3(0.025, 0.02, 0.016), smoothstep(0.1, 0.8, r)); gl_FragColor = vec4(c, 1.0); }`
-function Backdrop() {
-  const m = useRef()
-  useFrame(() => { if (m.current) m.current.visible = S.active })
-  return (
-    <mesh ref={m} frustumCulled={false} renderOrder={-10}>
-      <planeGeometry args={[1, 1]} />
-      <shaderMaterial vertexShader={bgVert} fragmentShader={bgFrag} depthWrite={false} depthTest={false} toneMapped={false} />
-    </mesh>
-  )
+function coverVec(out, ta, pa, zoom, fr) {
+  let sx = 1, sy = 1
+  if (pa > ta) sy = ta / pa; else sx = pa / ta
+  sx /= zoom; sy /= zoom
+  return out.set(sx, sy, (1 - sx) * clamp(fr[0]), (1 - sy) * clamp(fr[1]))
 }
+
+// life of image i in scroll space: from the start of the transition into it to the end of the one out of it
+const life = (i, p) => seg(p, i === 0 ? -0.1 : TR[i - 1][0], i === IDS.length - 1 ? 1.04 : TR[i][1])
+
+const ptr = { x: 0, y: 0 }
+let ptrBound = false
+function bindPointer() {
+  if (ptrBound || typeof window === 'undefined') return
+  ptrBound = true
+  window.addEventListener('pointermove', e => { if (e.pointerType === 'touch') return; ptr.x = (e.clientX / innerWidth) * 2 - 1; ptr.y = -((e.clientY / innerHeight) * 2 - 1) }, { passive: true })
+}
+
+const hub = (stage.palazzo = stage.palazzo || {})
+if (typeof window !== 'undefined') window.__ytsPalazzo = hub // QA hooks: __ytsPalazzo.p = 0.3 → force progress; .snap = true → no damping (slow GPUs)
 
 export default function ScenePalazzo({ track }) {
-  const root = useRef()
-  const { size } = useThree()
-  const mob = size.width < 768
-  const fov = mob ? 60 : 48
-  const beamTex = useMemo(beamTexture, [])
-  // width that covers the viewport at the room distance (+ margin for parallax and pitch)
-  const cover = aspect => {
-    const visH = 2 * D0 * Math.tan((fov * Math.PI) / 360), visW = visH * (size.width / size.height)
-    return Math.max(visW, visH / aspect) * 1.2
-  }
-  const pd = useRef(0), ptr = useRef({ x: 0, y: 0 }), wasActive = useRef(false)
+  const { size, gl } = useThree()
+  const mesh = useRef()
+  const portrait = size.width < size.height
+  const mob = size.width <= 768
+  const geo = useMemo(() => (portrait ? new THREE.PlaneGeometry(1, 1, 72, 128) : new THREE.PlaneGeometry(1, 1, 320, 200)), [portrait])
+  useEffect(() => { bindPointer(); return () => geo.dispose() }, [geo])
+  const vcam = useMemo(() => new THREE.PerspectiveCamera(FOV, 1, 0.05, 50), [])
 
-  useFrame((st, dt) => {
-    const tr = track.current
-    dt = Math.min(dt, 0.05)
-    if (!root.current) return
-    S.active = tr.on && stage.active === 'palazzo'
-    // draw only while we own the camera (other scenes' cameras never look here anyway)
-    root.current.visible = S.active
-    if (!tr.on) { wasActive.current = false; return }
-    // one damped progress drives everything; snap on big jumps (nav / skip)
-    if (!wasActive.current || Math.abs(tr.p - pd.current) > 0.35) pd.current = tr.p
-    else pd.current = THREE.MathUtils.damp(pd.current, tr.p, 4.5, dt)
-    wasActive.current = S.active
-    const p = pd.current
-    S.t = roomTime(p)
-    S.look = smooth(TL.look[0], TL.look[1], p)
-    if (!S.active) return
-    const cam = st.camera
-    ptr.current.x = THREE.MathUtils.damp(ptr.current.x, st.pointer.x, 2.5, dt)
-    ptr.current.y = THREE.MathUtils.damp(ptr.current.y, st.pointer.y, 2.5, dt)
-    const px = ptr.current.x * (1 - S.look), py = ptr.current.y * (1 - S.look)
-    const open = smooth(TL.open[0], TL.open[1] + 0.04, p)
-    const zc = D0 - S.t * L + (1 - open) * 0.7
-    const k = Math.min(Math.floor(S.t), ROOMS.length - 1), fr = S.t - k
-    const pA = CFG[ROOMS[k]].pitch, pB = CFG[ROOMS[Math.min(k + 1, ROOMS.length - 1)]].pitch
-    const pitch = THREE.MathUtils.lerp(pA, pB, smooth(0.55, 1, fr)) * (1 - S.look) + S.look * 1.45
-    const time = st.clock.elapsedTime
-    cam.position.set(ORIGIN[0] + px * 0.14, ORIGIN[1] + py * 0.08 + Math.sin(time * 0.45) * 0.01, ORIGIN[2] + zc)
-    cam.rotation.order = 'YXZ'
-    cam.rotation.set(pitch + py * 0.02, -px * 0.05 + Math.sin(time * 0.2) * 0.006, 0)
-    if (Math.abs(cam.fov - fov) > 0.01) { cam.fov = fov; cam.updateProjectionMatrix() }
-    S.camZ = cam.position.z - ORIGIN[2]
+  const U = useMemo(() => ({
+    uA: { value: PH_C }, uB: { value: PH_C }, uDA: { value: PH_D }, uDB: { value: PH_D },
+    uCA: { value: new THREE.Vector4(1, 1, 0, 0) }, uCB: { value: new THREE.Vector4(1, 1, 0, 0) },
+    uRA: { value: new THREE.Vector2(1, 0) }, uRB: { value: new THREE.Vector2(1, 0) },
+    uTA: { value: new THREE.Vector2(1e-3, 1e-3) }, uTB: { value: new THREE.Vector2(1e-3, 1e-3) },
+    uMix: { value: 0 }, uAmtA: { value: 0.5 }, uAmtB: { value: 0.5 }, uTime: { value: 0 }, uPlane: { value: 1.6 }, uBend: { value: 0 },
+    uSharp: { value: 0.3 }, uSweep: { value: -1 }, uLive: { value: 0 },
+    uVP: { value: new THREE.Matrix4() }, uNdc: { value: new THREE.Vector2(1, 0) },
+    uClip: { value: new THREE.Vector2(-2, -1) }, uRes: { value: new THREE.Vector2(1, 1) },
+  }), [])
+
+  const st = useRef({ t: 0, frames: 0, p1: 0, p2: 0, wasOn: false, px: 0, py: 0, live: 0 })
+  const buf = useMemo(() => new THREE.Vector2(), [])
+
+  // apply image i (with its life-driven move) to slot A or B
+  const setSlot = (slot, i, p, pa, port, t) => {
+    const id = IDS[i], c = CFG[id], it = TEX.items[id]
+    const L = life(i, p)
+    const ready = it && it.c && it.d
+    U['u' + slot].value = ready ? it.c : PH_C
+    U['uD' + slot].value = ready ? it.d : PH_D
+    const zr = port && c.zp ? c.zp : c.z
+    const breath = 1 + 0.006 * Math.sin(t * 0.21 + i * 1.7)
+    const zoom = lerp(zr[0], zr[1], L) * breath
+    const F = port ? c.P : c.L
+    // 152 tilts up late (ease-in), 154 keeps drifting up and settles (ease-out) → one continuous look-up
+    const k = c.tilt ? L * L * (1.6 - 0.6 * L) : c.up ? 1 - Math.pow(1 - L, 2.2) : L
+    const fr = [lerp(F[0][0], F[1][0], k), lerp(F[0][1], F[1][1], k)]
+    coverVec(U['uC' + slot].value, ready ? it.a : 1, pa, zoom, fr)
+    const rot = lerp(c.r[0], c.r[1], k) + (c.up ? 0.006 * Math.sin(t * 0.17) : 0)
+    U['uR' + slot].value.set(Math.cos(rot), Math.sin(rot))
+    U['uT' + slot].value.set(1 / (ready ? it.w : 1), 1 / (ready ? it.h : 1))
+    U['uAmt' + slot].value = c.amt * (mob ? 0.85 : 1) * (0.8 + 0.5 * L)
+    return ready
+  }
+
+  useFrame((state, dt) => {
+    const s = st.current, tr = track.current
+    dt = Math.min(dt, 1 / 20)
+    s.t += dt
+    if (!mesh.current) return
+
+    // staged GPU upload: one texture per frame, long before the film is reached
+    if (TEX.upload.length) {
+      const [id, kind, t] = TEX.upload.shift()
+      try { gl.initTexture(t) } catch (e) {}
+      TEX.items[id][kind] = t
+    }
+    const frameEl = stage.palazzoFrame
+    if (!TEX.started) {
+      const near = frameEl && frameEl.getBoundingClientRect().top < size.height * 3
+      if (near || (stage.hero && stage.hero.ready && s.t > 2.5) || s.t > 6) startLoad(gl, !mob)
+    }
+
+    // keep the program compiled from the start (first frames draw nothing: clip rejects all)
+    if (++s.frames < 20) { mesh.current.visible = true; U.uClip.value.set(-2, -1); return }
+
+    const r = frameEl && frameEl.getBoundingClientRect()
+    const H = size.height
+    const vis = tr.on && r && r.bottom > 0 && r.top < H
+    mesh.current.visible = !!vis
+    if (!vis) { s.wasOn = false; return }
+
+    // ---- one damped progress (λ≈4) + a light second stage → silk; snap on (re)entry
+    const target = hub.p != null ? hub.p : tr.p
+    if (!s.wasOn || hub.snap) { s.p1 = s.p2 = target }
+    s.wasOn = true
+    s.p1 = damp(s.p1, target, 4, dt)
+    s.p2 = damp(s.p2, s.p1, 9, dt)
+    const p = s.p2
+    stage.palazzoLive = performance.now()
+    if (stage.palazzoMV && Math.abs(stage.palazzoMV.get() - p) > 1e-5) stage.palazzoMV.set(p)
+
+    // ---- frame mapping: the virtual viewport = the sticky frame on screen
+    const pa = r.width / Math.max(r.height, 1), port = pa < 1
+    gl.getDrawingBufferSize(buf)
+    const ratio = buf.y / H
+    U.uRes.value.copy(buf)
+    U.uClip.value.set((H - r.top - r.height) * ratio - 0.5, (H - r.top) * ratio + 0.5)
+    const sc = r.height / H
+    U.uNdc.value.set(sc, 1 - (2 * r.top) / H - sc)
+    U.uPlane.value = pa
+
+    // ---- which pair + transition mix
+    let A = 0, B = 0, mix = 0
+    for (let j = 0; j < TR.length; j++) {
+      if (p >= TR[j][1]) { A = B = j + 1; continue }
+      if (p > TR[j][0]) { A = j; B = j + 1; mix = ease3(seg(p, TR[j][0], TR[j][1])) }
+      break
+    }
+    const okA = setSlot('A', A, p, pa, port, s.t)
+    const okB = B !== A ? setSlot('B', B, p, pa, port, s.t) : (setSlot('B', A, p, pa, port, s.t), okA)
+    U.uMix.value = mix
+    U.uTime.value = s.t
+    U.uSharp.value = mob ? 0.22 : 0.34
+    U.uSweep.value = -0.5 + p * 2.2 + Math.sin(s.t * 0.05) * 0.15
+    // fade the picture in once its textures exist (never pops)
+    s.live = damp(s.live, okA && okB ? 1 : 0, 3, dt)
+    U.uLive.value = s.live
+
+    // ---- look-up: the plane bends overhead from the 152 tilt through the ceiling
+    const up = ease3(seg(p, TR[3][1], 1))
+    U.uBend.value = up * (port ? 0.7 : 0.95)
+
+    // ---- virtual camera: continuous slow dolly over the whole film + drift + pointer parallax
+    s.px = damp(s.px, mob ? 0 : ptr.x, 2.2, dt); s.py = damp(s.py, mob ? 0 : ptr.y, 2.2, dt)
+    const dx = Math.sin(s.t * 0.13) * (port ? 0.05 : 0.12) + s.px * 0.24
+    const dy = Math.sin(s.t * 0.097 + 1.3) * 0.06 + s.py * 0.13
+    const z = D - 0.55 * p
+    vcam.aspect = pa
+    vcam.fov = FOV
+    vcam.position.set(dx, dy - 0.1 * up, z)
+    vcam.lookAt(dx * 0.4, dy * 0.4 + 0.22 * up, 0)
+    vcam.updateProjectionMatrix()
+    vcam.updateMatrixWorld()
+    U.uVP.value.multiplyMatrices(vcam.projectionMatrix, vcam.matrixWorldInverse)
+
+    const fh = 2 * D * Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * OVER
+    mesh.current.scale.set(fh * pa, fh, 1)
   })
 
   return (
-    <group ref={root} visible={false}>
-      <Backdrop />
-      <group position={ORIGIN}>
-        <Suspense fallback={null}>
-          {ROOMS.map((id, k) => <Room key={id} id={id} k={k} mob={mob} beamTex={beamTex} cover={cover} />)}
-          <Vault mob={mob} />
-        </Suspense>
-        <Dust mob={mob} />
-      </group>
-    </group>
+    <mesh ref={mesh} geometry={geo} frustumCulled={false} renderOrder={100}>
+      <shaderMaterial uniforms={U} vertexShader={vert} fragmentShader={frag} transparent depthTest={false} depthWrite={false} />
+    </mesh>
   )
 }

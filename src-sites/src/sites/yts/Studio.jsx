@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
 import { useLite, useIsMobile } from '../../lib/kit'
 import { useLang } from './i18n'
-import { useStage } from './engine'
+import { useStage, stage } from './engine'
+import { SLIDES } from './Hero'
 import { T, PERSON, SERVICES, PAIRS, img } from './data'
 
 /* V3 Studio: (a) statement + services (DOM only) · (b) "Sketch → Reality" film on the shared canvas (sceneSketch.jsx). */
@@ -39,11 +40,14 @@ const to = y => (window.__lenis ? window.__lenis.scrollTo(y) : window.scrollTo({
 const clamp01 = x => Math.min(1, Math.max(0, x))
 const ss = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t) }
 
-/* ---------- (a) statement ---------- */
+/* ---------- (a) statement + the hand-off card ---------- */
+const GOLD = '#c3a15e', INK = '#efe8dc'
+const CAP = `${T.sans} text-[11px] font-semibold uppercase tracking-[.28em]`
+
 function Word({ w, i, n, p }) {
-  const a = i / n, o = useTransform(p, [a * .8, a * .8 + .2], [.16, 1])
+  const a = i / n, o = useTransform(p, [a * .8, a * .8 + .2], [.18, 1])
   const accent = w.startsWith('*')
-  return <motion.span style={{ opacity: o }} className={accent ? 'italic text-[#b06a35]' : ''}>{w.replace(/\*/g, '')} </motion.span>
+  return <motion.span style={{ opacity: o }} className={accent ? 'italic text-[#d9bf86]' : ''}>{w.replace(/\*/g, '')} </motion.span>
 }
 
 function Service({ s, i }) {
@@ -51,49 +55,111 @@ function Service({ s, i }) {
   return (
     <motion.li
       initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-10% 0px' }} transition={{ duration: .8, ease: E, delay: i * .06 }}
-      className="group relative border-t border-[#151412]/15 py-4 md:py-[18px]"
+      className="group relative border-t border-[rgba(239,232,220,.12)] py-4 md:py-[18px]"
     >
-      <span className="absolute inset-x-0 top-[-1px] h-px origin-left scale-x-0 bg-[#b06a35] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-x-100" />
+      <span className="absolute inset-x-0 top-[-1px] h-px origin-left scale-x-0 bg-[#c3a15e] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-x-100" />
       <div className="flex items-baseline gap-5">
-        <span className={`${T.sans} w-6 shrink-0 text-[11px] font-semibold tabular-nums tracking-[.12em] text-[#b06a35]`}>{s.k}</span>
+        <span className={`${T.sans} w-6 shrink-0 text-[11px] font-semibold tabular-nums tracking-[.16em] text-[#c3a15e]`}>{s.k}</span>
         <div className="min-w-0 flex-1">
-          <h3 className={`${T.serif} text-[26px] leading-[1.05] text-[#151412] transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] md:text-[30px] md:group-hover:translate-x-2`}>{t(s.t)}</h3>
-          <p className={`${T.sans} mt-1.5 max-w-[46ch] text-[13.5px] leading-[1.5] text-[#151412]/60 md:grid md:grid-rows-[0fr] md:opacity-0 md:transition-all md:duration-500 md:group-hover:grid-rows-[1fr] md:group-hover:opacity-100`}>
+          <h3 className={`${T.serif} text-[25px] leading-[1.08] text-[#efe8dc] transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] md:text-[29px] md:group-hover:translate-x-2`}>{t(s.t)}</h3>
+          <p className={`${T.sans} mt-1.5 max-w-[46ch] text-[15px] leading-[1.55] text-[#efe8dc]/60 md:text-[14px] md:grid md:grid-rows-[0fr] md:opacity-0 md:transition-all md:duration-500 md:group-hover:grid-rows-[1fr] md:group-hover:opacity-100`}>
             <span className="md:overflow-hidden">{t(s.d)}</span>
           </p>
         </div>
-        <span aria-hidden className={`${T.sans} hidden text-[18px] text-[#151412]/30 transition-all duration-500 group-hover:-rotate-45 group-hover:text-[#b06a35] md:block`}>→</span>
+        <span aria-hidden className={`${T.sans} hidden text-[18px] text-[#efe8dc]/30 transition-all duration-500 group-hover:-rotate-45 group-hover:text-[#c3a15e] md:block`}>→</span>
       </div>
     </motion.li>
   )
 }
 
+/* The hero film lands here: sceneHero.jsx shrinks the live depth plane onto this rect (stage.hero.cardEl),
+   then we swap in the same frame as a DOM <img> (stage.hero.landed). Without WebGL it is just a framed photo. */
+function Card() {
+  const { t } = useLang()
+  const box = useRef(), im = useRef(), frame = useRef()
+  const [cur, setCur] = useState(SLIDES[0].id)
+  const [gl, setGl] = useState(false)
+  useEffect(() => {
+    const hub = (stage.hero = stage.hero || { i: 0, k: 0, ready: false, go: -1, f: 0 })
+    hub.cardEl = box.current
+    let raf, id = -1, vis = -1, dash = -1, glOn = false
+    const loop = () => {
+      const h = stage.hero
+      if (h && h.ready && h.cardEl === box.current) {
+        if (!glOn) { glOn = true; setGl(true) }
+        const v = h.landed ? 1 : 0
+        if (v !== vis) { vis = v; im.current.style.opacity = v }
+        if (h.cardId != null && h.cardId !== id) { id = h.cardId; im.current.src = img(id); im.current.style.objectPosition = h.cardPos; setCur(id) }
+        const d = Math.round((1 - ss(.45, .98, h.cardK || 0)) * 1000) / 1000
+        if (d !== dash && frame.current) { dash = d; frame.current.style.strokeDashoffset = d }
+      }
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    return () => { cancelAnimationFrame(raf); if (hub.cardEl === box.current) hub.cardEl = null }
+  }, [])
+  const sl = SLIDES.find(x => x.id === cur) || SLIDES[0]
+  return (
+    <figure className="relative min-w-0">
+      <div className="relative">
+        {/* gold hairline frame: drawn by the hand-off (GL) or on view (static) */}
+        <svg aria-hidden className="pointer-events-none absolute -inset-[10px] h-[calc(100%+20px)] w-[calc(100%+20px)] overflow-visible md:-inset-[14px] md:h-[calc(100%+28px)] md:w-[calc(100%+28px)]" preserveAspectRatio="none">
+          <motion.rect ref={frame} x="0" y="0" width="100%" height="100%" fill="none" stroke={GOLD} strokeOpacity=".7" strokeWidth="1" vectorEffect="non-scaling-stroke" pathLength="1" strokeDasharray="1 1"
+            initial={{ strokeDashoffset: 1 }} whileInView={gl ? undefined : { strokeDashoffset: 0 }} viewport={{ once: true }} transition={{ duration: 1.8, ease: E }} />
+        </svg>
+        {['left-0 top-0 border-l border-t', 'right-0 top-0 border-r border-t', 'left-0 bottom-0 border-l border-b', 'right-0 bottom-0 border-r border-b'].map(c => (
+          <span key={c} aria-hidden className={`pointer-events-none absolute h-3 w-3 border-[#c3a15e]/80 ${c} -m-[18px] md:-m-[24px]`} />
+        ))}
+        <div ref={box} className={`relative aspect-[4/5] w-full overflow-hidden md:aspect-[5/6] ${gl ? '' : 'bg-[#14120f]'}`}>
+          <img ref={im} src={img(SLIDES[0].id)} alt={t(sl.l)} loading="lazy" decoding="async" width={sl.w} height={sl.h}
+            className="yts-grade absolute inset-0 h-full w-full object-cover transition-opacity duration-300" style={{ objectPosition: SLIDES[0].pos }} />
+        </div>
+      </div>
+      <figcaption className={`${CAP} mt-7 flex min-w-0 items-baseline justify-between gap-4 text-[#efe8dc]/55 md:mt-9`}>
+        <span className="truncate">{t(sl.l)}</span>
+        <span className="shrink-0 tabular-nums text-[#c3a15e]">YTS</span>
+      </figcaption>
+    </figure>
+  )
+}
+
 function Intro() {
   const { t, lang } = useLang()
-  const ref = useRef()
+  const ref = useRef(), wrap = useRef()
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start .9', 'end .5'] })
+  const { scrollYProgress: q } = useScroll({ target: wrap, offset: ['start 1', 'start .25'] })
+  const rule = useTransform(q, [0, 1], [0, 1])
   const words = t(S.statement).split(' ')
   const facts = [[t(S.since), String(PERSON.studioSince)], [t(S.office), PERSON.office], [t(S.where), t(S.whereV)], [t(S.tools), PERSON.tech.join(' · ')]]
   return (
-    <div className="relative bg-[#ece7df]">
-      <div className="mx-auto grid max-w-[1440px] gap-12 px-5 pb-16 pt-20 md:grid-cols-12 md:gap-10 md:px-10 md:pb-24 md:pt-28">
-        <div className="md:col-span-7">
-          <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#151412]/60`}><span className="h-px w-8 bg-[#b06a35]" />{t(S.label)}</p>
-          <p ref={ref} key={lang} className={`${T.serif} mt-7 text-[36px] leading-[1.03] tracking-[-.01em] text-[#151412] sm:text-[46px] md:text-[clamp(46px,4.3vw,70px)]`}>
-            {words.map((w, i) => <Word key={i} w={w} i={i} n={words.length} p={p} />)}
-          </p>
-          <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 md:mt-14 md:grid-cols-4">
-            {facts.map(([k, v]) => (
-              <div key={k}>
-                <dt className={`${T.sans} text-[10.5px] font-semibold uppercase tracking-[.2em] text-[#151412]/45`}>{k}</dt>
-                <dd className={`${T.sans} mt-1.5 text-[15px] font-medium tabular-nums text-[#151412]`}>{v}</dd>
-              </div>
-            ))}
-          </dl>
+    <div ref={wrap} className="relative">
+      <div className="mx-auto max-w-[1440px] px-5 pb-20 pt-16 md:px-10 md:pb-28 md:pt-24">
+        {/* chapter rule: the gold hairline draws across as the film hands over */}
+        <div className={`${CAP} flex items-center gap-4 text-[#efe8dc]/60`}>
+          <span className="tabular-nums text-[#c3a15e]">01</span>
+          <span>{t(S.label)}</span>
+          <span className="relative h-px flex-1 overflow-hidden bg-[rgba(239,232,220,.08)]"><motion.span style={{ scaleX: rule }} className="absolute inset-0 origin-left bg-[#c3a15e]" /></span>
+          <span className="hidden tabular-nums md:inline">Est. {PERSON.studioSince}</span>
         </div>
-        <div className="md:col-span-5 md:pt-[52px]">
-          <p className={`${T.sans} mb-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#151412]/60`}>{t(S.services)}</p>
-          <ol className="border-b border-[#151412]/15">{SERVICES.map((s, i) => <Service key={s.k} s={s} i={i} />)}</ol>
+        <div className="mt-10 grid gap-14 md:mt-14 md:grid-cols-12 md:gap-10">
+          <div className="min-w-0 px-[10px] md:col-span-5 md:col-start-8 md:row-start-1 md:px-[14px]"><Card /></div>
+          <div className="min-w-0 md:col-span-6 md:row-start-1 md:pt-2">
+            <p ref={ref} key={lang} className={`${T.serif} text-[34px] leading-[1.06] tracking-[-.01em] text-[#efe8dc] sm:text-[44px] md:text-[clamp(44px,4.1vw,68px)]`}>
+              {words.map((w, i) => <Word key={i} w={w} i={i} n={words.length} p={p} />)}
+            </p>
+            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-[rgba(239,232,220,.12)] pt-6 md:mt-14 md:grid-cols-4">
+              {facts.map(([k, v]) => (
+                <div key={k}>
+                  <dt className={`${CAP} text-[#efe8dc]/45`}>{k}</dt>
+                  <dd className={`${T.sans} mt-2 text-[15px] font-medium tabular-nums text-[#efe8dc]`}>{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="mt-14 md:mt-20">
+              <p className={`${CAP} mb-3 text-[#efe8dc]/55`}>{t(S.services)}</p>
+              <ol className="border-b border-[rgba(239,232,220,.12)]">{SERVICES.map((s, i) => <Service key={s.k} s={s} i={i} />)}</ol>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -108,7 +174,7 @@ function StageLabel({ r, i }) {
   return (
     <span className="relative -my-[.18em] inline-grid overflow-hidden py-[.18em] align-bottom">
       <motion.span style={{ opacity: oa, y: ya }} className="col-start-1 row-start-1">{t(PAIR_LAB[i][0])}</motion.span>
-      <motion.span style={{ opacity: ob, y: yb }} className="col-start-1 row-start-1 italic text-[#b06a35]">{t(PAIR_LAB[i][1])}</motion.span>
+      <motion.span style={{ opacity: ob, y: yb }} className="col-start-1 row-start-1 italic text-[#d9bf86]">{t(PAIR_LAB[i][1])}</motion.span>
     </span>
   )
 }
@@ -132,30 +198,30 @@ function Film() {
         <div className="pointer-events-none mx-auto flex h-full max-w-[1440px] flex-col px-5 pb-24 pt-20 md:px-10 md:pb-10 md:pt-24">
           {/* title */}
           <motion.div style={{ y: mobile ? 0 : titleY }} className="md:max-w-[40%]">
-            <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#151412]/60`}><span className="h-px w-8 bg-[#b06a35]" />{t(S.filmLabel)}</p>
-            <h2 className={`${T.serif} mt-4 text-[34px] leading-[.98] tracking-[-.015em] text-[#151412] md:mt-6 md:text-[clamp(54px,5.6vw,96px)]`}>
+            <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/62`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.filmLabel)}</p>
+            <h2 className={`${T.serif} mt-4 text-[34px] leading-[.98] tracking-[-.015em] text-[#efe8dc] md:mt-6 md:text-[clamp(54px,5.6vw,96px)]`}>
               <motion.span className="block" initial="h" whileInView="s" viewport={{ once: true }}>
                 <span className="block overflow-hidden pb-[.08em]"><motion.span className="block" variants={{ h: { y: '105%' }, s: { y: 0, transition: { duration: 1.1, ease: E } } }}>{t(S.filmA)}</motion.span></span>
-                <span className="block overflow-hidden pb-[.08em]"><motion.span className="block italic text-[#b06a35]" variants={{ h: { y: '105%' }, s: { y: 0, transition: { duration: 1.1, ease: E, delay: .1 } } }}>{t(S.filmB)}</motion.span></span>
+                <span className="block overflow-hidden pb-[.08em]"><motion.span className="block italic text-[#d9bf86]" variants={{ h: { y: '105%' }, s: { y: 0, transition: { duration: 1.1, ease: E, delay: .1 } } }}>{t(S.filmB)}</motion.span></span>
               </motion.span>
             </h2>
-            <p className={`${T.sans} mt-5 hidden max-w-[36ch] text-[14.5px] leading-[1.55] text-[#151412]/60 md:block`}>{t(S.filmNote)}</p>
+            <p className={`${T.sans} mt-5 hidden max-w-[36ch] text-[14.5px] leading-[1.55] text-[#efe8dc]/62 md:block`}>{t(S.filmNote)}</p>
           </motion.div>
 
           {/* caption + counter */}
           <div className="mt-auto md:max-w-[34%]">
-            <div className={`${T.serif} flex items-baseline gap-3 text-[30px] leading-none text-[#151412] md:text-[44px]`}>
+            <div className={`${T.serif} flex items-baseline gap-3 text-[30px] leading-none text-[#efe8dc] md:text-[44px]`}>
               <StageLabel key={idx} r={r} i={idx} />
             </div>
             <div className="mt-3 h-[22px] overflow-hidden md:h-[24px]">
               <AnimatePresence mode="wait" initial={false}>
-                <motion.p key={idx} initial={{ y: 22, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -22, opacity: 0 }} transition={{ duration: .5, ease: E }} className={`${T.sans} truncate text-[13.5px] font-medium text-[#151412]/70 md:text-[15px]`}>{t(pair.t)}</motion.p>
+                <motion.p key={idx} initial={{ y: 22, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -22, opacity: 0 }} transition={{ duration: .5, ease: E }} className={`${T.sans} truncate text-[13.5px] font-medium text-[#efe8dc]/72 md:text-[15px]`}>{t(pair.t)}</motion.p>
               </AnimatePresence>
             </div>
             <div className="mt-4 flex items-center gap-4">
-              <span className={`${T.sans} text-[12px] font-semibold tabular-nums tracking-[.14em] text-[#151412]`}>{String(idx + 1).padStart(2, '0')}<span className="text-[#151412]/35"> / 04</span></span>
-              <span className="relative h-px flex-1 bg-[#151412]/15"><motion.span style={{ scaleX: bar }} className="absolute inset-0 origin-left bg-[#b06a35]" /></span>
-              <button onClick={skip} className={`${T.sans} pointer-events-auto rounded-full border border-[#151412]/20 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[.16em] text-[#151412]/70 transition-colors hover:border-[#151412] hover:text-[#151412]`}>{t('skip')} ↓</button>
+              <span className={`${T.sans} text-[12px] font-semibold tabular-nums tracking-[.14em] text-[#efe8dc]`}>{String(idx + 1).padStart(2, '0')}<span className="text-[#efe8dc]/40"> / 04</span></span>
+              <span className="relative h-px flex-1 bg-[rgba(239,232,220,.14)]"><motion.span style={{ scaleX: bar }} className="absolute inset-0 origin-left bg-[#c3a15e]" /></span>
+              <button onClick={skip} className={`${T.sans} pointer-events-auto inline-flex h-11 items-center rounded-full border border-[rgba(239,232,220,.22)] px-5 text-[11px] font-semibold uppercase tracking-[.16em] text-[#efe8dc]/72 transition-colors hover:border-[#c3a15e] hover:text-[#efe8dc]`}>{t('skip')} ↓</button>
             </div>
           </div>
         </div>
@@ -169,20 +235,20 @@ function FilmLite() {
   const { t } = useLang()
   return (
     <div className="mx-auto max-w-[1440px] px-5 pb-20 pt-6 md:px-10">
-      <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#151412]/60`}><span className="h-px w-8 bg-[#b06a35]" />{t(S.filmLabel)}</p>
-      <h2 className={`${T.serif} mt-4 text-[36px] leading-[1] text-[#151412] md:text-[64px]`}>{t(S.filmA)} <span className="italic text-[#b06a35]">{t(S.filmB)}</span></h2>
+      <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/62`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.filmLabel)}</p>
+      <h2 className={`${T.serif} mt-4 text-[36px] leading-[1] text-[#efe8dc] md:text-[64px]`}>{t(S.filmA)} <span className="italic text-[#d9bf86]">{t(S.filmB)}</span></h2>
       <div className="mt-10 grid gap-10 md:grid-cols-2">
         {PAIRS.map((p, i) => (
           <figure key={i}>
             <div className="grid grid-cols-2 gap-2">
               {[p.a, p.b].map((id, k) => (
-                <div key={id} className="relative aspect-[4/5] overflow-hidden bg-[#e2dcd2]">
-                  <img src={img(id, true)} alt={`${t(PAIR_LAB[i][k])} — ${t(p.t)}`} loading="lazy" decoding="async" width="720" height="900" className={`h-full w-full object-cover ${k === 0 && i === 0 ? 'mix-blend-multiply' : ''}`} />
-                  <span className={`${T.sans} absolute left-2 top-2 rounded-full bg-[#ece7df]/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[.14em]`}>{t(PAIR_LAB[i][k])}</span>
+                <div key={id} className="relative aspect-[4/5] overflow-hidden bg-[#14120f]">
+                  <img src={img(id, true)} alt={`${t(PAIR_LAB[i][k])} — ${t(p.t)}`} loading="lazy" decoding="async" width="720" height="900" className={`h-full w-full object-cover ${k === 0 && i === 0 ? '' : ''}`} />
+                  <span className={`${T.sans} absolute left-2 top-2 rounded-full bg-[#0b0a08]/75 text-[#efe8dc] backdrop-blur px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[.14em]`}>{t(PAIR_LAB[i][k])}</span>
                 </div>
               ))}
             </div>
-            <figcaption className={`${T.sans} mt-3 text-[13.5px] text-[#151412]/70`}><span className="tabular-nums text-[#b06a35]">0{i + 1}</span> · {t(p.t)}</figcaption>
+            <figcaption className={`${T.sans} mt-3 text-[13.5px] text-[#efe8dc]/72`}><span className="tabular-nums text-[#d9bf86]">0{i + 1}</span> · {t(p.t)}</figcaption>
           </figure>
         ))}
       </div>
