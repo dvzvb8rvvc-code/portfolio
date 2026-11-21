@@ -64,10 +64,11 @@ function makeShared() {
 /* ───────────── photo layer: depth displacement + grading + aerial haze ───────────── */
 const layerVS = /* glsl */`
 uniform sampler2D uDepth; uniform float uAmount; uniform vec3 uOff; uniform float uK; uniform float uExt;
-varying vec2 vUv; varying float vD; varying vec3 vL;
+varying vec2 vUv; varying float vD; varying vec3 vL; varying float vX;
 void main(){
+  vX = uv.y * (1.0 + uExt) - uExt;
   // uExt > 0: geometry is taller than the photo; the bottom photo row is extended downwards
-  vUv = vec2(uv.x, max(0.0, uv.y * (1.0 + uExt) - uExt));
+  vUv = vec2(uv.x, max(0.003, uv.y * (1.0 + uExt) - uExt));
   float d = texture2D(uDepth, vUv).r;
   vD = d;
   vec3 p = position + normal * d * uAmount;
@@ -76,14 +77,15 @@ void main(){
   gl_Position = projectionMatrix * viewMatrix * w;
 }`
 const layerFS = /* glsl */`
-uniform sampler2D uMap; uniform float uOpacity, uHazeAmt, uHazeScale, uExp, uEdgeX, uEdgeY, uEdgeTop, uBaseHaze, uFade, uReveal;
+uniform sampler2D uMap; uniform float uOpacity, uHazeAmt, uHazeScale, uExp, uEdgeX, uEdgeY, uEdgeTop, uBaseHaze, uFade, uReveal, uExt;
 uniform vec3 uTint, uHaze;
-varying vec2 vUv; varying float vD; varying vec3 vL;
+varying vec2 vUv; varying float vD; varying vec3 vL; varying float vX;
 float h21(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }
 float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
   return mix(mix(h21(i), h21(i+vec2(1,0)), f.x), mix(h21(i+vec2(0,1)), h21(i+vec2(1,1)), f.x), f.y); }
 void main(){
   vec4 c = texture2D(uMap, vUv);
+  if (uExt > 0. && vX < .015) { float k = smoothstep(.015, -.03, vX); c.rgb = mix(c.rgb, mix(vec3(.05, .08, .045), c.rgb, c.a), k); c.a = mix(c.a, 1., k); }
   float a = c.a * uOpacity * uFade;
   // depth dissolve: near pixels (white) materialise first, with a soft noisy front
   if (uReveal < .999) { float key = (1. - vD) * .78 + n2(vUv * vec2(160., 90.)) * .22; float r = uReveal * 1.3 - .15; a *= smoothstep(r + .02, r - .12, key); }
@@ -102,7 +104,7 @@ function useTex(urls) {
   tex.forEach((t, i) => { if (i % 2 === 0) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4 } })
   return tex
 }
-function Layer({ ext = 0, name, depthId, width, seg, position, rotation, amount = 0, hazeScale = 1, renderOrder = 0, depthTest = true, small, reg, sh, edgeX = .02, edgeY = 0, edgeTop = .0001, baseHaze = .5 }) {
+function Layer({ ext = 0, name, depthId, width, seg, position, rotation, amount = 0, hazeScale = 1, renderOrder = 0, depthTest = true, small, reg, sh, edgeX = .02, edgeY = .001, edgeTop = .0001, baseHaze = .5 }) {
   const [map, dmap] = useTex([asset(name, small), depthUrl(depthId)])
   const aspect = map.image.height / map.image.width
   const geo = useMemo(() => {
@@ -267,7 +269,7 @@ const ST_D = [
   [.9, [-1.5, 20, -30], PI - .03, .02, 44],
   [1, [0, 26, -14], PI, .01, 41],
 ]
-const ST_M = ST_D.map(([p, pos, y, pt, f], i) => [p, pos, y + (i > 0 && i < 4 ? .06 : 0), pt, Math.min(72, f + 20)])
+const ST_M = ST_D.map(([p, pos, y, pt, f], i) => [p, pos, y + (i > 0 && i < 4 ? .06 : 0), pt + (i >= 5 ? .05 : 0), Math.min(72, f + (i >= 5 ? 14 : 20))])
 function sample(st, p, out) {
   let i = 0; while (i < st.length - 2 && p > st[i + 1][0]) i++
   const a = st[i], b = st[i + 1], u0 = Math.min(1, Math.max(0, (p - a[0]) / (b[0] - a[0])))

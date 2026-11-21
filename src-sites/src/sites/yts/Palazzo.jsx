@@ -115,7 +115,7 @@ function Film() {
   const copyO = useTransform(prog, [0, 0.06], [1, 0])
   const copyY = useTransform(prog, [0, 0.07], [0, -80])
   const chromeO = useTransform(prog, [0.07, 0.11, 0.96, 1], [0, 1, 1, 0.6])
-  const lookO = useTransform(prog, [0.84, 0.9, 1], [0, 1, 1])
+  const lookO = useTransform(prog, [0.86, 0.92, 1], [0, 1, 1])
   const lookS = useTransform(prog, [0.84, 1], [0.94, 1.04])
   const windows = ROOMS.map((_, k) => [fP(k === 0 ? 0.05 : k - 0.05), fP(k === ROOMS.length - 1 ? 3.3 : k + 0.62)])
   return (
@@ -223,7 +223,7 @@ function Residences() {
   return (
     <div id="palazzo-residences" className="relative bg-[#ece7df] px-5 pb-12 pt-14 md:px-10 md:pb-14 md:pt-16">
       <div className="mx-auto grid max-w-[1440px] gap-10 md:grid-cols-12 md:gap-10">
-        <div className="md:col-span-5">
+        <div className="min-w-0 md:col-span-5">
           <Kicker className="text-[#b06a35]">{t({ en: 'Six residences · 474 m²', it: 'Sei residenze · 474 m²' })}</Kicker>
           <h3 className={`${T.serif} mt-3 text-[46px] leading-[.9] md:text-[64px]`}>
             <Mask>{t({ en: 'Six residences,', it: 'Sei residenze,' })}</Mask>
@@ -257,7 +257,7 @@ function Residences() {
           </div>
         </div>
 
-        <div className="md:col-span-7">
+        <div className="min-w-0 md:col-span-7">
           <div className="grid grid-cols-2 gap-5 md:grid-cols-7 md:gap-8">
             <div className="col-span-2 flex flex-col justify-between md:col-span-3">
               <Schematic sel={sel} onPick={setSel} t={t} />
@@ -290,7 +290,7 @@ function Residences() {
           </div>
         </div>
 
-        <div className="md:col-span-12">
+        <div className="min-w-0 md:col-span-12">
           <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
             {GALLERY.map((g, i) => (
               <motion.figure key={g.id} style={{ flexGrow: g.w }} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-5% 0px' }} transition={{ duration: 1, ease: E, delay: i * 0.06 }}
