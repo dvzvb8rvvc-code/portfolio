@@ -111,8 +111,8 @@ function TodDial({ p }) {
   const { t } = useLang()
   const x = useTransform(p, [0, .3, .75, .92, 1], ['0%', '8%', '50%', '78%', '100%'])
   return (
-    <div className="pointer-events-none absolute left-5 top-[86px] z-10 w-[min(300px,60vw)] md:left-10 md:top-[96px]">
-      <div className="flex justify-between text-[10px] font-semibold uppercase tracking-[.2em] text-white/75">{TODS.map((d, i) => <span key={i}>{t(d)}</span>)}</div>
+    <div className="pointer-events-none absolute left-5 top-[86px] z-10 w-[min(300px,72vw)] md:left-10 md:top-[96px]">
+      <div className="flex justify-between gap-3 whitespace-nowrap text-[9px] font-semibold uppercase tracking-[.16em] text-white/75 md:text-[10px] md:tracking-[.2em]">{TODS.map((d, i) => <span key={i}>{t(d)}</span>)}</div>
       <div className="relative mt-2 h-px bg-gradient-to-r from-[#e3ebef]/70 via-[#f3b46e] to-[#3d4a86]">
         <motion.div style={{ left: x }} className="absolute top-1/2 -ml-[6px] -mt-[6px] h-3 w-3 rounded-full bg-[#ffd9a0] shadow-[0_0_16px_4px_rgba(255,200,130,.75)]" />
       </div>

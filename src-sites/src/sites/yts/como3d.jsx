@@ -164,7 +164,7 @@ function Sky({ reg }) {
 }
 
 /* ───────────── giant "COMO" set in the sky, behind the mountains ───────────── */
-function ComoWord({ reg }) {
+function ComoWord({ reg, mobile }) {
   const [tex, setTex] = React.useState(null)
   useEffect(() => {
     let dead = false
@@ -184,7 +184,7 @@ function ComoWord({ reg }) {
   useLayoutEffect(() => { if (tex) reg.current.word = { mat: mat.current } }, [tex])
   if (!tex) return null
   return (
-    <mesh position={[14, 70, -330]} renderOrder={-5}>
+    <mesh position={mobile ? [6, 62, -330] : [14, 70, -330]} scale={mobile ? .5 : 1} renderOrder={-5}>
       <planeGeometry args={[560, 560 * 620 / 2048]} />
       <meshBasicMaterial ref={mat} map={tex} transparent depthWrite={false} toneMapped={false} fog={false} color="#ffffff" />
     </mesh>
@@ -461,7 +461,7 @@ function Scene({ progress, mobile, labels, clockRef }) {
       <hemisphereLight ref={hemi} args={['#9fb7c6', '#4d4632', .9]} />
       <directionalLight ref={dir} position={[100, 120, -170]} intensity={2.4} />
       <Sky reg={reg} />
-      <ComoWord reg={reg} />
+      <ComoWord reg={reg} mobile={mobile} />
       <Suspense fallback={null}>
         {/* far mountains of #129 — plane at z = −150, shoreline row on the water line */}
         <Layer name="far129" depthId={129} width={360} seg={segF} position={[0, (SHORE - 350.5) * S, ZF]} amount={14} hazeScale={1} reg={reg} renderOrder={0} opts={{ edgeX: .012, baseHaze: .55 }} />
@@ -479,7 +479,7 @@ function Scene({ progress, mobile, labels, clockRef }) {
       <Mist reg={reg} />
       <Lights reg={reg} mobile={mobile} />
       <Triangle progress={progress} label={labels.triangle} />
-      {Object.keys(LBL).map(id => <Label key={id} id={id} text={labels[id][0]} sub={labels[id][1]} progress={progress} gold={id === 'home'} />)}
+      {Object.keys(LBL).filter(id => !mobile || id !== 'cadenabbia').map(id => <Label key={id} id={id} text={labels[id][0]} sub={labels[id][1]} progress={progress} gold={id === 'home'} />)}
       <Rig progress={progress} mobile={mobile} reg={reg} clockRef={clockRef} />
     </>
   )
