@@ -1,148 +1,148 @@
-import React, { useRef, useState } from 'react'
-import { motion, useScroll, useTransform, useMotionValueEvent, useReducedMotion } from 'framer-motion'
+import React, { useEffect, useRef, useState } from 'react'
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import { useLite } from '../../lib/kit'
 import { useLang } from './i18n'
-import { useStage } from './engine'
+import { useStage, stage } from './engine'
 import { T, PERSON, img } from './data'
 
-/* HERO (v3) — DOM only. The 3D lives in sceneHero.jsx on the shared fixed canvas (engine.jsx).
-   This wrapper is transparent so the canvas shows through; the sticky overlay carries the type. */
+/* HERO v4 — DOM layer. The showreel itself (4 renders as real depth, liquid transitions) lives in
+   sceneHero.jsx on the shared canvas; this file carries type, counter, CTAs and the scroll beat.
+   The two sides talk through stage.hero = { i, k, ready, go } (read in a rAF loop, no per-frame state). */
 
-const E = [0.16, 1, 0.3, 1]
+const E = [0.22, 1, 0.36, 1] // long, quiet ease-out
+const GOLD = '#c3a15e'
+
+// keep in sync with IDS in sceneHero.jsx
+const SLIDES = [
+  { id: 111, pos: '57% 50%', l: { en: 'Residential · Studio work', it: 'Residenziale · Progetto dello studio' } },
+  { id: 5, pos: '47% 45%', l: { en: 'Il Giardino di Teodolinda · Lake Como', it: 'Il Giardino di Teodolinda · Lago di Como' } },
+  { id: 103, pos: '79% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
+  { id: 84, pos: '55% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
+]
 
 const S = {
-  eyebrow: { en: 'Architecture & development · Israel · Italy', it: 'Architettura e sviluppo · Israele · Italia' },
-  residences: { en: 'Explore the residences', it: 'Scopri le residenze' },
-  scroll: { en: 'Scroll — from line to place', it: 'Scorri — dalla linea al luogo' },
-  ch: { en: ['Line', 'Colour', 'Stone', 'Place'], it: ['Linea', 'Colore', 'Pietra', 'Luogo'] },
-  b2a: { en: 'Every project begins', it: 'Ogni progetto nasce' },
-  b2b: { en: 'as a line drawn by hand.', it: 'da una linea tracciata a mano.' },
-  b3a: { en: 'Then it gathers', it: 'Poi prende' },
-  b3b: { en: 'colour, depth, weight.', it: 'colore, profondità, peso.' },
-  cap: { en: 'Render · Perledo, Lake Como', it: 'Render · Perledo, Lago di Como' },
-  place: { en: 'Lake Como', it: 'Lago di Como' },
-  enter: { en: 'Enter the residences', it: 'Entra nelle residenze' },
-  sketchCap: { en: 'Original sketch · Yehiel Tsubery', it: 'Schizzo originale · Yehiel Tsubery' },
-  alt: { en: 'Il Giardino di Teodolinda — render, Lake Como', it: 'Il Giardino di Teodolinda — render, Lago di Como' },
+  top: { en: 'YTS Architects · Architecture & development · Israel — Italy', it: 'YTS Architects · Architettura e sviluppo · Israele — Italia' },
+  topS: { en: 'Israel — Italy', it: 'Israele — Italia' },
+  explore: { en: 'Explore residences', it: 'Scopri le residenze' },
+  scroll: { en: 'Scroll', it: 'Scorri' },
+  alt: { en: 'Residential render by YTS Architects', it: 'Render residenziale di YTS Architects' },
+  reel: { en: 'Selected work', it: 'Progetti scelti' },
+  show: { en: 'Show project', it: 'Mostra progetto' },
 }
 
-function skipTo() {
-  const el = document.getElementById('hero')
-  const y = el ? el.getBoundingClientRect().bottom + window.scrollY : window.innerHeight * 2
-  window.__lenis ? window.__lenis.scrollTo(y, { duration: 1.4 }) : window.scrollTo({ top: y, behavior: 'smooth' })
-}
+/* the transparent nav sits on a dark film here → flip its ink to light until it turns solid (owned by yts.jsx) */
+const NAV_CSS = `#top header:not(.backdrop-blur-xl)>div:first-child{filter:invert(1) hue-rotate(180deg) brightness(1.04)}#top header>div:first-child{transition:filter .6s ease}`
 
-/* masked word rise on load */
 function Rise({ children, d = 0, className = '' }) {
   return (
-    <span className="block overflow-hidden pb-[.06em]">
-      <motion.span className={`block ${className}`} initial={{ y: '108%' }} animate={{ y: '0%' }} transition={{ duration: 1.15, ease: E, delay: d }}>{children}</motion.span>
+    <span className="block overflow-hidden pb-[.08em] -mb-[.04em]">
+      <motion.span className={`block ${className}`} initial={{ y: '112%' }} animate={{ y: '0%' }} transition={{ duration: 1.9, ease: E, delay: d }}>{children}</motion.span>
     </span>
   )
 }
 
-/* scroll-linked masked line (kinetic type tied to the film) */
-function KLine({ p, a, b, children, className = '' }) {
-  const y = useTransform(p, [a, a + .06, b - .06, b], ['110%', '0%', '0%', '-110%'])
-  return <span className="block overflow-hidden pb-[.08em]"><motion.span className={`block ${className}`} style={{ y }}>{children}</motion.span></span>
+function Fade({ children, d = 0, className = '' }) {
+  return <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.6, ease: E, delay: d }} className={className}>{children}</motion.div>
 }
 
-function Intro({ p }) {
+function Title({ p }) {
   const { t } = useLang()
-  const o = useTransform(p, [0, .1], [1, 0])
-  const y = useTransform(p, [0, .12], [0, -70])
-  const ev = useTransform(p, v => (v > .1 ? 'none' : 'auto'))
+  const o = useTransform(p, [0, .4], [1, 0])
+  const sc = useTransform(p, [0, .5], [1, .93])
+  const y = useTransform(p, [0, .5], [0, -46])
+  const blur = useTransform(p, [0, .42], ['blur(0px)', 'blur(14px)'])
+  const ev = useTransform(p, v => (v > .3 ? 'none' : 'auto'))
   return (
-    <motion.div style={{ opacity: o, y, pointerEvents: ev }} className="absolute inset-x-0 bottom-0 z-20">
-      <div className="mx-auto max-w-[1440px] px-5 pb-[max(28px,env(safe-area-inset-bottom))] md:px-10 md:pb-14">
-        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .9, ease: E, delay: .1 }} className={`${T.sans} mb-3 text-[10px] font-semibold uppercase tracking-[.18em] text-[#151412]/60 md:mb-5 md:text-[12px] md:tracking-[.24em]`}>{t(S.eyebrow)}</motion.p>
-        <h1 className={`${T.serif} max-w-[11ch] text-[46px] leading-[.9] tracking-[-.012em] text-[#151412] sm:text-[64px] md:max-w-[9.5ch] md:text-[clamp(72px,8vw,132px)]`}>
-          <Rise d={.15}><span className={`${T.sans} mr-[.18em] align-[.14em] text-[.4em] font-black tracking-[-.03em]`}>YTS —</span>Yehiel</Rise>
-          <Rise d={.24}>Tsubery</Rise>
-          <Rise d={.33} className="italic text-[#151412]/75">Architects</Rise>
+    <motion.div style={{ opacity: o, scale: sc, y, filter: blur, pointerEvents: ev }} className="absolute inset-x-0 bottom-0 z-20 origin-bottom-left">
+      <div className="mx-auto max-w-[1440px] px-6 pb-[max(36px,calc(env(safe-area-inset-bottom)+24px))] md:px-12 md:pb-16">
+        <Fade d={.2} className={`${T.sans} mb-5 flex items-center gap-4 text-[10px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/70 md:mb-7 md:text-[11px] md:tracking-[.4em]`}>
+          <span className="h-px w-10 bg-[#c3a15e]" />{t(PERSON.motto)}
+        </Fade>
+        <h1 className={`${T.serif} text-[#f6f1e8] text-[clamp(64px,19vw,96px)] leading-[.86] tracking-[-.02em] md:text-[clamp(96px,11.4vw,200px)]`}>
+          <Rise d={.15}>Yehiel</Rise>
+          <Rise d={.3} className="italic text-[#e9dcc0] md:pl-[.9em]">Tsubery</Rise>
         </h1>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: .7 }} className="mt-5 flex flex-col gap-5 md:mt-9 md:flex-row md:items-end md:gap-12">
-          <div className="flex flex-wrap items-center gap-2 md:gap-3">
-            <a href="#residences" className={`${T.sans} inline-flex h-11 items-center gap-2 rounded-full bg-[#151412] px-5 text-[13px] font-semibold text-[#ece7df] transition-colors hover:bg-[#b06a35] md:h-12 md:px-6 md:text-[14px]`}>{t(S.residences)} <span aria-hidden>→</span></a>
-            <a href="#contact" className={`${T.sans} inline-flex h-11 items-center rounded-full border border-[#151412]/25 bg-[#ece7df]/60 px-5 text-[13px] font-semibold text-[#151412] backdrop-blur-sm transition-colors hover:border-[#151412] md:h-12 md:px-6 md:text-[14px]`}>{t('cta.inquire')}</a>
-          </div>
-          <p className={`${T.serif} text-[22px] italic leading-none text-[#151412] md:text-[28px]`}><span className="mr-3 inline-block h-px w-10 bg-[#b06a35] align-middle" />{t(PERSON.motto)}</p>
-        </motion.div>
+        <Fade d={1.1} className="mt-8 flex flex-wrap items-center gap-3 md:mt-11 md:gap-4">
+          <a href="#como" className={`${T.sans} group inline-flex h-12 items-center gap-3 rounded-full bg-[#f3ede3] px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#151412] transition-colors duration-500 hover:bg-[#c3a15e] md:h-[52px] md:px-7`}>
+            {t(S.explore)} <span aria-hidden className="transition-transform duration-500 group-hover:translate-x-1">→</span>
+          </a>
+          <a href="#contact" className={`${T.sans} inline-flex h-12 items-center rounded-full border border-[#f3ede3]/30 px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#f3ede3] backdrop-blur-[2px] transition-colors duration-500 hover:border-[#c3a15e] hover:text-[#e6c88e] md:h-[52px] md:px-7`}>{t('cta.inquire')}</a>
+        </Fade>
       </div>
     </motion.div>
   )
 }
 
-function SketchTag({ p }) {
+function TopLine({ p }) {
   const { t } = useLang()
-  const o = useTransform(p, [0, .08], [1, 0])
+  const o = useTransform(p, [0, .25], [1, 0])
   return (
-    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.6, duration: 1 }} className={`${T.sans} pointer-events-none absolute z-20 hidden text-[10.5px] font-semibold uppercase tracking-[.2em] text-[#151412]/55 md:block md:bottom-14 md:right-10`}>
-      <motion.span style={{ opacity: o }} className="flex items-center gap-3"><span className="h-px w-8 bg-[#151412]/40" />{t(S.sketchCap)}</motion.span>
-    </motion.p>
+    <motion.div style={{ opacity: o }} className="pointer-events-none absolute inset-x-0 top-[76px] z-20 md:top-[92px]">
+      <Fade d={.5} className={`${T.sans} mx-auto flex max-w-[1440px] items-center gap-4 px-6 text-[10px] font-medium uppercase tracking-[.32em] text-[#f3ede3]/75 md:px-12 md:text-[11px] md:tracking-[.38em]`}>
+        <span className="hidden md:inline">{t(S.top)}</span>
+        <span className="md:hidden">YTS Architects · {t(S.topS)}</span>
+      </Fade>
+    </motion.div>
   )
 }
 
-function Hud({ p, chap, dark }) {
-  const { t } = useLang()
-  const w = useTransform(p, [0, 1], ['0%', '100%'])
-  const names = t(S.ch)
+function Tick({ n, active, bar, onGo, label }) {
   return (
-    <div className="pointer-events-none absolute left-5 right-5 top-[78px] z-30 md:left-auto md:right-10 md:top-[96px] md:w-[300px]">
-      <div className={`${T.sans} flex justify-between text-[10px] font-semibold uppercase tracking-[.16em] tabular-nums md:text-[10.5px]`}>
-        {names.map((s, i) => (
-          <span key={i} className={`transition-colors duration-700 ${i === chap ? (dark ? 'text-white' : 'text-[#151412]') : (dark ? 'text-white/35' : 'text-[#151412]/35')}`}>0{i + 1} <span className="hidden sm:inline">{s}</span></span>
-        ))}
-      </div>
-      <div className={`mt-2 h-px w-full transition-colors duration-700 ${dark ? 'bg-white/20' : 'bg-[#151412]/15'}`}><motion.div className="h-px bg-[#c3a15e]" style={{ width: w }} /></div>
-    </div>
+    <button onClick={() => onGo(n)} aria-label={`${label} ${n + 1}`} aria-current={active ? 'true' : undefined} className="group relative h-6 flex-1 pointer-events-auto">
+      <span className="absolute inset-x-0 top-1/2 h-px bg-[#f3ede3]/20 transition-colors duration-500 group-hover:bg-[#f3ede3]/45" />
+      {active && <span ref={bar} className="absolute left-0 right-0 top-1/2 h-px origin-left bg-[#c3a15e]" style={{ transform: 'scaleX(0)' }} />}
+    </button>
   )
 }
 
-function Skip({ p, dark }) {
+function Reel({ p, i, bar }) {
   const { t } = useLang()
-  const o = useTransform(p, [.88, .97], [1, 0])
-  const c = dark ? 'border-white/25 bg-black/25 text-white hover:bg-white hover:text-[#151412]' : 'border-[#151412]/20 bg-[#ece7df]/70 text-[#151412] hover:bg-[#151412] hover:text-[#ece7df]'
+  const o = useTransform(p, [0, .3], [1, 0])
+  const go = n => { if (stage.hero) stage.hero.go = n }
   return (
-    <motion.button style={{ opacity: o }} onClick={skipTo} className={`${T.sans} absolute right-5 top-[104px] z-40 h-8 rounded-full border px-3 text-[11px] font-semibold uppercase tracking-[.14em] backdrop-blur-md transition-colors duration-500 md:bottom-6 md:left-1/2 md:right-auto md:top-auto md:h-10 md:-translate-x-1/2 md:px-4 md:text-[12px] ${c}`}>
-      {t('skip')} <span aria-hidden>↓</span>
-    </motion.button>
-  )
-}
-
-function Beat({ p, a, b, l1, l2, dark, className }) {
-  return (
-    <div className={`pointer-events-none absolute z-20 ${className}`}>
-      <p className={`${T.serif} text-[38px] leading-[.95] md:text-[clamp(48px,4.8vw,80px)] ${dark ? 'text-white' : 'text-[#151412]'}`}>
-        <KLine p={p} a={a} b={b}>{l1}</KLine>
-        <KLine p={p} a={a + .025} b={b} className={`italic ${dark ? 'text-[#e6c88e]' : 'text-[#b06a35]'}`}>{l2}</KLine>
-      </p>
-    </div>
-  )
-}
-
-function Caption({ p }) {
-  const { t } = useLang()
-  const o = useTransform(p, [.8, .9], [0, 1])
-  const ev = useTransform(p, v => (v > .82 ? 'auto' : 'none'))
-  const shade = useTransform(p, [.7, .92], [0, 1])
-  return (
-    <>
-      <motion.div style={{ opacity: shade }} className="pointer-events-none absolute inset-0 z-[15] bg-gradient-to-t from-black/70 via-black/0 to-black/25" />
-      <motion.div style={{ opacity: o, pointerEvents: ev }} className="absolute inset-x-0 bottom-0 z-20">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-5 pb-[max(40px,env(safe-area-inset-bottom))] md:flex-row md:items-end md:justify-between md:px-10 md:pb-24">
-          <div>
-            <p className={`${T.sans} mb-3 text-[11px] font-semibold uppercase tracking-[.22em] text-white/70`}>{t(S.cap)}</p>
-            <p className={`${T.serif} text-[46px] leading-[.92] text-white md:text-[clamp(60px,6.6vw,112px)]`}>
-              <KLine p={p} a={.8} b={1.2}>Il Giardino</KLine>
-              <KLine p={p} a={.83} b={1.2} className="italic">di Teodolinda</KLine>
-            </p>
-            <p className={`${T.sans} mt-3 text-[12px] font-medium uppercase tracking-[.2em] text-white/80 md:text-[13px]`}>Il Giardino di Teodolinda · {t(S.place)}</p>
-          </div>
-          <a href="#residences" className={`${T.sans} inline-flex h-12 w-fit items-center gap-2 rounded-full bg-white px-6 text-[14px] font-semibold text-[#151412] transition-colors hover:bg-[#c3a15e]`}>{t(S.enter)} →</a>
+    <motion.div style={{ opacity: o }} className="pointer-events-none absolute right-6 top-[108px] z-30 w-[150px] md:bottom-16 md:right-12 md:top-auto md:w-[280px]">
+      <Fade d={1.4}>
+        <div className={`${T.sans} flex items-baseline justify-between text-[#f3ede3]`}>
+          <span className="text-[10px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/60 max-md:hidden">{t(S.reel)}</span>
+          <span className="tabular-nums tracking-[.2em]">
+            <span className={`${T.serif} text-[22px] italic text-[#e9dcc0] md:text-[26px]`}>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span key={i} className="inline-block" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: .7, ease: E }}>0{i + 1}</motion.span>
+              </AnimatePresence>
+            </span>
+            <span className="ml-2 text-[10px] text-[#f3ede3]/50">/ 0{SLIDES.length}</span>
+          </span>
         </div>
-      </motion.div>
-    </>
+        <div className="mt-2 flex gap-2">
+          {SLIDES.map((_, n) => <Tick key={n} n={n} active={n === i} bar={bar} onGo={go} label={t(S.show)} />)}
+        </div>
+        <div className="relative mt-2 h-[30px] overflow-hidden md:h-4">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.p key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: .9, ease: E }}
+              className={`${T.sans} text-right text-[9.5px] font-medium uppercase leading-[1.5] tracking-[.24em] text-[#f3ede3]/70 md:text-[10px] md:tracking-[.3em]`}>
+              {t(SLIDES[i].l)}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+      </Fade>
+    </motion.div>
+  )
+}
+
+function ScrollCue({ p }) {
+  const { t } = useLang()
+  const o = useTransform(p, [0, .12], [1, 0])
+  return (
+    <motion.div style={{ opacity: o }} className="pointer-events-none absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-3 md:flex">
+      <Fade d={2}>
+        <div className="flex flex-col items-center gap-3">
+          <span className={`${T.sans} text-[9.5px] font-medium uppercase tracking-[.42em] text-[#f3ede3]/60`}>{t(S.scroll)}</span>
+          <span className="relative block h-10 w-px overflow-hidden bg-[#f3ede3]/15">
+            <motion.span className="absolute left-0 top-0 block h-4 w-px bg-[#c3a15e]" animate={{ y: [-16, 40] }} transition={{ duration: 2.4, ease: [0.65, 0, 0.35, 1], repeat: Infinity, repeatDelay: .4 }} />
+          </span>
+        </div>
+      </Fade>
+    </motion.div>
   )
 }
 
@@ -151,40 +151,71 @@ function Film() {
   const ref = useRef()
   useStage('hero', ref)
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const [chap, setChap] = useState(0)
-  useMotionValueEvent(p, 'change', v => { const k = v < .2 ? 0 : v < .44 ? 1 : v < .66 ? 2 : 3; setChap(c => (c === k ? c : k)) })
-  const dark = chap >= 2
+  const [i, setI] = useState(0)
+  const [ready, setReady] = useState(false)
+  const bar = useRef()
+  const iR = useRef(0)
+  useEffect(() => {
+    let raf, done = false
+    const loop = () => {
+      const h = stage.hero
+      if (h && window.scrollY < window.innerHeight * 2) {
+        if (h.ready && !done) { done = true; setReady(true) }
+        if (h.i !== iR.current) { iR.current = h.i; setI(h.i) }
+        if (bar.current) bar.current.style.transform = `scaleX(${h.k.toFixed(4)})`
+      }
+      raf = requestAnimationFrame(loop)
+    }
+    raf = requestAnimationFrame(loop)
+    // the demo ribbon sits above the hero: keep the composition inside the first visible screen
+    const rb = () => ref.current && ref.current.style.setProperty('--rb', ref.current.offsetTop + 'px')
+    rb(); window.addEventListener('resize', rb)
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', rb) }
+  }, [])
+  // paper hand-off for the DOM poster too (if WebGL is slow or missing, the poster still dissolves to paper)
+  const paper = useTransform(p, [.56, .94], [0, 1])
+  const s0 = SLIDES[0]
   return (
-    <section id="hero" ref={ref} className="relative h-[220vh]">
+    <section id="hero" ref={ref} className="relative h-[160vh]">
+      <style>{NAV_CSS}</style>
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        <Hud p={p} chap={chap} dark={dark} />
-        <Intro p={p} />
-        <SketchTag p={p} />
-        <Beat p={p} a={.12} b={.38} l1={t(S.b2a)} l2={t(S.b2b)} className="bottom-10 left-5 right-5 md:bottom-16 md:left-10 md:right-auto md:max-w-[34vw]" />
-        <Beat p={p} a={.48} b={.74} l1={t(S.b3a)} l2={t(S.b3b)} dark className="bottom-10 left-5 right-5 md:bottom-16 md:left-10 md:right-auto md:max-w-[34vw]" />
-        <Caption p={p} />
-        <Skip p={p} dark={dark} />
+        {/* instant first frame: poster of slide 01 (same framing), dissolves into the live depth film */}
+        <motion.div initial={false} animate={{ opacity: ready ? 0 : 1 }} transition={{ duration: 1.6, ease: E, delay: ready ? .2 : 0 }} className="absolute inset-0 bg-[#0c0b09]">
+          <img src={img(s0.id)} alt={t(S.alt)} width="1800" height="1125" decoding="async" fetchpriority="high"
+            className="h-full w-full scale-[1.1] object-cover [filter:saturate(.84)_brightness(.86)]" style={{ objectPosition: s0.pos }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/35" />
+        </motion.div>
+        <div className="absolute inset-x-0 top-0 h-[calc(100%-var(--rb,0px))]">
+          <TopLine p={p} />
+          <Title p={p} />
+          <Reel p={p} i={i} bar={bar} />
+          <ScrollCue p={p} />
+        </div>
+        <motion.div style={{ opacity: paper }} className="pointer-events-none absolute inset-0 z-[25] bg-[#ece7df]" />
       </div>
     </section>
   )
 }
 
-/* lite / reduced motion: the final frame as a photo, with the title */
+/* lite / reduced motion: a still of slide 01, full bleed, with the same type */
 function StaticHero() {
   const { t } = useLang()
+  const s0 = SLIDES[0]
   return (
-    <section id="hero" className="relative min-h-[100svh] overflow-hidden bg-[#151412]">
-      <img src={img(5)} srcSet={`${img(5, 1)} 576w, ${img(5)} 1440w`} sizes="100vw" alt={t(S.alt)} width="1440" height="1800" decoding="async" fetchpriority="high" className="absolute inset-0 h-full w-full object-cover object-[50%_45%]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30" />
-      <div className="relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-end px-5 pb-12 pt-28 md:px-10 md:pb-16">
-        <p className={`${T.sans} mb-4 text-[11px] font-semibold uppercase tracking-[.22em] text-white/70 md:text-[12px]`}>{t(S.eyebrow)}</p>
-        <h1 className={`${T.serif} max-w-[12ch] text-[50px] leading-[.9] text-white md:text-[clamp(72px,8vw,128px)]`}><span className={`${T.sans} mr-3 align-[.14em] text-[.4em] font-black`}>YTS —</span>Yehiel Tsubery <span className="italic">Architects</span></h1>
-        <p className={`${T.serif} mt-5 text-[24px] italic text-white/90 md:text-[28px]`}><span className="mr-3 inline-block h-px w-10 bg-[#c3a15e] align-middle" />{t(PERSON.motto)}</p>
-        <div className="mt-7 flex flex-wrap items-center gap-3">
-          <a href="#residences" className={`${T.sans} inline-flex h-12 items-center rounded-full bg-white px-6 text-[14px] font-semibold text-[#151412]`}>{t(S.residences)} →</a>
-          <a href="#contact" className={`${T.sans} inline-flex h-12 items-center rounded-full border border-white/40 px-6 text-[14px] font-semibold text-white`}>{t('cta.inquire')}</a>
+    <section id="hero" className="relative min-h-[100svh] overflow-hidden bg-[#0c0b09]">
+      <style>{NAV_CSS}</style>
+      <img src={img(s0.id)} srcSet={`${img(s0.id, 1)} 720w, ${img(s0.id)} 1800w`} sizes="100vw" alt={t(S.alt)} width="1800" height="1125" decoding="async" fetchpriority="high"
+        className="absolute inset-0 h-full w-full object-cover [filter:saturate(.84)_brightness(.86)]" style={{ objectPosition: s0.pos }} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
+      <div className="relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-end px-6 pb-12 pt-32 md:px-12 md:pb-16">
+        <p className={`${T.sans} mb-auto text-[10px] font-medium uppercase tracking-[.32em] text-[#f3ede3]/75 md:text-[11px]`}>{t(S.top)}</p>
+        <p className={`${T.sans} mb-5 flex items-center gap-4 text-[10px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/70 md:text-[11px]`}><span className="h-px w-10 bg-[#c3a15e]" />{t(PERSON.motto)}</p>
+        <h1 className={`${T.serif} text-[clamp(64px,19vw,96px)] leading-[.86] tracking-[-.02em] text-[#f6f1e8] md:text-[clamp(96px,11.4vw,200px)]`}>Yehiel<br /><span className="italic text-[#e9dcc0] md:pl-[.9em]">Tsubery</span></h1>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <a href="#como" className={`${T.sans} inline-flex h-12 items-center gap-3 rounded-full bg-[#f3ede3] px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#151412]`}>{t(S.explore)} →</a>
+          <a href="#contact" className={`${T.sans} inline-flex h-12 items-center rounded-full border border-[#f3ede3]/30 px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#f3ede3]`}>{t('cta.inquire')}</a>
         </div>
-        <p className={`${T.sans} mt-8 text-[11px] font-semibold uppercase tracking-[.2em] text-white/60`}>Il Giardino di Teodolinda · {t(S.place)}</p>
+        <p className={`${T.sans} mt-8 text-[10px] font-medium uppercase tracking-[.3em] text-[#f3ede3]/60`}>{t(s0.l)}</p>
       </div>
     </section>
   )
