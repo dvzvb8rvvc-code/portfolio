@@ -35,7 +35,8 @@ function useNear(ref, margin = '100% 0px') {
   const [near, setNear] = useState(false), [vis, setVis] = useState(false)
   useEffect(() => {
     const el = ref.current; if (!el) return
-    const a = new IntersectionObserver(([e]) => { if (e.isIntersecting) setNear(true) }, { rootMargin: margin })
+    // mount within ~1 viewport, UNMOUNT beyond it (frees the WebGL context)
+    const a = new IntersectionObserver(([e]) => setNear(e.isIntersecting), { rootMargin: margin })
     const b = new IntersectionObserver(([e]) => setVis(e.isIntersecting), { rootMargin: '10% 0px' })
     a.observe(el); b.observe(el)
     return () => { a.disconnect(); b.disconnect() }
@@ -214,7 +215,7 @@ function Film({ pickerRef }) {
   const lite = useLite()
   const mob = useIsMobile()
   const ref = useRef()
-  const [near, vis] = useNear(ref, '250% 0px')
+  const [near, vis] = useNear(ref, '120% 0px')
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
   const still = useMotionValue(1)
   const progress = reduce ? still : scrollYProgress
@@ -259,6 +260,7 @@ function Film({ pickerRef }) {
       <div className="sticky top-0 h-[100svh] touch-pan-y overflow-hidden bg-[radial-gradient(ellipse_at_50%_40%,#d9b88f_0%,#8a5f3a_55%,#2a1c12_100%)] text-[#ece7df]" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
         <div className="absolute inset-0">{near && <Suspense fallback={null}><Film3D progress={progress} hud={hud} lang={lang} active={vis} lite={mob} drag={drag} /></Suspense>}</div>
 
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[55%] bg-gradient-to-b from-black/40 to-transparent" />
         {/* HUD: leader lines + floor labels */}
         <div className="pointer-events-none absolute inset-0">
           {PALAZZO.floors.map((f, i) => (

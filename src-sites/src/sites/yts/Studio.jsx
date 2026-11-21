@@ -183,7 +183,7 @@ function ProcessFilm() {
   const near = useInView(ref, { margin: '100% 0px 100% 0px' })
   const active = useInView(ref, { margin: '0px' })
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { if (near) setMounted(true) }, [near])
+  useEffect(() => { setMounted(near) }, [near])
   const [step, setStep] = useState(0)
   useMotionValueEvent(scrollYProgress, 'change', v => { const s = Math.min(4, Math.max(0, Math.floor(v * 5))); setStep(o => (o === s ? o : s)) })
   const bar = useTransform(scrollYProgress, [0, 1], [0, 1])
@@ -287,7 +287,7 @@ function Compare() {
   const nearC = useInView(wrap, { margin: '80% 0px 80% 0px' })
   const onC = useInView(stage, { margin: '10% 0px' })
   const [m3, setM3] = useState(false)
-  useEffect(() => { if (nearC) setM3(true) }, [nearC])
+  useEffect(() => { setM3(nearC) }, [nearC])
   const use3d = !lite && !reduce
   const clipA = useTransform(pos, x => `inset(0 ${100 - x}% 0 0)`)
   const labAO = useTransform(pos, [4, 18], [0, 1]), labBO = useTransform(pos, [82, 96], [1, 0])

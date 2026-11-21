@@ -175,7 +175,7 @@ function Stage({ filter, setFilter, list, onOpen, lbOpen, mobile }) {
   const near = useInView(ref, { margin: '100% 0px 100% 0px' })
   const active = useInView(ref, { margin: '0px' })
   const [mounted, setMounted] = useState(false)
-  useEffect(() => { if (near) setMounted(true) }, [near])
+  useEffect(() => { setMounted(near) }, [near])
   const [hover, setHover] = useState(null)
   const [flying, setFlying] = useState(false)
   const drag = useRef({ down: false, x: 0, sx: 0, moved: false, offset: 0, target: 0 })

@@ -181,7 +181,7 @@ function planTex(fl, lang, lite) {
 const TEX = '/portfolio/yts/tex/'
 function useSet(name, rep) {
   const [map, normalMap, arm] = useTexture([`${TEX}${name}_diff.webp`, `${TEX}${name}_nor.webp`, `${TEX}${name}_arm.webp`])
-  return useMemo(() => {
+  const out = useMemo(() => {
     const o = {}
     ;[['map', map], ['normalMap', normalMap], ['arm', arm]].forEach(([k, t0]) => {
       const t = t0.clone(); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rep, rep); t.anisotropy = 8
@@ -190,6 +190,8 @@ function useSet(name, rep) {
     })
     return o
   }, [map, normalMap, arm, rep])
+  useEffect(() => () => Object.values(out).forEach(t => t.dispose()), [out])
+  return out
 }
 function pbr(set, color, extra = {}) {
   return new THREE.MeshStandardMaterial({ map: set.map, normalMap: set.normalMap, aoMap: set.arm, roughnessMap: set.arm, metalnessMap: set.arm, color, roughness: 1, metalness: 1, normalScale: new THREE.Vector2(1, 1), ...extra })
@@ -425,14 +427,14 @@ function Director({ progress, S, drag }) {
     if (!S.interior) {
       const intro = smooth(TL.intro[0], TL.intro[1], p), ex = smooth(TL.explode[0], TL.explode[1], p)
       S.rot = (-0.62 + 0.28 * intro + 0.24 * smooth(0.06, 0.4, p) + st.pointer.x * 0.05) * (1 - fly1)
-      const k = mob ? 2.0 : 1.22
+      const k = mob ? 1.75 : 1.22
       P0.set(6.6, 1.3, 9.6).multiplyScalar(k); T0.set(0, 1.7, 0)
       P1.set(8.6, 5.4 + (mob ? 2.2 : 0), 13).multiplyScalar(k); T1.set(0, 3.9 + (mob ? 0.9 : 0), 0)
       P0.lerp(P1, ex); T0.lerp(T1, ex)
       P0.y += (1 - intro) * -0.4
       // push the building off-centre to leave room for the copy / labels
       FWD.subVectors(T0, P0).normalize(); RIGHT.crossVectors(FWD, cam.up).normalize()
-      const off = mob ? 0.6 * (0.4 + 0.6 * ex) : -0.2 - 0.25 * ex
+      const off = mob ? 0.5 + 0.9 * ex : -0.2 - 0.25 * ex
       P0.addScaledVector(RIGHT, off); T0.addScaledVector(RIGHT, off)
       // fly to the central window of the piano nobile, then through it
       const wy = BASES[2] + (WIN.y0 + (WIN.y1 - WIN.y0) * 0.42) * PLAN[2].h
