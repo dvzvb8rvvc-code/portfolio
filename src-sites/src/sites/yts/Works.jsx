@@ -239,7 +239,7 @@ function IsraelRow() {
             className="group flex items-baseline gap-3 md:block">
             <span className="text-[11px] font-semibold tabular-nums text-[#c3a15e] md:mr-2">{pad(i + 1)}</span>
             <span className={`${T.serif} text-[22px] leading-[1.1] md:text-[24px]`}>{t(p.t)}</span>
-            <span className="ml-auto text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/50 md:ml-0 md:mt-1 md:block">{p.p}</span>
+            <span className="ml-auto text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/50 md:ml-0 md:mt-1 md:block">{t(p.p)}</span>
           </motion.div>
         ))}
       </div>

@@ -31,7 +31,7 @@ const CFG = {
   156: { amt: 0.62, z: [1.02, 1.15], L: [[0.5, 0.4], [0.5, 0.56]], P: [[0.4, 0.5], [0.5, 0.5]], r: [0, 0] },
   157: { amt: 0.58, z: [1.02, 1.15], L: [[0.5, 0.36], [0.5, 0.52]], P: [[0.42, 0.5], [0.52, 0.5]], r: [0, 0] },
   152: { amt: 0.6, z: [1.0, 1.1], zp: [1.0, 1.32], L: [[0.5, 0.3], [0.5, 1.0]], P: [[0.5, 0.36], [0.5, 1.0]], r: [0, 0], tilt: 1 },
-  154: { amt: 0.5, z: [1.12, 1.07], L: [[0.5, 0.0], [0.5, 0.56]], P: [[0.5, 0.0], [0.5, 0.56]], r: [0, 0.07], up: 1 },
+  154: { amt: 0.28, z: [1.12, 1.07], L: [[0.5, 0.0], [0.5, 0.56]], P: [[0.5, 0.0], [0.5, 0.56]], r: [0, 0.07], up: 1 },
 }
 
 const NOISE = /* glsl */`
@@ -98,11 +98,11 @@ void main(){
   float wide = 1. - abs(2. * smoothstep(f - .22, f + .22, front) - 1.);   // broad flow zone
   float k = smoothstep(f - .05, f + .05, front);                           // ink edge
   vec2 flow = vec2(fbm(q * 2.1 + 3.1 + uTime * .03), fbm(q * 2.1 - 7.3 - uTime * .03)) - .5;
-  vec3 a = tex(uA, tc(uv + flow * wide * .04, uCA, uRA), uTA);
-  vec3 b = uMix > .0005 ? tex(uB, tc(uv - flow * wide * .03, uCB, uRB), uTB) : a;
+  vec3 a = tex(uA, tc(uv + flow * wide * .028, uCA, uRA), uTA);
+  vec3 b = uMix > .0005 ? tex(uB, tc(uv - flow * wide * .022, uCB, uRB), uTB) : a;
   vec3 c = mix(a, b, k);
   float edge = 1. - abs(2. * k - 1.);
-  c *= 1. - wide * .14 - edge * .2;                                        // wet, darker ink edge
+  c *= 1. - wide * .1 - edge * .18;                                        // wet, darker ink edge
   c += vec3(1., .76, .44) * pow(edge, 4.) * .06;                           // faint gold rim
   // slow warm light sweep riding the depth (lights only what is lit)
   float sw = exp(-pow((uv.x * .8 + uv.y * .5 - uSweep + vD * .25) * 2.6, 2.));
@@ -256,7 +256,7 @@ export default function ScenePalazzo({ track }) {
 
     // ---- one damped progress (λ≈4) + a light second stage → silk; snap on (re)entry
     const target = hub.p != null ? hub.p : tr.p
-    if (!s.wasOn || hub.snap) { s.p1 = s.p2 = target }
+    if (!s.wasOn || hub.snap) { s.p1 = s.p2 = target; s.entry = true }
     s.wasOn = true
     s.p1 = damp(s.p1, target, 4, dt)
     s.p2 = damp(s.p2, s.p1, 9, dt)
@@ -285,15 +285,16 @@ export default function ScenePalazzo({ track }) {
     const okB = B !== A ? setSlot('B', B, p, pa, port, s.t) : (setSlot('B', A, p, pa, port, s.t), okA)
     U.uMix.value = mix
     U.uTime.value = s.t
-    U.uSharp.value = mob ? 0.22 : 0.34
+    U.uSharp.value = mob ? 0.14 : 0.2
     U.uSweep.value = -0.5 + p * 2.2 + Math.sin(s.t * 0.05) * 0.15
     // fade the picture in once its textures exist (never pops)
-    s.live = damp(s.live, okA && okB ? 1 : 0, 3, dt)
+    s.live = s.entry && okA && okB ? 1 : damp(s.live, okA && okB ? 1 : 0, 3, dt)
+    s.entry = false
     U.uLive.value = s.live
 
     // ---- look-up: the plane bends overhead from the 152 tilt through the ceiling
     const up = ease3(seg(p, TR[3][1], 1))
-    U.uBend.value = up * (port ? 0.7 : 0.95)
+    U.uBend.value = up * (port ? 0.45 : 0.6)
 
     // ---- virtual camera: continuous slow dolly over the whole film + drift + pointer parallax
     s.px = damp(s.px, mob ? 0 : ptr.x, 2.2, dt); s.py = damp(s.py, mob ? 0 : ptr.y, 2.2, dt)

@@ -130,7 +130,7 @@ function Intro() {
   const { scrollYProgress: q } = useScroll({ target: wrap, offset: ['start 1', 'start .25'] })
   const rule = useTransform(q, [0, 1], [0, 1])
   const words = t(S.statement).split(' ')
-  const facts = [[t(S.since), String(PERSON.studioSince)], [t(S.office), PERSON.office], [t(S.where), t(S.whereV)], [t(S.tools), PERSON.tech.join(' · ')]]
+  const facts = [[t(S.since), String(PERSON.studioSince)], [t(S.office), t(PERSON.office)], [t(S.where), t(S.whereV)], [t(S.tools), PERSON.tech.join(' · ')]]
   return (
     <div ref={wrap} className="relative">
       <div className="mx-auto max-w-[1440px] px-5 pb-20 pt-16 md:px-10 md:pb-28 md:pt-24">

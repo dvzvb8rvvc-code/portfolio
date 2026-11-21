@@ -246,23 +246,27 @@ void main(){
   vec3 r = reflect(d, N);
   r.y = max(r.y, .002);
   vec3 refl = skyCol(r);
-  // far mountains (#129 cut-out) — plane z = uFarR.z-side
-  if (r.z < 0.) {
-    float tt = (${ZF.toFixed(1)} - vL.z) / r.z; vec3 h = vL + r * tt;
+  // far mountains (#129 cut-out, plane z = ZF) and, when we look back, the terraces render (#140, plane z = hill):
+  // both reflections are evaluated and blended by the ray's z (no hard seam when the camera turns)
+  vec3 rF = refl, rH = refl;
+  if (r.z < .05) {
+    float tt = (${ZF.toFixed(1)} - vL.z) / min(r.z, -.001); vec3 h = vL + r * tt;
     vec2 uv = vec2((h.x - uFarR.x) / uFarR.z + .5, (h.y - uFarR.y) / uFarR.w + .5);
     if (uv.x > 0. && uv.x < 1. && uv.y > 0. && uv.y < 1.) {
       vec4 c = texture2D(uFar, uv);
       vec3 fc = mix(c.rgb * uTint * uExp, uHaze, uHazeAmt * 1.1);
-      refl = mix(refl, fc, c.a * smoothstep(0., .05, uv.x) * smoothstep(0., .05, 1. - uv.x));
+      rF = mix(refl, fc, c.a * smoothstep(0., .05, uv.x) * smoothstep(0., .05, 1. - uv.x));
     }
-  } else if (uHillOn > .01) {
-    float tt = (${HILL.pos[2].toFixed(1)} - vL.z) / r.z; vec3 h = vL + r * tt;
+  }
+  if (r.z > -.05 && uHillOn > .01) {
+    float tt = (${HILL.pos[2].toFixed(1)} - vL.z) / max(r.z, .001); vec3 h = vL + r * tt;
     vec2 uv = vec2(.5 - (h.x - uHillR.x) / uHillR.z, (h.y - uHillR.y) / uHillR.w + .5);
     if (uv.x > 0. && uv.x < 1. && uv.y > 0. && uv.y < 1.) {
       vec4 c = texture2D(uHill, uv);
-      refl = mix(refl, c.rgb * uTint * uExp, c.a * uHillOn * smoothstep(0., .16, uv.x) * smoothstep(0., .16, 1. - uv.x));
+      rH = mix(refl, c.rgb * uTint * uExp, c.a * uHillOn * smoothstep(0., .16, uv.x) * smoothstep(0., .16, 1. - uv.x));
     }
   }
+  refl = mix(rF, rH, smoothstep(-.05, .05, r.z));
   float F = .18 + .82 * pow(1. - clamp(-d.y, 0., 1.), 5.);
   vec3 deep = mix(vec3(.05, .11, .14), uTop * .32, .5) * uExp;
   vec3 col = mix(deep, refl * .92, F);
@@ -352,7 +356,7 @@ const LBL = {
   varenna: { p: onPlane(1205, 575, KN), win: [[-.1, .2]] },
   bellagio: { p: [far(560, 296)[0], far(560, 296)[1] + 3, ZF], win: [[.2, .5]] },
   triangle: { p: [far(1050, 300)[0], 6, ZF], win: [[.36, .64]] },
-  home: { p: [-6, 36, 30], win: [[.88, 1.2]] },
+  home: { p: [-6, 32, 30], win: [[.88, 1.2]] },
 }
 
 function Rig({ track, reg, sh, mobile }) {
@@ -420,7 +424,7 @@ function Rig({ track, reg, sh, mobile }) {
     const lay = (k, z, lo, hi) => { const L = R[k]; if (!L) return; const lin = Math.min(1, Math.max(0, (tmp.cam.z - z - lo) / (hi - lo))) * (1 - back); L.u.uReveal.value = lin; L.u.uOpacity.value = 1; L.mesh.visible = lin > .004 }
     lay('fg129', ZFG, .5, 9)
     lay('near129', ZN, 1, 15)
-    const hillOn = Math.min(1, Math.max(0, (p - .62) / .26))
+    const hillOn = Math.min(1, Math.max(0, (p - .57) / .3))
     if (R.hill140) { R.hill140.mesh.visible = hillOn > .004; R.hill140.u.uReveal.value = hillOn; R.hill140.u.uOpacity.value = 1 }
     if (R.water) {
       R.water.uHillOn.value = hillOn

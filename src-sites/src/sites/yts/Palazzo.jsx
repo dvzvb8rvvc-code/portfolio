@@ -35,8 +35,8 @@ const CAPS = [
 // caption window of image i: fades in as the image settles, out as the next one starts to bleed in
 function capWin(i) {
   const a = i > 0 ? PAL.tr[i - 1] : null, b = i < PAL.tr.length ? PAL.tr[i] : null
-  const inA = a ? a[0] + (a[1] - a[0]) * 0.55 : -0.02, inB = a ? a[1] + 0.005 : -0.01
-  const outA = b ? b[0] : 1.5, outB = b ? b[0] + (b[1] - b[0]) * 0.32 : 1.6
+  const inA = a ? a[0] + (a[1] - a[0]) * 0.5 : -0.02, inB = a ? a[0] + (a[1] - a[0]) * 0.92 : -0.01
+  const outA = b ? b[0] + (b[1] - b[0]) * 0.12 : 1.5, outB = b ? b[0] + (b[1] - b[0]) * 0.45 : 1.6
   return [inA, inB, outA, outB]
 }
 
@@ -154,7 +154,7 @@ function Film() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0b0a08]/70 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-[#0b0a08]/88 via-[#0b0a08]/35 to-transparent" />
 
-        <motion.div style={{ opacity: openO }} className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(11,10,8,.62)_0%,rgba(11,10,8,.25)_45%,transparent_70%)] max-md:bg-[linear-gradient(0deg,rgba(11,10,8,.7)_0%,rgba(11,10,8,.3)_55%,transparent_75%)]" />
+        <motion.div style={{ opacity: openO }} className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(11,10,8,.62)_0%,rgba(11,10,8,.25)_45%,transparent_70%)] max-md:bg-[linear-gradient(0deg,rgba(11,10,8,.45)_0%,rgba(11,10,8,.2)_55%,transparent_75%)]" />
         <motion.div style={{ opacity: openO, y: openY }} className="pointer-events-none absolute inset-0"><OpeningCopy t={t} /></motion.div>
 
         <motion.div style={{ opacity: chromeO }} className="pointer-events-none absolute inset-0">
@@ -168,7 +168,7 @@ function Film() {
           </div>
         </motion.div>
 
-        <motion.div style={{ opacity: lookO, scale: lookS }} className="pointer-events-none absolute inset-0 grid place-items-center text-center">
+        <motion.div style={{ opacity: lookO, scale: lookS }} className="pointer-events-none absolute inset-0 grid place-items-center bg-[radial-gradient(52%_40%_at_50%_50%,rgba(11,10,8,.62),rgba(11,10,8,.18)_70%,transparent)] text-center">
           <div className="px-5">
             <Kicker className="text-[#e6cf9f]">05 — {t({ en: 'Original frescoes', it: 'Affreschi originali' })}</Kicker>
             <div className={`${T.serif} mt-3 text-[clamp(64px,19vw,96px)] italic leading-[.86] text-[#f4eee4] [text-shadow:0_6px_50px_rgba(0,0,0,.6)] md:text-[clamp(96px,10vw,176px)]`}>{t({ en: 'Look up.', it: 'Alza lo sguardo.' })}</div>

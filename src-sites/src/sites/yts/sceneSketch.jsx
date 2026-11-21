@@ -83,9 +83,9 @@ void main(){
   vec3 b = texture2D(uB, (uv - flow * wide * .045 - .5) * uCovB + .5).rgb;
   // before — drawing: warm ink on dark paper (keeps the watercolour hue, never inverts it)
   float la = dot(a, vec3(.299, .587, .114));
-  float ink = pow(smoothstep(.86, .22, la), 1.2);
+  float ink = smoothstep(.92, .12, la);
   vec3 hue = a / max(max(a.r, max(a.g, a.b)), .02);
-  vec3 paper = vec3(.078, .07, .058) * (.92 + .1 * vn(q * 3.) );
+  vec3 paper = vec3(.0095, .0082, .0064) * (.9 + .2 * vn(q * 3.));
   vec3 aInk = paper + ink * mix(vec3(.9, .78, .56), hue * .85, .35) * .85;
   // before — photo: archival grade (desaturated, warm, low-key)
   vec3 aPh = mix(vec3(la), a, .35) * vec3(1.02, .96, .86) * .72 + .015;

@@ -167,7 +167,7 @@ function Club() {
               className="group border-l border-[rgba(239,232,220,.12)] pl-4 transition-colors hover:border-[#c3a15e]">
               <div className="text-[11px] tabular-nums text-[#efe8dc]/40">{pad(i + 1)}</div>
               <div className={`${T.serif} mt-1 text-[22px] leading-[1.05] transition-transform duration-500 group-hover:translate-x-1 md:text-[26px]`}>{t(it.t)}</div>
-              <div className="mt-1 text-[11px] font-semibold uppercase tracking-[.18em] text-[#c3a15e]">{it.p}</div>
+              <div className="mt-1 text-[11px] font-semibold uppercase tracking-[.18em] text-[#c3a15e]">{t(it.p)}</div>
             </motion.li>
           ))}
         </ul>
