@@ -28,11 +28,11 @@ const photoUrl = id => `/portfolio/yts/img/${id}.webp`
 const TOD = {
   k: [0, .5, .8, 1],
   top: ['#3f72a8', '#5f77a3', '#3f4a78', '#121a35'].map(C),
-  hor: ['#e3ebef', '#f4d5a8', '#f3a774', '#6d6688'].map(C),
+  hor: ['#d3e0e9', '#f4d3a2', '#f3a06c', '#6d6688'].map(C),
   sun: ['#fff3dc', '#ffd59e', '#ff9b52', '#ff6a3c'].map(C),
   tint: ['#ffffff', '#ffe6c8', '#f2b896', '#5c6c9c'].map(C),
-  haze: ['#cfdde7', '#efd3ab', '#e9a982', '#3d4870'].map(C),
-  exp: [1, 1, .86, .4], el: [.6, .28, .12, .02], glow: [.15, .55, 1, .5], lights: [0, 0, .25, 1], stars: [0, 0, 0, 1], hazeAmt: [.32, .4, .48, .45],
+  haze: ['#b4c7d5', '#e3c49c', '#d99a78', '#3a4570'].map(C),
+  exp: [1, 1, .86, .4], el: [.6, .28, .12, .02], glow: [.15, .55, 1, .5], lights: [0, 0, .25, 1], stars: [0, 0, 0, 1], hazeAmt: [.16, .24, .34, .32],
 }
 function todAt(t, out) {
   const k = TOD.k; let i = 0; while (i < k.length - 2 && t > k[i + 1]) i++
@@ -199,7 +199,7 @@ function useWaterNormals() {
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
       let dx = 0, dy = 0
       for (const [kx, ky, a, ph] of W) { const s = Math.cos(TAU * (kx * x + ky * y) / N + ph) * a; dx += s * kx; dy += s * ky }
-      const nx = -dx * .016, ny = -dy * .016, l = Math.hypot(nx, ny, 1)
+      const nx = -dx * .024, ny = -dy * .024, l = Math.hypot(nx, ny, 1)
       const i = (y * N + x) * 4
       data[i] = (nx / l * .5 + .5) * 255; data[i + 1] = (ny / l * .5 + .5) * 255; data[i + 2] = (1 / l * .5 + .5) * 255; data[i + 3] = 255
     }
@@ -214,19 +214,19 @@ function Water({ mobile, reg }) {
     for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 140, uv.getY(i) * 140)
     return g
   }, [])
-  const m = useRef(), mat = useRef()
+  const m = useRef(), mat = useRef(), meshRef = m
   const tint = useMemo(() => ({ value: new THREE.Color(1, 1, 1) }), [])
   useLayoutEffect(() => {
     const m = mat.current, orig = m.onBeforeCompile.bind(m)
     m.onBeforeCompile = (sh, r) => {
       orig(sh, r)
       sh.uniforms.uReflTint = tint
-      sh.fragmentShader = 'uniform vec3 uReflTint;\n' + sh.fragmentShader.replace('vec3 outgoingLight =', `float frs = .3 + .7 * pow(1. - clamp(dot(normalize(vViewPosition), normal), 0., 1.), 4.);
+      sh.fragmentShader = 'uniform vec3 uReflTint;\n' + sh.fragmentShader.replace('vec3 outgoingLight =', `float frs = .2 + .8 * pow(1. - clamp(dot(normalize(vViewPosition), normal), 0., 1.), 5.);
       vec3 outgoingLight = newMerge.rgb * uReflTint * frs +`)
     }
     m.customProgramCacheKey = () => 'como-water'
     m.needsUpdate = true
-    reg.current.water = { mat: m, tint: tint.value }
+    reg.current.water = { mat: m, tint: tint.value, mesh: meshRef.current }
   }, [])
   useFrame((_, dt) => { if (m.current) { m.current.position.x = (m.current.position.x + dt * .35) % 100; m.current.position.z = 0 } })
   return (
@@ -255,7 +255,7 @@ void main(){
 }`
 const mistVS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`
 function Mist({ reg }) {
-  const banks = [[[10, 9, -143], 520, 30, .9], [[-20, 5, -110], 420, 18, .45], [[30, 3.5, -78], 300, 11, .3]]
+  const banks = [[[10, 8, -143], 520, 26, .6], [[-20, 4.5, -110], 420, 14, .3], [[30, 3, -78], 300, 9, .2]]
   const us = useMemo(() => banks.map(b => ({ uCol: { value: C('#cfdde7') }, uAmt: { value: b[3] }, uBase: b[3], uTime: { value: Math.random() * 50 } })), [])
   useLayoutEffect(() => { reg.current.mist = us }, [])
   return banks.map(([p, w, h], i) => (
@@ -370,8 +370,8 @@ function Triangle({ progress, label }) {
 // yaw 0 looks west across the lake (−z); +π/2 looks −x; π looks back at the hillside (+z)
 const PI = Math.PI
 const STATIONS_D = [
-  [0, [6, 30, -42], -.1, -.2, 54],
-  [.17, [0, 21, -50], 0, -.1, 50],
+  [0, [6, 24, -44], -.1, -.11, 54],
+  [.17, [0, 17, -52], 0, -.07, 50],
   [.31, [-12, 4.2, -62], .14, -.015, 46],
   [.42, [-17, 3.6, -68], .32, 0, 46],
   [.5, [-8, 8, -58], PI - .04, .02, 46],
@@ -407,6 +407,7 @@ function Rig({ progress, mobile, reg, clockRef }) {
     s.p = window.__comoSnap ? progress.get() : THREE.MathUtils.damp(s.p, progress.get(), 3.4, dt)
     s.mx = THREE.MathUtils.damp(s.mx, state.pointer.x, 2.2, dt); s.my = THREE.MathUtils.damp(s.my, state.pointer.y, 2.2, dt)
     const p = s.p
+    if (window.__comoHide) for (const k of window.__comoHide) { const L = R[k]; const o3 = L?.mesh || L?.mat?.__r3f?.parent || L?.mat; if (o3 && 'visible' in o3) o3.visible = false }
     const o = sampleStations(st, p, tmp.o)
     // pointer parallax: strongest when the camera rests among the depth layers
     const par = mobile ? 0 : (.6 + 1.4 * ss(.86, .95, p))
@@ -428,7 +429,7 @@ function Rig({ progress, mobile, reg, clockRef }) {
     scene.fog.color.copy(T.haze).multiplyScalar(.9 + .1 * T.exp)
     if (R.dir) { R.dir.position.copy(tmp.sun).multiplyScalar(200); R.dir.color.copy(T.sun); R.dir.intensity = 2.6 * T.exp }
     if (R.hemi) { R.hemi.color.copy(T.top); R.hemi.groundColor.copy(T.haze).multiplyScalar(.5); R.hemi.intensity = .6 + .5 * T.exp }
-    if (R.water) { R.water.mat.color.copy(T.top).multiplyScalar(.18 * T.exp); R.water.tint.copy(T.haze).lerp(new THREE.Color(1, 1, 1), .55).multiplyScalar(.82) }
+    if (R.water) { R.water.mat.color.copy(T.top).multiplyScalar(.28 * T.exp); R.water.tint.copy(T.haze).lerp(new THREE.Color(1, 1, 1), .4).multiplyScalar(.66) }
     if (R.word) R.word.mat.opacity = 1 - ss(.14, .26, p)
     if (R.mist) for (const u of R.mist) { u.uCol.value.copy(T.haze); u.uTime.value += dt; u.uAmt.value = u.uBase * (1 - .35 * T.stars) }
     if (R.lights) { R.lights[0].uI.value = T.lights; R.lights[1].uI.value = T.lights * ss(.86, .95, p); R.lights.forEach(u => (u.uTime.value = s.t)) }

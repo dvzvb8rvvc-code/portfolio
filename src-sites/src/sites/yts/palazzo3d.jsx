@@ -206,10 +206,10 @@ function useMaterials() {
       plasterAttic: pbr(plaster, '#dcab78'),
       trim: pbr(trim, '#f3e9d8'),
       roof: pbr(roof, '#f0c3a6', { side: THREE.DoubleSide }),
-      shutter: pbr(shutter, '#7f906b', { metalnessMap: null, metalness: 0 }),
+      shutter: new THREE.MeshStandardMaterial({ color: '#4f6247', normalMap: shutter.normalMap, roughness: 0.62, metalness: 0 }),
       inner: new THREE.MeshStandardMaterial({ color: '#cdb89a', roughness: 0.95 }),
       door: new THREE.MeshStandardMaterial({ color: '#3a2618', roughness: 0.6 }),
-      glass: [0, 1, 2].map(() => new THREE.MeshStandardMaterial({ color: '#141a20', roughness: 0.08, metalness: 0.9, emissive: new THREE.Color('#ffb15a'), emissiveIntensity: 0 })),
+      glass: [0, 1, 2].map(() => new THREE.MeshStandardMaterial({ color: '#3a4652', roughness: 0.12, metalness: 0.7, emissive: new THREE.Color('#ffb15a'), emissiveIntensity: 0 })),
     }
     return m
   }, [stone, plaster, trim, roof, shutter])
@@ -376,25 +376,28 @@ function Ground({ S, M }) {
   useFrame(() => { if (ref.current) ref.current.visible = !S.interior })
   return (
     <group ref={ref}>
-      <mesh rotation-x={-Math.PI / 2} position-y={-0.065} material={mat}><circleGeometry args={[24, 48]} /></mesh>
+      <mesh rotation-x={-Math.PI / 2} position-y={-0.065} material={mat}><circleGeometry args={[70, 48]} /></mesh>
       <ContactShadows position={[0, -0.06, 0]} scale={11} blur={2.4} far={3.5} opacity={0.65} resolution={512} frames={1} color="#2a1c10" />
     </group>
   )
 }
 
 function Word({ S }) {
-  const ref = useRef(), mat = useRef()
-  useFrame(() => {
+  const ref = useRef()
+  useFrame(({ camera }) => {
     if (!ref.current) return
     ref.current.visible = !S.interior && S.p < 0.5
-    ref.current.position.y = -0.06 + S.e * 1.6
+    // always stands behind the palazzo, turned to the lens
+    FWD.set(camera.position.x, 0, camera.position.z).normalize()
+    ref.current.position.set(-FWD.x * 6.5, -0.06 + S.e * 1.2, -FWD.z * 6.5)
+    ref.current.rotation.y = Math.atan2(FWD.x, FWD.z)
   })
   return (
-    <group ref={ref} position={[0, 0, -4.6]}>
-      <Center bottom position={[0.6, 0, 0]}>
-        <Text3D font={font} size={1.55} height={0.32} bevelEnabled bevelSize={0.02} bevelThickness={0.02} bevelSegments={2} curveSegments={6} letterSpacing={-0.02}>
+    <group ref={ref}>
+      <Center bottom>
+        <Text3D font={font} size={2.3} height={0.4} bevelEnabled bevelSize={0.025} bevelThickness={0.03} bevelSegments={2} curveSegments={6} letterSpacing={-0.04}>
           CAMPANI
-          <meshStandardMaterial ref={mat} color="#c9a46a" metalness={0.85} roughness={0.32} />
+          <meshStandardMaterial color="#d5ae6e" metalness={0.9} roughness={0.28} />
         </Text3D>
       </Center>
     </group>
@@ -409,7 +412,7 @@ function Director({ progress, S, drag }) {
     dt = Math.min(dt, 0.05)
     const target = progress.get()
     // snap on big jumps (skip button / anchor links), damp otherwise
-    S.p = Math.abs(target - S.p) > 0.2 ? target : THREE.MathUtils.damp(S.p, target, 4.2, dt)
+    S.p = Math.abs(target - S.p) > 0.2 || window.__palSnap ? target : THREE.MathUtils.damp(S.p, target, 4.2, dt)
     const p = S.p, mob = size.width < 768, cam = st.camera
     S.e = explodeOf(p)
     S.dusk = smooth(TL.dusk[0], TL.dusk[1], p)
@@ -422,14 +425,14 @@ function Director({ progress, S, drag }) {
     if (!S.interior) {
       const intro = smooth(TL.intro[0], TL.intro[1], p), ex = smooth(TL.explode[0], TL.explode[1], p)
       S.rot = (-0.62 + 0.28 * intro + 0.24 * smooth(0.06, 0.4, p) + st.pointer.x * 0.05) * (1 - fly1)
-      const k = mob ? 1.75 : 1
+      const k = mob ? 2.0 : 1.22
       P0.set(6.6, 1.3, 9.6).multiplyScalar(k); T0.set(0, 1.7, 0)
       P1.set(8.6, 5.4 + (mob ? 2.2 : 0), 13).multiplyScalar(k); T1.set(0, 3.9 + (mob ? 0.9 : 0), 0)
       P0.lerp(P1, ex); T0.lerp(T1, ex)
       P0.y += (1 - intro) * -0.4
       // push the building off-centre to leave room for the copy / labels
       FWD.subVectors(T0, P0).normalize(); RIGHT.crossVectors(FWD, cam.up).normalize()
-      const off = (mob ? 0.9 : 1.55) * (0.4 + 0.6 * ex)
+      const off = (mob ? 0.7 : 0.9) * (0.4 + 0.6 * ex)
       P0.addScaledVector(RIGHT, off); T0.addScaledVector(RIGHT, off)
       // fly to the central window of the piano nobile, then through it
       const wy = BASES[2] + (WIN.y0 + (WIN.y1 - WIN.y0) * 0.42) * PLAN[2].h
@@ -480,7 +483,7 @@ function Scene({ progress, hud, lang, lite, drag }) {
   const M = useMaterials()
   const S = useMemo(() => ({ p: progress.get(), e: 0, dusk: 0, interior: false, glow: [0, 0, 0], rot: 0, focus: new THREE.Vector3(0, 2, 0), floorFocus: new THREE.Vector3(0, 2, 0), focusIdx: 3, bokeh: 2, t: 0, look: 0, camZ: 0 }), [])
   const { scene } = useThree()
-  useEffect(() => { scene.fog = new THREE.Fog('#e9cfa8', 16, 40); return () => { scene.fog = null } }, [scene])
+  useEffect(() => { scene.fog = new THREE.Fog('#e9cfa8', 30, 75); return () => { scene.fog = null } }, [scene])
   return (
     <>
       <Director progress={progress} S={S} drag={drag} />

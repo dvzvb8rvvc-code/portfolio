@@ -274,23 +274,21 @@ function Units() {
   )
 }
 
-/* ───────────── 3. FACTS: numerals cut out of the lake ───────────── */
+/* ───────────── 3. FACTS: one tight row of solid numerals ───────────── */
 function Fact({ f, i, p }) {
   const { t } = useLang()
-  const bx = useTransform(p, [0, 1], [`${10 + i * 22}%`, `${40 + i * 18}%`])
+  const y = useTransform(p, [0, 1], [30 + i * 18, -20 - i * 10])
   return (
-    <div className={`relative border-t border-[#151412]/15 pt-5 ${i % 2 ? 'md:mt-32' : ''}`}>
-      <div className="flex items-baseline justify-between text-[11px] font-semibold uppercase tracking-[.2em] text-[#151412]/55">
-        <span>{String(i + 1).padStart(2, '0')}</span><span>{t(f.l)}</span>
+    <motion.div style={{ y }} className="relative border-t border-[#151412]/20 pt-4">
+      <div className="flex items-baseline justify-between gap-3 text-[10.5px] font-semibold uppercase tracking-[.2em] text-[#151412]/60">
+        <span className="tabular-nums">{String(i + 1).padStart(2, '0')}</span><span className="text-right">{t(f.l)}</span>
       </div>
-      <Mask>
-        <motion.span
-          className={`${T.serif} block whitespace-nowrap bg-clip-text text-transparent text-[clamp(96px,17vw,280px)] leading-[.9] tracking-[-.04em]`}
-          style={{ backgroundImage: `url(${img(i % 2 ? 141 : 129)})`, backgroundSize: '260% auto', backgroundPositionX: bx, backgroundPositionY: '64%', WebkitBackgroundClip: 'text', WebkitTextStroke: '1px rgba(39,65,79,.22)' }}
-        >{f.v}</motion.span>
+      <Mask className="mt-3">
+        <span className={`${T.sans} block whitespace-nowrap text-[clamp(64px,7.6vw,132px)] font-black leading-[.88] tracking-[-.05em] text-[#151412] tabular-nums`}>
+          {f.v}{f.u && <span className={`${T.serif} ml-2 align-top text-[.34em] font-normal italic tracking-normal text-[#b06a35]`}>{f.u}</span>}
+        </span>
       </Mask>
-      {f.u && <div className={`${T.serif} -mt-2 text-[34px] italic text-[#27414f]`}>{f.u}</div>}
-    </div>
+    </motion.div>
   )
 }
 function Facts() {
@@ -299,12 +297,12 @@ function Facts() {
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   return (
     <div ref={ref} className="relative overflow-hidden bg-[#ece7df] text-[#151412]">
-      <div className="mx-auto max-w-[1440px] px-5 pb-24 md:px-10 md:pb-40">
-        <div className="mb-14 flex flex-wrap items-end justify-between gap-6">
+      <div className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-24">
+        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
           <Eyebrow className="text-[#151412]/70">{t({ en: 'In numbers', it: 'In cifre' })}</Eyebrow>
-          <p className={`${T.serif} max-w-[460px] text-[24px] italic leading-snug text-[#151412]/70`}>{t({ en: 'Two complexes, A and B — figures cut from the view itself.', it: 'Due complessi, A e B — cifre ritagliate dalla vista stessa.' })}</p>
+          <p className={`${T.serif} max-w-[460px] text-[24px] italic leading-snug text-[#151412]/70`}>{t({ en: 'Two complexes, A and B, on the hillside above Varenna.', it: 'Due complessi, A e B, sulla collina sopra Varenna.' })}</p>
         </div>
-        <div className="grid gap-x-16 gap-y-14 md:grid-cols-2">
+        <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {COMO.facts.map((f, i) => <Fact key={i} f={f} i={i} p={p} />)}
         </div>
       </div>
@@ -416,7 +414,7 @@ function Model() {
   const sports = t(COMO.sport).split(', ')
   return (
     <div className="relative bg-[#27414f] text-[#ece7df]">
-      <div className="mx-auto grid max-w-[1440px] grid-cols-12 gap-x-5 gap-y-16 px-5 py-24 md:px-10 md:py-36">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-12 gap-x-5 gap-y-14 px-5 py-20 md:px-10 md:py-28">
         <div className="col-span-12 lg:col-span-7">
           <Eyebrow className="text-[#c3a15e]">{t({ en: 'The idea', it: 'L’idea' })}</Eyebrow>
           <p className={`${T.serif} mt-8 text-[clamp(32px,3.9vw,60px)] leading-[1.04]`}>
@@ -472,10 +470,10 @@ function Views() {
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const big = useTransform(p, [0, 1], ['10%', '-30%'])
   return (
-    <div ref={ref} className="relative overflow-hidden bg-[#1d323d] py-24 text-[#ece7df] md:py-36">
+    <div ref={ref} className="relative overflow-hidden bg-[#1d323d] py-20 text-[#ece7df] md:py-28">
       <motion.div aria-hidden style={{ x: big }} className={`${T.serif} pointer-events-none absolute left-0 top-10 whitespace-nowrap text-[26vw] italic leading-none text-white/[.04]`}>Lago di Como · Lario</motion.div>
       <div className="relative mx-auto max-w-[1440px] px-5 md:px-10">
-        <div className="mb-16 grid grid-cols-12 gap-5">
+        <div className="mb-12 grid grid-cols-12 gap-5">
           <div className="col-span-12 md:col-span-6">
             <Eyebrow className="text-[#c3a15e]">{t({ en: 'The view', it: 'La vista' })}</Eyebrow>
             <h3 className={`${T.serif} mt-6 text-[clamp(44px,5.4vw,86px)] leading-[.92]`}>
@@ -484,7 +482,7 @@ function Views() {
             </h3>
           </div>
         </div>
-        <div className="flex flex-col gap-14 md:gap-24">
+        <div className="flex flex-col gap-12 md:gap-16">
           {VIEWS.map(([id, ar], i) => <ViewFrame key={id} id={id} ar={ar} i={i} p={p} />)}
         </div>
         <Sardegna />
@@ -497,7 +495,7 @@ function Sardegna() {
   const { t } = useLang()
   return (
     <motion.a href="#contact" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1, ease: EASE }}
-      className="group relative mt-24 grid grid-cols-12 items-center gap-5 overflow-hidden rounded-[26px] bg-[#ece7df] p-6 text-[#151412] md:mt-36 md:p-10">
+      className="group relative mt-16 grid grid-cols-12 items-center gap-5 overflow-hidden rounded-[26px] bg-[#ece7df] p-6 text-[#151412] md:mt-24 md:p-10">
       <svg aria-hidden viewBox="0 0 600 120" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-24 w-full opacity-60">
         {[0, 1, 2].map(k => (
           <motion.path key={k} d={`M0 ${60 + k * 18} Q 75 ${44 + k * 18} 150 ${60 + k * 18} T 300 ${60 + k * 18} T 450 ${60 + k * 18} T 600 ${60 + k * 18}`} fill="none" stroke={LAKE} strokeOpacity={.5 - k * .12} strokeWidth="1"

@@ -148,7 +148,7 @@ function Unit({ t, hi }) {
 export default function UnitScene({ t, hi, active, mobile }) {
   return (
     <Canvas frameloop={active ? 'always' : 'never'} dpr={[1, mobile ? 1.3 : 1.6]} shadows={false}
-      camera={{ position: mobile ? [9, 9, 13] : [9.5, 7.2, 11], fov: mobile ? 36 : 30, near: .5, far: 100 }}
+      camera={{ position: mobile ? [15, 13, 19] : [14, 10.5, 16.5], fov: mobile ? 34 : 30, near: .5, far: 100 }}
       gl={{ antialias: true, alpha: true }} style={{ position: 'absolute', inset: 0 }}>
       <Suspense fallback={null}>
         <Environment files="/portfolio/yts/hdr/studio_small_08.hdr" environmentIntensity={.9} />

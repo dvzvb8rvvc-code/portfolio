@@ -189,7 +189,7 @@ function Chapter({ progress, r, children, className = '' }) {
 
 function RoomCaption({ progress, k, id }) {
   const { t } = useLang()
-  const c = roomP(k), w = 0.03
+  const c = roomP(k), w = 0.017
   const r = k === 0 ? [TL.enter + 0.006, TL.enter + 0.02, c + w, c + w * 2] : [c - w * 2, c - w, c + w, c + w * 2]
   const o = useTransform(progress, r, [0, 1, 1, 0])
   const y = useTransform(progress, r, [60, 0, 0, -40])
