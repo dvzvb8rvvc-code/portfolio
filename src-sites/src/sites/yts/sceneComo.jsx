@@ -63,11 +63,12 @@ function makeShared() {
 
 /* ───────────── photo layer: depth displacement + grading + aerial haze ───────────── */
 const layerVS = /* glsl */`
-uniform sampler2D uDepth; uniform float uAmount; uniform vec3 uOff; uniform float uK;
+uniform sampler2D uDepth; uniform float uAmount; uniform vec3 uOff; uniform float uK; uniform float uExt;
 varying vec2 vUv; varying float vD; varying vec3 vL;
 void main(){
-  vUv = uv;
-  float d = texture2D(uDepth, uv).r;
+  // uExt > 0: geometry is taller than the photo; the bottom photo row is extended downwards
+  vUv = vec2(uv.x, max(0.0, uv.y * (1.0 + uExt) - uExt));
+  float d = texture2D(uDepth, vUv).r;
   vD = d;
   vec3 p = position + normal * d * uAmount;
   vec4 w = modelMatrix * vec4(p, 1.0);
@@ -96,12 +97,16 @@ function useTex(urls) {
   tex.forEach((t, i) => { if (i % 2 === 0) { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4 } })
   return tex
 }
-function Layer({ name, depthId, width, seg, position, rotation, amount = 0, hazeScale = 1, renderOrder = 0, depthTest = true, small, reg, sh, edgeX = .02, edgeY = 0, edgeTop = .0001, baseHaze = .5 }) {
+function Layer({ ext = 0, name, depthId, width, seg, position, rotation, amount = 0, hazeScale = 1, renderOrder = 0, depthTest = true, small, reg, sh, edgeX = .02, edgeY = 0, edgeTop = .0001, baseHaze = .5 }) {
   const [map, dmap] = useTex([asset(name, small), depthUrl(depthId)])
   const aspect = map.image.height / map.image.width
-  const geo = useMemo(() => new THREE.PlaneGeometry(width, width * aspect, seg, Math.max(2, Math.round(seg * aspect))), [width, aspect, seg])
+  const geo = useMemo(() => {
+    const h = width * aspect, g = new THREE.PlaneGeometry(width, h * (1 + ext), seg, Math.max(2, Math.round(seg * aspect * (1 + ext * .5))))
+    g.translate(0, -h * ext / 2, 0)
+    return g
+  }, [width, aspect, seg])
   const uniforms = useMemo(() => ({
-    ...sh, uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: amount }, uOpacity: { value: 1 }, uHazeScale: { value: hazeScale },
+    ...sh, uExt: { value: ext }, uMap: { value: map }, uDepth: { value: dmap }, uAmount: { value: amount }, uOpacity: { value: 1 }, uHazeScale: { value: hazeScale },
     uEdgeX: { value: edgeX }, uEdgeY: { value: edgeY }, uEdgeTop: { value: edgeTop }, uBaseHaze: { value: baseHaze },
   }), [map, dmap])
   const m = useRef()
@@ -182,14 +187,14 @@ void main(){
     if (uv.x > 0. && uv.x < 1. && uv.y > 0. && uv.y < 1.) {
       vec4 c = texture2D(uFar, uv);
       vec3 fc = mix(c.rgb * uTint * uExp, uHaze, uHazeAmt * 1.1);
-      refl = mix(refl, fc, c.a);
+      refl = mix(refl, fc, c.a * smoothstep(0., .05, uv.x) * smoothstep(0., .05, 1. - uv.x));
     }
   } else if (uHillOn > .01) {
     float tt = (${HILL.pos[2].toFixed(1)} - vL.z) / r.z; vec3 h = vL + r * tt;
     vec2 uv = vec2(.5 - (h.x - uHillR.x) / uHillR.z, (h.y - uHillR.y) / uHillR.w + .5);
     if (uv.x > 0. && uv.x < 1. && uv.y > 0. && uv.y < 1.) {
       vec4 c = texture2D(uHill, uv);
-      refl = mix(refl, c.rgb * uTint * uExp, c.a * uHillOn * smoothstep(0., .08, uv.x) * smoothstep(0., .08, 1. - uv.x));
+      refl = mix(refl, c.rgb * uTint * uExp, c.a * uHillOn * smoothstep(0., .16, uv.x) * smoothstep(0., .16, 1. - uv.x));
     }
   }
   float F = .18 + .82 * pow(1. - clamp(-d.y, 0., 1.), 5.);
@@ -249,8 +254,8 @@ function Mist({ sh }) {
 
 /* ───────────── camera film: [p, position, yaw, pitch, fov] (yaw 0 looks across the lake, −z) ───────────── */
 const ST_D = [
-  [0, [0, EYE, 2], 0, -.175, 50],
-  [.2, [0, 16.8, -7], -.02, -.15, 48],
+  [0, [0, EYE, 0], 0, -.13, 47],
+  [.2, [0, 16.8, -7], -.02, -.12, 46],
   [.42, [-4, 8.5, -34], .05, -.06, 46],
   [.6, [-9, 4.6, -62], .13, -.015, 46],
   [.76, [-7, 7, -60], PI * .6, .01, 46],
@@ -272,7 +277,7 @@ function sample(st, p, out) {
 /* DOM labels (owned by Como.jsx) are projected from these anchors: [anchor, windows] */
 const LBL = {
   varenna: { p: onPlane(1205, 575, KN), win: [[-.1, .2]] },
-  bellagio: { p: [far(560, 296)[0], far(560, 296)[1] + 3, ZF], win: [[.08, .5]] },
+  bellagio: { p: [far(560, 296)[0], far(560, 296)[1] + 3, ZF], win: [[.2, .5]] },
   triangle: { p: [far(1050, 300)[0], 6, ZF], win: [[.36, .64]] },
   home: { p: [-6, 26, 30], win: [[.9, 1.2]] },
 }
@@ -364,13 +369,13 @@ function World({ track, mobile }) {
     <group ref={g} position={OFF} scale={K} visible={false}>
       <Sky sh={sh} reg={reg} />
       <Suspense fallback={null}>
-        <Layer name="far129" depthId={129} width={FAR.w} seg={sm ? 120 : 240} position={FAR.pos} amount={14} reg={reg} sh={sh} renderOrder={0} edgeX={.012} baseHaze={.55} small={false} />
+        <Layer name="far129" depthId={129} width={FAR.w} seg={sm ? 120 : 240} position={FAR.pos} amount={14} reg={reg} sh={sh} renderOrder={0} edgeX={.05} baseHaze={.55} small={false} />
         <Layer name="band142" depthId={142} width={520} seg={sm ? 64 : 120} position={[-185, -3.5, -40]} rotation={[0, PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.06} baseHaze={.6} small />
         <Layer name="band141" depthId={141} width={520} seg={sm ? 64 : 120} position={[185, -6.4, -10]} rotation={[0, -PI / 2, 0]} amount={10} hazeScale={1.25} reg={reg} sh={sh} edgeX={.06} baseHaze={.6} small />
-        <Layer name="hill140" depthId={140} width={HILL.w} seg={sm ? 110 : 220} position={HILL.pos} rotation={[0, PI, 0]} amount={7} hazeScale={.3} reg={reg} sh={sh} renderOrder={1} edgeX={.07} baseHaze={.15} small={sm} />
-        <Layer name="near129" depthId={129} width={FAR.w * KN} seg={sm ? 110 : 220} position={onPlane(900, 350.5, KN)} amount={3.5} hazeScale={.4} renderOrder={10} depthTest={false} reg={reg} sh={sh} edgeX={.005} baseHaze={0} small={sm} />
+        <Layer name="hill140" depthId={140} width={HILL.w} seg={sm ? 110 : 220} position={HILL.pos} rotation={[0, PI, 0]} amount={7} hazeScale={.3} reg={reg} sh={sh} renderOrder={1} edgeX={.16} baseHaze={.15} small={sm} />
+        <Layer name="near129" depthId={129} width={FAR.w * KN} seg={sm ? 110 : 220} position={onPlane(900, 350.5, KN)} amount={3.5} hazeScale={.4} renderOrder={10} depthTest={false} reg={reg} sh={sh} edgeX={.005} ext={.3} baseHaze={0} small={sm} />
         <Ready reg={reg} />
-        <Layer name="fg129" depthId={129} width={FAR.w * KFG} seg={sm ? 96 : 200} position={onPlane(900, 350.5, KFG)} amount={2.2} hazeScale={.1} renderOrder={11} depthTest={false} reg={reg} sh={sh} edgeX={.004} baseHaze={0} small={sm} />
+        <Layer name="fg129" depthId={129} width={FAR.w * KFG} seg={sm ? 96 : 200} position={onPlane(900, 350.5, KFG)} amount={2.2} hazeScale={.1} renderOrder={11} depthTest={false} reg={reg} sh={sh} edgeX={.004} ext={.8} baseHaze={0} small={sm} />
       </Suspense>
       <Water sh={sh} reg={reg} />
       <Mist sh={sh} />
