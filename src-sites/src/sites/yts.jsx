@@ -8,6 +8,7 @@ import { T } from './yts/data'
 import Hero from './yts/Hero'
 import Studio from './yts/Studio'
 import Como from './yts/Como'
+import Models from './yts/Models'
 import Palazzo from './yts/Palazzo'
 import Works from './yts/Works'
 import Founder from './yts/Founder'
@@ -153,6 +154,7 @@ function App() {
         <main className="relative z-10">
           <Hero />
           <Studio />
+          <Models />
           <div id="residences">
             <Como />
             <Palazzo />

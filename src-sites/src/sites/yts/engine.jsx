@@ -28,6 +28,7 @@ const SCENES = {
   sketch: React.lazy(() => import('./sceneSketch')),
   como: React.lazy(() => import('./sceneComo')),
   palazzo: React.lazy(() => import('./scenePalazzo')),
+  models: React.lazy(() => import('./sceneModels')),
 }
 
 const StageCtx = createContext(null)
