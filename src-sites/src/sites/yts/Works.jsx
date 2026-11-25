@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useMotionValue } from 'framer-motion'
 import { useIsMobile } from '../../lib/kit'
 import { useLang } from './i18n'
 import { T, WORKS, img } from './data'
+import { ChapterFlood, CountUp, MaskLine, Stagger, useEnter } from './motion'
 
 /* v3 Works — pure DOM: filter tabs, a two-row draggable contact-sheet strip, lightbox, Israel row. No canvas. */
 const EASE = [0.16, 1, 0.3, 1]
@@ -220,7 +221,7 @@ function Lightbox({ list, index, setIndex }) {
 }
 
 /* kinetic headline: the word for the active filter lights up ochre, the others recede */
-function Headline({ filter }) {
+function Headline({ filter, p }) {
   const { t } = useLang()
   const words = ['sketch', 'render', 'build']
   return (
@@ -228,11 +229,9 @@ function Headline({ filter }) {
       {words.map((k, i) => {
         const on = filter === 'all' || filter === k
         return (
-          <span key={k} className="mr-[.22em] inline-block overflow-hidden pb-[.08em] align-bottom">
-            <motion.span className="inline-block" initial={{ y: '105%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 1.1, ease: EASE, delay: i * 0.1 }}>
-              <motion.span className={`inline-block ${i === 2 ? 'italic' : ''}`} animate={{ opacity: on ? 1 : 0.22, color: filter === k ? '#d9bf86' : '#efe8dc' }} transition={{ duration: 0.6, ease: EASE }}>{t(KIND[k].word)}</motion.span>
-            </motion.span>
-          </span>
+          <MaskLine key={k} p={p} i={i} step={.14} span={.62} from="left" inline className="mr-[.22em]">
+            <motion.span className={`inline-block ${i === 2 ? 'italic' : ''}`} animate={{ opacity: on ? 1 : 0.22, color: filter === k ? '#d9bf86' : '#efe8dc' }} transition={{ duration: 0.6, ease: EASE }}>{t(KIND[k].word)}</motion.span>
+          </MaskLine>
         )
       })}
     </h2>
@@ -243,17 +242,16 @@ function IsraelRow() {
   const { t } = useLang()
   return (
     <div className="mx-auto mt-16 max-w-[1440px] px-5 md:mt-20 md:px-10">
-      <div className="grid items-baseline gap-y-3 border-y border-[rgba(239,232,220,.12)] py-6 md:grid-cols-[180px_1fr_1fr_1fr] md:gap-x-8">
+      <Stagger dx={-18} dy={0} step={.09} itemClass="group flex items-baseline gap-3 md:block" className="grid items-baseline gap-y-3 border-y border-[rgba(239,232,220,.12)] py-6 md:grid-cols-[180px_1fr_1fr_1fr] md:gap-x-8">
         <div className="text-[11px] font-semibold uppercase tracking-[.28em] text-[#c3a15e]">{t({ en: 'Selected · Israel', it: 'Selezione · Israele' })}</div>
         {WORKS.israel.map((p, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: EASE, delay: i * 0.08 }}
-            className="group flex items-baseline gap-3 md:block">
+          <React.Fragment key={i}>
             <span className="text-[11px] font-semibold tabular-nums text-[#c3a15e] md:mr-2">{pad(i + 1)}</span>
             <span className={`${T.serif} text-[22px] leading-[1.1] md:text-[24px]`}>{t(p.t)}</span>
             <span className="ml-auto text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/50 md:ml-0 md:mt-1 md:block">{t(p.p)}</span>
-          </motion.div>
+          </React.Fragment>
         ))}
-      </div>
+      </Stagger>
     </div>
   )
 }
@@ -265,13 +263,21 @@ export default function Works() {
   const [index, setIndex] = useState(null)
   const list = useMemo(() => ITEMS.filter(it => filter === 'all' || it.kind === filter), [filter])
   const open = it => setIndex(list.findIndex(x => x.id === it.id))
+  const head = useRef(null)
+  const hp = useEnter(head, { start: 'start 0.95', end: 'start 0.45' })
   return (
-    <section id="works" className={`relative overflow-hidden bg-[#0b0a08] py-20 text-[#efe8dc] md:py-28 ${T.sans}`}>
-      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/60"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: '04 — Works', it: '04 — Progetti' })}</div>
+    <section id="works" className={`relative isolate overflow-x-clip bg-[#0b0a08] py-20 text-[#efe8dc] md:py-28 ${T.sans}`}>
+      {/* soft hand-off from the Palazzo chapter above: no edge, the page just deepens */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-40 h-40 bg-gradient-to-b from-[#0b0a08]/0 to-[#0b0a08]" />
+      <ChapterFlood tint="26,40,52" glow="150,170,185" at="78% 38%" strength={0.9} />
+      <div ref={head} className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <Stagger p={hp} dx={-16} dy={0} step={.08} className="flex items-center justify-between gap-4 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/60">
+          <span className="flex items-center gap-3"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: '04 — Works', it: '04 — Progetti' })}</span>
+          <span className="text-[#efe8dc]/45"><CountUp p={hp} a={.15} to={ITEMS.length} pad={3} className="text-[#c3a15e]" /> {t({ en: 'frames', it: 'immagini' })}</span>
+        </Stagger>
         <div className="mt-5 grid items-end gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-8"><Headline filter={filter} /></div>
-          <p className="max-w-[36ch] text-[15px] leading-relaxed text-[#efe8dc]/62 lg:col-span-4 lg:justify-self-end">{t({ en: 'A contact sheet of the practice — the hand sketch, the render, and the site where it became real.', it: 'Il provino dello studio — lo schizzo a mano, il render e il cantiere dove diventa realtà.' })}</p>
+          <div className="lg:col-span-8"><Headline filter={filter} p={hp} /></div>
+          <Stagger p={hp} start={.4} className="lg:col-span-4 lg:justify-self-end"><p className="max-w-[36ch] text-[15px] leading-relaxed text-[#efe8dc]/62">{t({ en: 'A contact sheet of the practice — the hand sketch, the render, and the site where it became real.', it: 'Il provino dello studio — lo schizzo a mano, il render e il cantiere dove diventa realtà.' })}</p></Stagger>
         </div>
         <div className="-mx-5 mt-8 overflow-x-auto px-5 [scrollbar-width:none] [mask-image:linear-gradient(90deg,#000_85%,transparent)] md:mx-0 md:mt-10 md:px-0 md:[mask-image:none] [&::-webkit-scrollbar]:hidden"><Tabs filter={filter} setFilter={setFilter} /></div>
       </div>

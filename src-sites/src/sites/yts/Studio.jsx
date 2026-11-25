@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useSpring } from 'framer-motion'
 import { useLite, useIsMobile } from '../../lib/kit'
 import { useLang } from './i18n'
 import { useStage, stage } from './engine'
 import { SLIDES } from './Hero'
 import { T, PERSON, SERVICES, PAIRS, img } from './data'
+import { ChapterFlood, Stagger, MaskLine, useEnter, SOFT } from './motion'
 
 /* V3 Studio: (a) statement + services (DOM only) · (b) "Sketch → Reality" film on the shared canvas (sceneSketch.jsx). */
 
@@ -128,18 +129,21 @@ function Intro() {
   const ref = useRef(), wrap = useRef()
   const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start .9', 'end .5'] })
   const { scrollYProgress: q } = useScroll({ target: wrap, offset: ['start 1', 'start .25'] })
-  const rule = useTransform(q, [0, 1], [0, 1])
+  const rule = useSpring(q, SOFT)
+  const factsRef = useRef()
+  const fp = useEnter(factsRef, { start: 'start 0.95', end: 'start 0.55' })
   const words = t(S.statement).split(' ')
   const facts = [[t(S.since), String(PERSON.studioSince)], [t(S.office), t(PERSON.office)], [t(S.where), t(S.whereV)], [t(S.tools), PERSON.tech.join(' · ')]]
   return (
-    <div ref={wrap} className="relative">
+    <div ref={wrap} className="relative isolate">
+      <ChapterFlood tint="70,52,26" at="22% 42%" strength={0.55} />
       <div className="mx-auto max-w-[1440px] px-5 pb-20 pt-16 md:px-10 md:pb-28 md:pt-24">
         {/* chapter rule: the gold hairline draws across as the film hands over */}
         <div className={`${CAP} flex items-center gap-4 text-[#efe8dc]/60`}>
-          <span className="tabular-nums text-[#c3a15e]">01</span>
-          <span>{t(S.label)}</span>
+          <MaskLine p={rule} from="left" span={.5} inline inner="tabular-nums text-[#c3a15e]">01</MaskLine>
+          <MaskLine p={rule} i={1} from="left" span={.5} inline>{t(S.label)}</MaskLine>
           <span className="relative h-px flex-1 overflow-hidden bg-[rgba(239,232,220,.08)]"><motion.span style={{ scaleX: rule }} className="absolute inset-0 origin-left bg-[#c3a15e]" /></span>
-          <span className="hidden tabular-nums md:inline">Est. {PERSON.studioSince}</span>
+          <span className="hidden md:inline">Est. {PERSON.studioSince}</span>
         </div>
         <div className="mt-10 grid gap-14 md:mt-14 lg:grid-cols-12 lg:gap-10">
           <div className="min-w-0 px-[10px] md:mx-auto md:w-full md:max-w-[560px] md:px-[14px] lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:max-w-none"><Card /></div>
@@ -147,14 +151,17 @@ function Intro() {
             <p ref={ref} key={lang} className={`${T.serif} text-[34px] leading-[1.06] tracking-[-.01em] text-[#efe8dc] sm:text-[44px] md:text-[52px] lg:text-[clamp(44px,4.1vw,68px)]`}>
               {words.map((w, i) => <Word key={i} w={w} i={i} n={words.length} p={p} />)}
             </p>
-            <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 border-t border-[rgba(239,232,220,.12)] pt-6 md:mt-14 lg:grid-cols-4">
-              {facts.map(([k, v]) => (
-                <div key={k}>
-                  <dt className={`${CAP} text-[#efe8dc]/45`}>{k}</dt>
-                  <dd className={`${T.sans} mt-2 text-[15px] font-medium tabular-nums text-[#efe8dc]`}>{v}</dd>
-                </div>
-              ))}
-            </dl>
+            <div ref={factsRef} className="relative mt-10 md:mt-14">
+              <span aria-hidden className="absolute inset-x-0 top-0 h-px bg-[rgba(239,232,220,.12)]"><motion.span style={{ scaleX: fp }} className="absolute inset-0 origin-left bg-[#c3a15e]/50" /></span>
+              <Stagger as="dl" p={fp} start={.12} step={.08} className="grid grid-cols-2 gap-x-6 gap-y-6 pt-6 lg:grid-cols-4">
+                {facts.map(([k, v], i) => (
+                  <React.Fragment key={k}>
+                    <dt className={`${CAP} text-[#efe8dc]/45`}>{k}</dt>
+                    <dd className={`${T.sans} mt-2 text-[15px] font-medium tabular-nums text-[#efe8dc]`}>{i === 0 ? <MaskLine p={fp} i={1} inline>{v}</MaskLine> : v}</dd>
+                  </React.Fragment>
+                ))}
+              </Stagger>
+            </div>
             <div className="mt-14 md:mt-20">
               <p className={`${CAP} mb-3 text-[#efe8dc]/55`}>{t(S.services)}</p>
               <ol className="border-b border-[rgba(239,232,220,.12)]">{SERVICES.map((s, i) => <Service key={s.k} s={s} i={i} />)}</ol>
@@ -203,8 +210,8 @@ function Film() {
             <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/62`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.filmLabel)}</p>
             <h2 className={`${T.serif} mt-3 text-[28px] leading-[1] max-[380px]:text-[25px] tracking-[-.015em] text-[#efe8dc] md:mt-6 md:text-[clamp(54px,5.6vw,96px)]`}>
               <motion.span className="block" initial="h" whileInView="s" viewport={{ once: true }}>
-                <span className="block overflow-hidden pb-[.08em]"><motion.span className="block" variants={{ h: { y: '105%' }, s: { y: 0, transition: { duration: 1.1, ease: E } } }}>{t(S.filmA)}</motion.span></span>
-                <span className="block overflow-hidden pb-[.08em]"><motion.span className="block italic text-[#d9bf86]" variants={{ h: { y: '105%' }, s: { y: 0, transition: { duration: 1.1, ease: E, delay: .1 } } }}>{t(S.filmB)}</motion.span></span>
+                <span className="block overflow-hidden pb-[.08em]"><motion.span className="block" variants={{ h: { x: '-102%' }, s: { x: 0, transition: { duration: 1.2, ease: E } } }}>{t(S.filmA)}</motion.span></span>
+                <span className="block overflow-hidden pb-[.08em]"><motion.span className="block italic text-[#d9bf86]" variants={{ h: { x: '-102%' }, s: { x: 0, transition: { duration: 1.2, ease: E, delay: .12 } } }}>{t(S.filmB)}</motion.span></span>
               </motion.span>
             </h2>
             <p className={`${T.sans} mt-5 hidden max-w-[36ch] text-[14.5px] leading-[1.55] text-[#efe8dc]/62 md:block`}>{t(S.filmNote)}</p>

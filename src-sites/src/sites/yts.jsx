@@ -105,7 +105,7 @@ function Nav() {
   const glass = solid && !open
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-[60] transition-[background-color,border-color,backdrop-filter] duration-700 ${glass ? 'border-b border-[rgba(239,232,220,.08)] bg-[#0b0a08]/70 backdrop-blur-xl backdrop-saturate-150' : 'border-b border-transparent'}`}>
+      <header className={`fixed inset-x-0 top-0 z-[60] transition-[background-color,border-color,backdrop-filter] duration-700 ${glass ? 'border-b border-[rgba(239,232,220,.08)] bg-[#0b0a08]/[.78] backdrop-blur-xl backdrop-saturate-150' : 'border-b border-transparent'}`}>
         <div className={`overflow-hidden transition-[max-height] duration-500 ${solid || open ? 'max-h-0' : 'max-h-16'}`}><Ribbon /></div>
         <div className={`mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 md:h-[72px] md:px-10 ${T.sans}`}>
           <a href="#top" onClick={() => { if (open) { window.__lenis?.start(); document.body.style.overflow = '' } setOpen(false) }} className="flex min-h-[44px] items-center gap-3 text-[#efe8dc]">

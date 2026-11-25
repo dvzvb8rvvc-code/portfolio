@@ -1,7 +1,8 @@
 import React, { useRef } from 'react'
-import { motion, useMotionValue, useScroll, useSpring, useTransform } from 'framer-motion'
+import { motion, useMotionValue, useScroll, useSpring, useTransform, useReducedMotion } from 'framer-motion'
 import { useLang } from './i18n'
 import { T, PERSON, COMPANIES, CLUB, img } from './data'
+import { ChapterFlood, CountUp, MaskLine, Stagger, useEnter, SOFT } from './motion'
 
 /* v3 Founder — pure DOM: portrait with CSS reveal + pointer tilt, timeline, ochre motto band, YTS Group, club line. */
 const EASE = [0.16, 1, 0.3, 1]
@@ -23,12 +24,8 @@ function Eyebrow({ children, className = '' }) {
   return <div className={`flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] ${className}`}><span className="h-px w-8 bg-[#c3a15e]" />{children}</div>
 }
 
-function Reveal({ children, delay = 0, className = '' }) {
-  return (
-    <span className={`block overflow-hidden pb-[.14em] -mb-[.08em] ${className}`}>
-      <motion.span className="block" initial={{ y: '105%' }} whileInView={{ y: 0 }} viewport={{ once: true, margin: '-8%' }} transition={{ duration: 1.1, ease: EASE, delay }}>{children}</motion.span>
-    </span>
-  )
+function Reveal({ children, delay = 0, className = '', p }) {
+  return <MaskLine p={p} i={delay * 10} from="left" className={`pb-[.14em] -mb-[.08em] ${className}`}>{children}</MaskLine>
 }
 
 function Portrait() {
@@ -70,19 +67,28 @@ function Portrait() {
   )
 }
 
+function TimelineItem({ p, i, children }) {
+  const k = useTransform(p, v => Math.min(1, Math.max(0, (v - .1 - i * .1) / .4)))
+  const y = useTransform(k, v => (1 - v) * 16)
+  if (useReducedMotion()) return <li className="relative">{children}</li>
+  return <motion.li style={{ opacity: k, y }} className="relative">{children}</motion.li>
+}
+
 function Timeline() {
   const { t } = useLang()
+  const ref = useRef(null)
+  const p = useEnter(ref, { start: 'start 0.98', end: 'start 0.6' })
   return (
-    <ol className="relative mt-10 grid grid-cols-3 gap-4 pt-7 md:gap-8">
-      <motion.span aria-hidden initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.6, ease: EASE }}
+    <ol ref={ref} className="relative mt-10 grid grid-cols-3 gap-4 pt-7 md:gap-8">
+      <motion.span aria-hidden style={{ scaleX: useReducedMotion() ? 1 : p }}
         className="absolute left-0 right-0 top-0 h-px origin-left bg-[rgba(239,232,220,.16)]" />
       {TIMELINE.map((r, i) => (
-        <motion.li key={r.y} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.9, ease: EASE, delay: 0.2 + i * 0.15 }} className="relative">
+        <TimelineItem key={r.y} p={p} i={i}>
           <span aria-hidden className="absolute -top-[31px] left-0 h-[7px] w-[7px] rounded-full bg-[#c3a15e]" />
-          <div className={`${T.serif} text-[34px] tabular-nums leading-none text-[#d9bf86] md:text-[46px]`}>{r.y}</div>
+          <div className={`${T.serif} text-[34px] tabular-nums leading-none text-[#d9bf86] md:text-[46px]`}><MaskLine p={p} i={1 + i} step={.1} span={.4}>{r.y}</MaskLine></div>
           <div className={`${T.serif} mt-2 text-[18px] leading-[1.1] md:text-[22px]`}>{r.a}</div>
           <div className="mt-1 text-[13px] leading-snug text-[#efe8dc]/55">{t(r.b)}</div>
-        </motion.li>
+        </TimelineItem>
       ))}
     </ol>
   )
@@ -94,14 +100,20 @@ function MottoBand() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
   const a = useTransform(scrollYProgress, [0, 1], ['2%', '-7%'])
   const b = useTransform(scrollYProgress, [0, 1], ['-2%', '7%'])
+  const sp = useSpring(scrollYProgress, SOFT)
+  const glow = useTransform(sp, [0.05, 0.4, 0.6, 0.95], [0, 1, 1, 0])
+  const wide = useTransform(sp, [0, 0.5, 1], [0.7, 1, 1.15])
   const [w1, ...rest] = t(PERSON.motto).split(' ')
   return (
-    <div ref={ref} className="relative overflow-hidden border-y border-[rgba(195,161,94,.22)] bg-[#3a2412] py-8 text-[#efe8dc] md:py-10">
-      <div className="flex flex-col items-center justify-center whitespace-nowrap text-[clamp(34px,10.5vw,64px)] leading-[.92] md:flex-row md:gap-[.4em] md:text-[7.2vw] 2xl:text-[112px]">
+    <div ref={ref} className="relative overflow-x-clip py-14 text-[#efe8dc] md:py-20">
+      <motion.div aria-hidden style={{ opacity: glow, scaleX: wide }} className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_50%,rgba(98,58,24,.95),rgba(58,36,18,.7)_45%,rgba(58,36,18,0)_78%)]" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-[12%] top-[18%] h-px bg-gradient-to-r from-transparent via-[#c3a15e]/30 to-transparent" />
+      <span aria-hidden className="pointer-events-none absolute inset-x-[12%] bottom-[18%] h-px bg-gradient-to-r from-transparent via-[#c3a15e]/30 to-transparent" />
+      <div className="relative flex flex-col items-center justify-center whitespace-nowrap text-[clamp(34px,10.5vw,64px)] leading-[.92] md:flex-row md:gap-[.4em] md:text-[7.2vw] 2xl:text-[112px]">
         <motion.span style={{ x: a }} className="font-black uppercase tracking-[-.04em] text-[#efe8dc]/90">{w1}</motion.span>
         <motion.span style={{ x: b }} className={`${T.serif} italic text-[#d9bf86]`}>{rest.join(' ')}.</motion.span>
       </div>
-      <div className="mx-auto mt-3 flex max-w-[1440px] justify-between px-5 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/55 md:px-10">
+      <div className="relative mx-auto mt-3 flex max-w-[1440px] justify-between px-5 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/55 md:px-10">
         <span>{t({ en: 'The studio motto', it: 'Il motto dello studio' })}</span><span>YTS</span>
       </div>
     </div>
@@ -127,7 +139,7 @@ function Group() {
               className="bg-[#14120f] p-6 md:p-7">
               <div className="flex items-baseline justify-between">
                 <span className="text-[11px] font-semibold uppercase tracking-[.26em] text-[#d9bf86]">{t(g.k)}</span>
-                <span className="text-[11px] tabular-nums text-[#efe8dc]/35">{pad(g.c.length)}</span>
+                <CountUp to={g.c.length} pad={2} className="text-[11px] text-[#efe8dc]/35" />
               </div>
               <div className="mt-1 text-[12px] text-[#efe8dc]/45">{t(g.d)}</div>
               <ul className="mt-5 space-y-2.5">
@@ -178,18 +190,23 @@ function Club() {
 
 export default function Founder() {
   const { t } = useLang()
+  const intro = useRef(null)
+  const ip = useEnter(intro, { start: 'start 0.95', end: 'start 0.42' })
   return (
-    <section id="founder" className={`relative overflow-hidden border-t border-[rgba(239,232,220,.08)] bg-[#0b0a08] pb-20 text-[#efe8dc] md:pb-28 ${T.sans}`}>
+    <section id="founder" className={`relative isolate overflow-x-clip bg-[#0b0a08] pb-20 text-[#efe8dc] md:pb-28 ${T.sans}`}>
+      <ChapterFlood tint="62,38,20" at="30% 40%" strength={0.85} />
       <div className="mx-auto grid max-w-[1440px] items-center gap-14 px-5 py-20 md:px-10 md:py-28 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-5"><Portrait /></div>
-        <div className="lg:col-span-6 lg:col-start-7">
-          <Eyebrow className="text-[#c3a15e]">{t({ en: '05 — Founder', it: '05 — Fondatore' })}</Eyebrow>
+        <div ref={intro} className="lg:col-span-6 lg:col-start-7">
+          <Stagger p={ip} dx={-16} dy={0}><Eyebrow className="text-[#c3a15e]">{t({ en: '05 — Founder', it: '05 — Fondatore' })}</Eyebrow></Stagger>
           <h2 className={`${T.serif} mt-5 text-[17vw] leading-[.86] tracking-[-.02em] md:text-[8vw] 2xl:text-[116px]`}>
-            <Reveal>Yehiel</Reveal>
-            <Reveal delay={0.1}><em className="text-[#d9bf86]">Tsubery</em></Reveal>
+            <Reveal p={ip}>Yehiel</Reveal>
+            <Reveal p={ip} delay={0.14}><em className="text-[#d9bf86]">Tsubery</em></Reveal>
           </h2>
+          <Stagger p={ip} start={.42} step={.08}>
           <div className="mt-4 text-[12px] font-semibold uppercase tracking-[.22em] text-[#efe8dc]/60">{t(PERSON.role)}</div>
           <p className="mt-6 max-w-[46ch] text-[16px] leading-relaxed text-[#efe8dc]/75">{t({ en: 'Trained in Milan and at the Technion, he has led his own studio in Ramat Gan since 2012 — commercial, public and residential work — and, through YTS Group, develops residences in Italy.', it: 'Formato a Milano e al Technion, dal 2012 guida il proprio studio a Ramat Gan — progetti commerciali, pubblici e residenziali — e, con YTS Group, sviluppa residenze in Italia.' })}</p>
+          </Stagger>
           <Timeline />
           <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-[rgba(239,232,220,.12)] pt-6">
             <div>

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PORTFOLIO } from '../../lib/kit'
 import { useLang } from './i18n'
 import { T, COMPANIES, img } from './data'
+import { ChapterFlood, MaskLine, Stagger, useEnter } from './motion'
 
 const EASE = [0.16, 1, 0.3, 1]
 const INTERESTS = [
@@ -160,20 +161,24 @@ function Backdrop() {
 export default function Contact() {
   const { t } = useLang()
   const head = [t({ en: 'A private', it: 'Una conversazione' }), t({ en: 'conversation.', it: 'privata.' })]
+  const col = useRef(null)
+  const p = useEnter(col, { start: 'start 0.95', end: 'start 0.45' })
   return (
-    <section id="contact" className={`relative bg-[#10202a] text-[#efe8dc] ${T.sans}`}>
-      <div className="relative overflow-hidden">
+    <section id="contact" className={`relative isolate bg-[#0b0a08] text-[#efe8dc] ${T.sans}`}>
+      <div className="relative overflow-clip">
         <Backdrop />
+        <ChapterFlood tint="16,40,54" glow="217,191,134" at="70% 55%" strength={0.7} layer="" className="mix-blend-screen" />
+        {/* the founder chapter melts into the lake at dusk — no edge */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#0b0a08] to-[#0b0a08]/0 md:h-64" />
         <div className="relative mx-auto grid max-w-[1440px] gap-10 px-5 py-20 md:px-10 md:py-24 lg:grid-cols-12 lg:gap-10">
-          <div className="flex flex-col lg:col-span-5">
-            <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/60"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: '06 — Private inquiry', it: '06 — Richiesta privata' })}</div>
+          <div ref={col} className="flex flex-col lg:col-span-5">
+            <Stagger p={p} dx={-16} dy={0}><div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/60"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: '06 — Private inquiry', it: '06 — Richiesta privata' })}</div></Stagger>
             <h2 className={`${T.serif} mt-5 text-[12.5vw] leading-[.86] tracking-[-.02em] lg:text-[6vw] 2xl:text-[88px]`}>
               {head.map((w, i) => (
-                <span key={i} className="block overflow-hidden pb-[.06em]">
-                  <motion.span className={`inline-block ${i ? 'italic text-[#d9bf86]' : ''}`} initial={{ y: '105%' }} whileInView={{ y: 0 }} viewport={{ once: true }} transition={{ duration: 1.1, ease: EASE, delay: i * 0.12 }}>{w}</motion.span>
-                </span>
+                <MaskLine key={i} p={p} i={i + .6} step={.14} from="left" className="pb-[.06em]" inner={i ? 'italic text-[#d9bf86]' : ''}>{w}</MaskLine>
               ))}
             </h2>
+            <Stagger p={p} start={.45} step={.08}>
             <p className="mt-6 max-w-[38ch] text-[15.5px] leading-relaxed text-[#efe8dc]/75">{t({ en: 'About a residence on Lake Como or in Volterra, a building of your own, or an invitation to the club — tell the studio a little, in the language you prefer.', it: 'Per una residenza sul Lago di Como o a Volterra, un edificio tutto vostro o un invito al club — raccontate qualcosa allo studio, nella lingua che preferite.' })}</p>
             <div className="mt-8 border-t border-[rgba(239,232,220,.14)] pt-5">
               <dl className="grid grid-cols-2 gap-6">
@@ -191,6 +196,7 @@ export default function Contact() {
               <iframe title={t({ en: 'Map — Ramat Gan', it: 'Mappa — Ramat Gan' })} loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="h-full w-full border-0 opacity-80 [filter:grayscale(1)_invert(.9)_contrast(.9)]"
                 src="https://maps.google.com/maps?q=Ramat%20Gan%2C%20Israel&z=12&output=embed" />
             </div>
+            </Stagger>
             <a href="https://yehiel-tsubery.com" target="_blank" rel="noopener" className="group mt-6 inline-flex min-h-[44px] items-center gap-3 self-start text-[15px] font-semibold">
               <span className="border-b border-[#c3a15e]/50 pb-0.5 transition-colors group-hover:border-[#c3a15e]">yehiel-tsubery.com</span>
               <span className="transition-transform duration-500 group-hover:translate-x-1">↗</span>
