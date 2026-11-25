@@ -90,7 +90,7 @@ export function ChapterFlood({ tint = '58,36,18', at = '30% 45%', glow = '195,16
   const mask = `linear-gradient(180deg,transparent 0,#000 ${fade},#000 calc(100% - ${fade}),transparent 100%)`
   return (
     <div ref={ref} aria-hidden className={`pointer-events-none absolute inset-0 ${layer} ${className}`} style={{ WebkitMaskImage: mask, maskImage: mask }}>
-      <motion.div className="sticky top-0 h-[100lvh] w-full will-change-[opacity]" style={{ opacity: reduce ? still : o }}>
+      <motion.div className="sticky top-0 h-[100lvh] w-full overflow-x-clip will-change-[opacity]" style={{ opacity: reduce ? still : o }}>
         <motion.div className="absolute inset-[-12%] will-change-transform" style={{
           scale: reduce ? 1 : sc,
           background: `radial-gradient(70% 62% at ${at}, rgba(${tint},.95) 0%, rgba(${tint},.55) 38%, rgba(${tint},0) 72%), radial-gradient(38% 30% at ${at}, rgba(${glow},.10), transparent 70%)`,

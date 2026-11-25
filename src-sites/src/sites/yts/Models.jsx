@@ -50,8 +50,8 @@ const PROJECTS = [
     key: 'tower', short: { en: 'Tower', it: 'Torre' }, tag: { en: 'Studio work · Render', it: 'Lavoro dello studio · Render' },
     title: [{ en: 'Stacked', it: 'Volumi' }, { en: 'volumes', it: 'sovrapposti' }], place: { en: 'Tower · concept render', it: 'Torre · render di concept' },
     facts: [
-      { v: 'Concept', l: { en: 'Early design that looks at the big picture', it: 'Progettazione iniziale con uno sguardo d’insieme' } },
-      { v: 'BIM', l: { en: 'Designed in BIM, reviewed in VR and AR', it: 'Progettato in BIM, verificato in VR e AR' } },
+      { v: 'Concept', l: { en: 'Studio service — early design that looks at the big picture', it: 'Servizio dello studio — progettazione iniziale con uno sguardo d’insieme' } },
+      { v: 'BIM', l: { en: 'The studio designs in BIM and reviews in VR and AR', it: 'Lo studio progetta in BIM e verifica in VR e AR' } },
     ],
     img: 40, cap: { en: 'Render · studio work', it: 'Render · lavoro dello studio' },
   },
@@ -59,8 +59,8 @@ const PROJECTS = [
     key: 'curve', short: { en: 'Curve', it: 'Curva' }, tag: { en: 'Studio work · Render', it: 'Lavoro dello studio · Render' },
     title: [{ en: 'The curved', it: 'La facciata' }, { en: 'facade', it: 'curva' }], place: { en: 'Curved balconies · render', it: 'Balconi curvi · render' },
     facts: [
-      { v: { en: 'Detail', it: 'Dettaglio' }, l: { en: 'Working drawings with careful control of cost and programme', it: 'Esecutivi con attento controllo di costi e tempi' } },
-      { v: { en: 'Interior', it: 'Interni' }, l: { en: 'Interiors designed together with the building', it: 'Interni progettati insieme all’edificio' } },
+      { v: { en: 'Detail', it: 'Dettaglio' }, l: { en: 'Studio service — working drawings with careful control of cost and programme', it: 'Servizio dello studio — esecutivi con attento controllo di costi e tempi' } },
+      { v: { en: 'Interior', it: 'Interni' }, l: { en: 'Studio service — interiors designed together with the building', it: 'Servizio dello studio — interni progettati insieme all’edificio' } },
     ],
     img: 78, cap: { en: 'Render · studio work', it: 'Render · lavoro dello studio' },
   },
@@ -140,7 +140,7 @@ function Chapter({ c, i, pr }) {
         <motion.div style={{ scale: cs }} className="overflow-hidden rounded-[6px] p-[3px] ring-1 ring-[#efe8dc]/30 [background:rgba(11,10,8,.25)] md:p-[5px]">
           <img src={img(pr.img, true)} alt={t(pr.cap)} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-[3px] object-cover yts-grade" />
         </motion.div>
-        <figcaption className={`${T.sans} mt-2 text-[10.5px] font-semibold uppercase leading-snug tracking-[.14em] text-[#efe8dc]/80 md:text-[11px]`}>{t(pr.cap)}</figcaption>
+        <figcaption className={`${T.sans} mt-2 hidden text-[10.5px] font-semibold uppercase leading-snug tracking-[.14em] text-[#efe8dc]/80 md:block md:text-[11px]`}>{t(pr.cap)}</figcaption>
       </motion.figure>
     </>
   )
@@ -173,8 +173,8 @@ function Finale({ fin }) {
   const o = useTransform(fin, [.35, .8], [0, 1])
   const y = useTransform(fin, [.35, 1], [40, 0])
   return (
-    <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-0 top-[84px] z-20 text-center md:top-[104px]">
-      <p className={`${T.serif} text-[clamp(36px,10vw,44px)] leading-[.95] text-[#efe8dc] md:text-[clamp(52px,5vw,84px)]`}>{t(S.fin1)} <span className="italic text-[#d9bd84]">{t(S.fin2)}</span></p>
+    <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-0 top-[84px] z-20 px-5 text-center md:top-[104px]">
+      <p className={`${T.serif} text-[clamp(32px,9vw,44px)] leading-[.95] text-[#efe8dc] md:text-[clamp(52px,5vw,84px)]`}>{t(S.fin1)} <span className="italic text-[#d9bd84]">{t(S.fin2)}</span></p>
       <p className={`${T.sans} mt-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#efe8dc]/60 md:mt-4 md:text-[12px]`}>{t(S.finNote)} ↓</p>
     </motion.div>
   )
