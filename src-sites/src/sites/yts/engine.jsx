@@ -24,7 +24,6 @@ import * as THREE from 'three'
 ==================================================================== */
 
 const SCENES = {
-  hero: React.lazy(() => import('./sceneHero')),
   sketch: React.lazy(() => import('./sceneSketch')),
   como: React.lazy(() => import('./sceneComo')),
   palazzo: React.lazy(() => import('./scenePalazzo')),
@@ -80,7 +79,7 @@ function Idle({ setVisible }) {
 
 export function Stage({ lite }) {
   const [visible, setVisible] = useState(true)
-  if (lite) return null
+  if (lite || (typeof location !== 'undefined' && /[?&]nogl\b/.test(location.search))) return null
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-500" style={{ opacity: visible ? 1 : 0 }}>
       <Canvas

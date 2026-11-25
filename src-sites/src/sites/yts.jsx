@@ -14,6 +14,7 @@ import Works from './yts/Works'
 import Founder from './yts/Founder'
 import Contact from './yts/Contact'
 import { Stage } from './yts/engine'
+import { useFilmStepper } from './yts/stepper'
 import { useLite } from '../lib/kit'
 
 /* Shell: owns nav, language switch, ribbon, smooth scroll, global dark-luxury palette + grain.
@@ -145,6 +146,7 @@ function Ribbon() {
 function App() {
   useSmooth()
   const lite = useLite()
+  useFilmStepper(!lite)
   return (
     <MotionConfig reducedMotion="user">
       <div id="top" className={`min-h-screen bg-[#0b0a08] text-[#efe8dc] ${T.sans}`} style={{ '--sel': '#c3a15e', '--selc': '#0b0a08' }}>

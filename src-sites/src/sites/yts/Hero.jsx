@@ -1,34 +1,34 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion'
-import { useLite } from '../../lib/kit'
+import { motion, AnimatePresence, useScroll, useTransform, useSpring, useReducedMotion, useMotionTemplate } from 'framer-motion'
 import { useLang } from './i18n'
-import { useStage, stage } from './engine'
-import { T, PERSON, img } from './data'
+import { useStage } from './engine'
+import { T, PERSON } from './data'
 
-/* HERO v4 — DOM layer. The showreel itself (4 renders as real depth, liquid transitions) lives in
-   sceneHero.jsx on the shared canvas; this file carries type, counter, CTAs and the scroll beat.
-   The two sides talk through stage.hero = { i, k, ready, go } (read in a rAF loop, no per-frame state). */
+/* HERO v7 — pure DOM/CSS cinema (no WebGL, nothing layered twice).
+   One image visible at a time; the next one is revealed by a slow curtain wipe; every slide has its
+   own slow push-in. Scroll beats are played by the film stepper (stepper.jsx, STEPS.hero = 3):
+   1) title leaves, image pushes in   2) frame recedes into a gold-framed window   3) hand-off to Studio. */
 
-const E = [0.22, 1, 0.36, 1] // long, quiet ease-out
+const E = [0.22, 1, 0.36, 1]
 const GOLD = '#c3a15e'
+const XL = id => `/portfolio/yts/img/${id}-xl.webp`
+const SM = id => `/portfolio/yts/img/${id}.webp`
 
-// keep in sync with IDS in sceneHero.jsx
 export const SLIDES = [
-  { id: 5, w: 1440, h: 1800, pos: '47% 44%', l: { en: 'Il Giardino di Teodolinda · Lake Como', it: 'Il Giardino di Teodolinda · Lago di Como' } },
-  { id: 103, w: 1800, h: 1519, pos: '79% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
-  { id: 111, w: 1800, h: 1125, pos: '57% 50%', l: { en: 'Residential · Studio work', it: 'Residenziale · Progetto dello studio' } },
-  { id: 84, w: 1800, h: 900, pos: '55% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
+  { id: 5, w: 2048, h: 2560, pos: '47% 44%', l: { en: 'Il Giardino di Teodolinda · Lake Como', it: 'Il Giardino di Teodolinda · Lago di Como' } },
+  { id: 103, w: 2560, h: 2160, pos: '72% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
+  { id: 111, w: 2500, h: 1563, pos: '57% 50%', l: { en: 'Residential · Studio work', it: 'Residenziale · Progetto dello studio' } },
+  { id: 84, w: 2560, h: 1280, pos: '55% 50%', l: { en: 'Studio work · Render', it: 'Progetto dello studio · Render' } },
 ]
+const HOLD = 6.5 // seconds per slide
+const WIPE = 1.8 // curtain duration
 
 const S = {
   top: { en: 'YTS Architects · Architecture & development · Israel — Italy', it: 'YTS Architects · Architettura e sviluppo · Israele — Italia' },
-  topS: { en: 'Israel — Italy', it: 'Israele — Italia' },
   explore: { en: 'Explore residences', it: 'Scopri le residenze' },
   scroll: { en: 'Scroll', it: 'Scorri' },
   reel: { en: 'Selected work', it: 'Progetti scelti' },
-  show: { en: 'Show project', it: 'Mostra progetto' },
 }
-
 
 function Rise({ children, d = 0, className = '' }) {
   return (
@@ -37,196 +37,149 @@ function Rise({ children, d = 0, className = '' }) {
     </span>
   )
 }
+const Fade = ({ children, d = 0, className = '' }) => (
+  <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.6, ease: E, delay: d }} className={className}>{children}</motion.div>
+)
 
-function Fade({ children, d = 0, className = '' }) {
-  return <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.6, ease: E, delay: d }} className={className}>{children}</motion.div>
+/* one slide: curtain reveal (clip-path from the bottom) + its own slow push-in */
+function Slide({ s, first, z }) {
+  return (
+    <motion.div className="absolute inset-0 will-change-[clip-path]" style={{ zIndex: z }}
+      initial={first ? false : { clipPath: 'inset(100% 0% 0% 0%)' }}
+      animate={{ clipPath: 'inset(0% 0% 0% 0%)' }}
+      exit={{ opacity: 1, transition: { duration: WIPE } }}
+      transition={{ duration: WIPE, ease: [0.76, 0, 0.24, 1] }}>
+      <motion.img src={XL(s.id)} srcSet={`${SM(s.id)} 1800w, ${XL(s.id)} 2560w`} sizes="100vw" alt="" decoding="async" draggable={false}
+        className="yts-grade absolute inset-0 h-full w-full select-none object-cover"
+        style={{ objectPosition: s.pos }}
+        initial={{ scale: first ? 1.06 : 1.14 }} animate={{ scale: 1.0 }} transition={{ duration: HOLD + WIPE + 1, ease: 'linear' }} />
+    </motion.div>
+  )
 }
 
-function Title({ p }) {
+function Counter({ i, go }) {
   const { t } = useLang()
-  const o = useTransform(p, [0, .4], [1, 0])
-  const sc = useTransform(p, [0, .5], [1, .93])
-  const y = useTransform(p, [0, .5], [0, -46])
-  const blur = useTransform(p, [0, .42], ['blur(0px)', 'blur(14px)'])
-  const ev = useTransform(p, v => (v > .3 ? 'none' : 'auto'))
   return (
-    <motion.div style={{ opacity: o, scale: sc, y, filter: blur, pointerEvents: ev }} className="absolute inset-x-0 bottom-0 z-20 origin-bottom-left">
-      <div className="mx-auto max-w-[1440px] px-6 pb-[max(36px,calc(env(safe-area-inset-bottom)+24px))] md:px-12 md:pb-16">
-        <Fade d={.2} className={`${T.sans} mb-5 flex items-center gap-4 text-[11px] font-medium uppercase tracking-[.26em] text-[#f3ede3]/75 md:mb-7 md:tracking-[.4em] md:tracking-[.4em]`}>
-          <span className="h-px w-10 bg-[#c3a15e]" />{t(PERSON.motto)}
-        </Fade>
-        <h1 className={`${T.serif} text-[#f6f1e8] text-[clamp(64px,19vw,96px)] leading-[.86] tracking-[-.02em] md:text-[clamp(96px,11.4vw,200px)]`}>
-          <Rise d={.15}>Yehiel</Rise>
-          <Rise d={.3} className="italic text-[#e9dcc0] md:pl-[.9em]">Tsubery</Rise>
-        </h1>
-        <Fade d={1.1} className="mt-8 flex flex-wrap items-center gap-3 md:mt-11 md:gap-4">
-          <a href="#como" className={`${T.sans} group inline-flex h-12 items-center gap-3 rounded-full bg-[#f3ede3] px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#151412] transition-colors duration-500 hover:bg-[#c3a15e] md:h-[52px] md:px-7`}>
-            {t(S.explore)} <span aria-hidden className="transition-transform duration-500 group-hover:translate-x-1">→</span>
-          </a>
-          <a href="#contact" className={`${T.sans} inline-flex h-12 items-center rounded-full border border-[#f3ede3]/30 px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#f3ede3] backdrop-blur-[2px] transition-colors duration-500 hover:border-[#c3a15e] hover:text-[#e6c88e] md:h-[52px] md:px-7`}>{t('cta.inquire')}</a>
-        </Fade>
+    <div className={`${T.sans} pointer-events-auto flex items-center gap-4 text-[11px] font-medium uppercase tracking-[.3em] text-[#f3ede3]/70`}>
+      <span className="max-md:hidden">{t(S.reel)}</span>
+      <span className="tabular-nums tracking-[.15em] text-[#f3ede3]"><span className="text-[#c3a15e]">0{i + 1}</span> / 0{SLIDES.length}</span>
+      <div className="flex gap-2">
+        {SLIDES.map((s, k) => (
+          <button key={s.id} onClick={() => go(k)} aria-label={`${k + 1}`} className="group relative h-11 w-8">
+            <span className="absolute inset-x-0 top-1/2 h-px bg-[#f3ede3]/25" />
+            {k === i && <motion.span key={i} className="absolute left-0 top-1/2 h-px w-full origin-left bg-[#c3a15e]" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: HOLD, ease: 'linear' }} />}
+          </button>
+        ))}
       </div>
-    </motion.div>
-  )
-}
-
-function TopLine({ p }) {
-  const { t } = useLang()
-  const o = useTransform(p, [0, .25], [1, 0])
-  return (
-    <motion.div style={{ opacity: o }} className="pointer-events-none absolute inset-x-0 top-[76px] z-20 max-md:hidden md:top-[128px]">
-      <Fade d={.5} className={`${T.sans} mx-auto flex max-w-[1440px] items-center gap-4 px-6 text-[11px] font-medium uppercase tracking-[.32em] text-[#f3ede3]/75 md:px-12 md:text-[11px] md:tracking-[.38em]`}>
-        <span className="hidden md:inline">{t(S.top)}</span>
-        <span className="md:hidden">YTS Architects · {t(S.topS)}</span>
-      </Fade>
-    </motion.div>
-  )
-}
-
-function Tick({ n, active, bar, onGo, label }) {
-  return (
-    <button onClick={() => onGo(n)} aria-label={`${label} ${n + 1}`} aria-current={active ? 'true' : undefined} className="group relative h-11 flex-1 pointer-events-auto md:h-6">
-      <span className="absolute inset-x-0 top-1/2 h-px bg-[#f3ede3]/20 transition-colors duration-500 group-hover:bg-[#f3ede3]/45" />
-      {active && <span ref={bar} className="absolute left-0 right-0 top-1/2 h-px origin-left bg-[#c3a15e]" style={{ transform: 'scaleX(0)' }} />}
-    </button>
-  )
-}
-
-function Reel({ p, i, bar }) {
-  const { t } = useLang()
-  const o = useTransform(p, [0, .3], [1, 0])
-  const go = n => { if (stage.hero) stage.hero.go = n }
-  return (
-    <motion.div style={{ opacity: o }} className="pointer-events-none absolute right-6 top-[122px] z-30 w-[150px] md:bottom-16 md:right-12 md:top-auto md:w-[280px]">
-      <Fade d={1.4} className="max-md:rounded-[4px] max-md:border max-md:border-[rgba(239,232,220,.12)] max-md:bg-[#0b0a08]/45 max-md:px-3 max-md:pb-1 max-md:pt-2 max-md:backdrop-blur-md">
-        <div className={`${T.sans} flex items-baseline justify-between text-[#f3ede3]`}>
-          <span className="text-[11px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/60 max-md:hidden">{t(S.reel)}</span>
-          <span className="tabular-nums tracking-[.2em]">
-            <span className={`${T.serif} text-[22px] italic text-[#e9dcc0] md:text-[26px]`}>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span key={i} className="inline-block" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: .7, ease: E }}>0{i + 1}</motion.span>
-              </AnimatePresence>
-            </span>
-            <span className="ml-2 text-[11px] text-[#f3ede3]/50">/ 0{SLIDES.length}</span>
-          </span>
-        </div>
-        <div className="mt-1 flex gap-2 md:mt-2">
-          {SLIDES.map((_, n) => <Tick key={n} n={n} active={n === i} bar={bar} onGo={go} label={t(S.show)} />)}
-        </div>
-        <div className="relative mt-2 h-[30px] overflow-hidden md:h-4">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.p key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: .9, ease: E }}
-              className={`${T.sans} max-md:hidden text-right text-[11px] font-medium uppercase leading-[1.5] tracking-[.24em] text-[#f3ede3]/70 md:text-[11px] md:tracking-[.3em]`}>
-              {t(SLIDES[i].l)}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-      </Fade>
-    </motion.div>
-  )
-}
-
-function ScrollCue({ p }) {
-  const { t } = useLang()
-  const o = useTransform(p, [0, .12], [1, 0])
-  return (
-    <motion.div style={{ opacity: o }} className="pointer-events-none absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-3 md:flex">
-      <Fade d={2}>
-        <div className="flex flex-col items-center gap-3">
-          <span className={`${T.sans} text-[11px] font-medium uppercase tracking-[.42em] text-[#f3ede3]/60`}>{t(S.scroll)}</span>
-          <span className="relative block h-10 w-px overflow-hidden bg-[#f3ede3]/15">
-            <motion.span className="absolute left-0 top-0 block h-4 w-px bg-[#c3a15e]" animate={{ y: [-16, 40] }} transition={{ duration: 2.4, ease: [0.65, 0, 0.35, 1], repeat: Infinity, repeatDelay: .4 }} />
-          </span>
-        </div>
-      </Fade>
-    </motion.div>
-  )
-}
-
-function Film() {
-  const { t } = useLang()
-  const ref = useRef()
-  useStage('hero', ref)
-  const { scrollYProgress: p } = useScroll({ target: ref, offset: ['start start', 'end end'] })
-  const [i, setI] = useState(0)
-  const [ready, setReady] = useState(false)
-  const bar = useRef()
-  const iR = useRef(0)
-  useEffect(() => {
-    let raf, done = false, rbV = -1, rbS = -1
-    const loop = () => {
-      const h = stage.hero
-      if (h && window.scrollY < window.innerHeight * 2) {
-        if (h.ready && !done) { done = true; setReady(true) }
-        if (h.i !== iR.current) { iR.current = h.i; setI(h.i) }
-        if (bar.current) bar.current.style.transform = `scaleX(${h.k.toFixed(4)})`
-      }
-      // demo ribbon offset above the film (fonts can re-wrap it) + floor mask that follows it until the film pins
-      if (ref.current && window.scrollY < window.innerHeight * 2) {
-        const top = ref.current.getBoundingClientRect().top, r = Math.max(0, Math.round(top + window.scrollY)), v = Math.max(0, Math.round(top))
-        if (r !== rbV) { rbV = r; ref.current.style.setProperty('--rb', r + 'px') }
-        if (v !== rbS) { rbS = v; ref.current.style.setProperty('--rbs', v + 'px') }
-      }
-      raf = requestAnimationFrame(loop)
-    }
-    raf = requestAnimationFrame(loop)
-    return () => cancelAnimationFrame(raf)
-  }, [])
-  // V5: no paper. The film itself recedes into the Studio card (sceneHero.jsx); the DOM veils just release.
-  const veil = useTransform(p, [.45, .95], [1, 0])
-  const s0 = SLIDES[0]
-  return (
-    <section id="hero" ref={ref} className="relative h-[160vh]">
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {/* instant first frame: poster of slide 01 (same framing), dissolves into the live depth film */}
-        <motion.div initial={false} animate={{ opacity: ready ? 0 : 1 }} transition={{ duration: 1.6, ease: E, delay: ready ? .2 : 0 }} className="absolute inset-0 bg-[#0c0b09]">
-          <img src={img(s0.id)} alt={t(s0.l)} width={s0.w} height={s0.h} decoding="async" fetchpriority="high"
-            className="h-full w-full scale-[1.1] object-cover [filter:saturate(.84)_brightness(.86)]" style={{ objectPosition: s0.pos }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/35" />
-        </motion.div>
-        <div className="absolute inset-x-0 top-0 h-[calc(100%-2*var(--rb,0px))]">
-          <TopLine p={p} />
-          <Title p={p} />
-          <Reel p={p} i={i} bar={bar} />
-          <ScrollCue p={p} />
-        </div>
-        {/* deep cinematic floor; also masks a Chrome compositing gap under the canvas while the demo ribbon is still in view */}
-        <motion.div style={{ opacity: veil }} className="pointer-events-none absolute inset-0 z-[5]">
-          <div className="absolute inset-x-0 bottom-0 h-[22vh] bg-gradient-to-b from-transparent to-[#0a0907]/80" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/15 to-transparent max-md:bg-gradient-to-t max-md:from-black/70 max-md:via-black/20" />
-        </motion.div>
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[5] h-[calc(var(--rbs,0px)*1.25)] bg-gradient-to-b from-[#0a0907]/0 via-[#0a0907] via-[20%] to-[#0a0907]" />
-      </div>
-    </section>
-  )
-}
-
-/* lite / reduced motion: a still of slide 01, full bleed, with the same type */
-function StaticHero() {
-  const { t } = useLang()
-  const s0 = SLIDES[0]
-  return (
-    <section id="hero" className="relative min-h-[100svh] overflow-hidden bg-[#0c0b09]">
-      <img src={img(s0.id)} srcSet={`${img(s0.id, 1)} 720w, ${img(s0.id)} 1800w`} sizes="100vw" alt={t(s0.l)} width={s0.w} height={s0.h} decoding="async" fetchpriority="high"
-        className="absolute inset-0 h-full w-full object-cover [filter:saturate(.84)_brightness(.86)]" style={{ objectPosition: s0.pos }} />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
-      <div className="relative mx-auto flex min-h-[100svh] max-w-[1440px] flex-col justify-end px-6 pb-12 pt-32 md:px-12 md:pb-16">
-        <p className={`${T.sans} mb-auto text-[11px] font-medium uppercase tracking-[.32em] text-[#f3ede3]/75 md:text-[11px]`}>{t(S.top)}</p>
-        <p className={`${T.sans} mb-5 flex items-center gap-4 text-[11px] font-medium uppercase tracking-[.34em] text-[#f3ede3]/70 md:text-[11px]`}><span className="h-px w-10 bg-[#c3a15e]" />{t(PERSON.motto)}</p>
-        <h1 className={`${T.serif} text-[clamp(64px,19vw,96px)] leading-[.86] tracking-[-.02em] text-[#f6f1e8] md:text-[clamp(96px,11.4vw,200px)]`}>Yehiel<br /><span className="italic text-[#e9dcc0] md:pl-[.9em]">Tsubery</span></h1>
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <a href="#como" className={`${T.sans} inline-flex h-12 items-center gap-3 rounded-full bg-[#f3ede3] px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#151412]`}>{t(S.explore)} →</a>
-          <a href="#contact" className={`${T.sans} inline-flex h-12 items-center rounded-full border border-[#f3ede3]/30 px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#f3ede3]`}>{t('cta.inquire')}</a>
-        </div>
-        <p className={`${T.sans} mt-8 text-[11px] font-medium uppercase tracking-[.3em] text-[#f3ede3]/60`}>{t(s0.l)}</p>
-      </div>
-    </section>
+    </div>
   )
 }
 
 export default function Hero() {
+  const { t, lang } = useLang()
+  const ref = useRef()
+  useStage('hero', ref)
   const reduce = useReducedMotion()
-  const lite = useLite()
-  if (reduce || lite) return <StaticHero />
-  return <Film />
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
+  const p = useSpring(scrollYProgress, { stiffness: 70, damping: 22, mass: 0.6 })
+
+  // showreel clock — pauses once the visitor starts scrolling
+  const [i, setI] = useState(0)
+  const paused = useRef(false)
+  const zc = useRef({ i: 0, z: 1 })
+  if (zc.current.i !== i) zc.current = { i, z: zc.current.z + 1 }
+  useEffect(() => scrollYProgress.on('change', v => { paused.current = v > 0.02 }), [scrollYProgress])
+  useEffect(() => {
+    if (reduce) return
+    const id = setInterval(() => { if (!paused.current && !document.hidden) setI(k => (k + 1) % SLIDES.length) }, HOLD * 1000)
+    return () => clearInterval(id)
+  }, [reduce, i])
+  // preload the big frames once
+  useEffect(() => { SLIDES.forEach(s => { const im = new Image(); im.src = XL(s.id) }) }, [])
+
+  // scroll beats
+  const titleO = useTransform(p, [0, 0.3], [1, 0])
+  const titleY = useTransform(p, [0, 0.33], [0, -70])
+  const push = useTransform(p, [0, 0.4], [1, 1.12])
+  const ins = useTransform(p, [0.36, 0.9], [0, 1])
+  const top = useTransform(ins, v => `${v * 16}%`), side = useTransform(ins, v => `${v * 9}%`), rad = useTransform(ins, v => `${v * 6}px`)
+  const clip = useMotionTemplate`inset(${top} ${side} ${top} ${side} round ${rad})`
+  const frameO = useTransform(p, [0.55, 0.85], [0, 1])
+  const dim = useTransform(p, [0.4, 1], [0, 0.35])
+  const capO = useTransform(p, [0.62, 0.9], [0, 1])
+  const capY = useTransform(p, [0.62, 0.9], [24, 0])
+  const uiO = useTransform(p, [0, 0.18], [1, 0])
+
+  return (
+    <section id="hero" ref={ref} className="relative h-[190vh] bg-[#0b0a08]">
+      <div className="sticky top-0 h-[100svh] overflow-hidden">
+        {/* the picture, receding into a window on scroll */}
+        <motion.div className="absolute inset-0" style={{ clipPath: clip }}>
+          <motion.div className="absolute inset-0" style={{ scale: push }}>
+            <AnimatePresence initial={false}>
+              <Slide key={SLIDES[i].id} s={SLIDES[i]} z={zc.current.z} first={zc.current.z === 1} />
+            </AnimatePresence>
+          </motion.div>
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-black/5 max-md:bg-gradient-to-t max-md:from-black/85 max-md:via-black/45 max-md:to-black/20" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/50 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/70 to-transparent" />
+          <motion.div className="pointer-events-none absolute inset-0 bg-[#0b0a08]" style={{ opacity: dim }} />
+        </motion.div>
+
+        {/* gold frame that appears as the picture recedes */}
+        <motion.div aria-hidden className="pointer-events-none absolute border border-[#c3a15e]/60" style={{ opacity: frameO, top: 'calc(16% - 14px)', bottom: 'calc(16% - 14px)', left: 'calc(9% - 14px)', right: 'calc(9% - 14px)' }} />
+
+        {/* caption that takes over after the recede */}
+        <motion.div className="pointer-events-none absolute inset-x-0 bottom-[5%] z-20 text-center" style={{ opacity: capO, y: capY }}>
+          <div className={`${T.sans} text-[11px] font-medium uppercase tracking-[.34em] text-[#c3a15e]`}>{t(SLIDES[i].l)}</div>
+          <div className={`${T.serif} mt-2 text-[26px] italic text-[#efe8dc] md:text-[34px]`}>{t({ en: 'From the first line to the finished home.', it: 'Dal primo tratto alla casa finita.' })}</div>
+        </motion.div>
+
+        {/* top line */}
+        <motion.div style={{ opacity: uiO }} className="pointer-events-none absolute inset-x-0 top-[88px] z-20 max-md:hidden">
+          <Fade d={.5} className={`${T.sans} mx-auto flex max-w-[1440px] items-center gap-4 px-12 text-[11px] font-medium uppercase tracking-[.38em] text-[#f3ede3]/75`}>
+            <span className="h-px w-10 bg-[#c3a15e]" />{t(S.top)}
+          </Fade>
+        </motion.div>
+
+        {/* title block */}
+        <motion.div style={{ opacity: titleO, y: titleY }} className="absolute inset-x-0 bottom-0 z-20">
+          <div className="mx-auto max-w-[1440px] px-6 pb-[max(36px,calc(env(safe-area-inset-bottom)+24px))] md:px-12 md:pb-16">
+            <Fade d={.2} className={`${T.sans} mb-5 flex items-center gap-4 text-[11px] font-medium uppercase tracking-[.3em] text-[#f3ede3]/80 md:mb-7 md:tracking-[.4em]`}>
+              <span className="h-px w-10 bg-[#c3a15e]" />{t(PERSON.motto)}
+            </Fade>
+            <h1 key={lang} className={`${T.serif} text-[#f6f1e8] text-[clamp(64px,19vw,96px)] leading-[.86] tracking-[-.02em] md:text-[clamp(96px,11.4vw,200px)]`}>
+              <Rise d={.15}>Yehiel</Rise>
+              <Rise d={.3} className="italic text-[#e9dcc0] md:pl-[.9em]">Tsubery</Rise>
+            </h1>
+            <Fade d={.9} className="mt-8 flex flex-wrap items-center gap-3 md:mt-10 md:gap-4">
+              <a href="#como" className={`${T.sans} group inline-flex h-12 items-center gap-3 rounded-full bg-[#f3ede3] px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#151412] transition-colors duration-500 hover:bg-white`}>
+                {t(S.explore)} <span className="transition-transform duration-500 group-hover:translate-x-1">→</span>
+              </a>
+              <a href="#contact" className={`${T.sans} inline-flex h-12 items-center rounded-full border border-[#f3ede3]/35 px-6 text-[12px] font-semibold uppercase tracking-[.18em] text-[#f3ede3] transition-colors duration-500 hover:border-[#f3ede3]/70`}>
+                {t('cta.inquire')}
+              </a>
+            </Fade>
+          </div>
+        </motion.div>
+
+        {/* reel counter + project label */}
+        <motion.div style={{ opacity: uiO }} className="absolute bottom-[max(36px,calc(env(safe-area-inset-bottom)+24px))] right-6 z-30 flex flex-col items-end gap-1 max-md:top-[84px] max-md:bottom-auto md:bottom-16 md:right-12">
+          <Fade d={1.1}><Counter i={i} go={setI} /></Fade>
+          <AnimatePresence mode="wait">
+            <motion.div key={i + lang} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: .8, ease: E }}
+              className={`${T.sans} text-right text-[11px] font-medium uppercase tracking-[.26em] text-[#f3ede3]/65 max-md:hidden`}>{t(SLIDES[i].l)}</motion.div>
+          </AnimatePresence>
+        </motion.div>
+
+        {/* scroll cue */}
+        <motion.div style={{ opacity: uiO }} className="pointer-events-none absolute bottom-6 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-3 md:flex">
+          <span className={`${T.sans} text-[11px] font-medium uppercase tracking-[.42em] text-[#f3ede3]/60`}>{t(S.scroll)}</span>
+          <span className="relative block h-10 w-px overflow-hidden bg-[#f3ede3]/15">
+            <motion.span className="absolute left-0 top-0 block h-4 w-px" style={{ background: GOLD }} animate={{ y: [-16, 40] }} transition={{ duration: 2.4, ease: [0.65, 0, 0.35, 1], repeat: Infinity, repeatDelay: .4 }} />
+          </span>
+        </motion.div>
+      </div>
+    </section>
+  )
 }
