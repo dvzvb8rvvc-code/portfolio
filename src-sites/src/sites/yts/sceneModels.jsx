@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { addAfterEffect, createPortal, useFrame, useThree } from '@react-three/fiber'
 import { useEnvironment } from '@react-three/drei'
 import { stage } from './engine'
-import { MAQUETTES } from './models3d'
+import { MAQUETTES, MAQUETTE_META, preloadMaquettes } from './models3d'
 import { chapOf, finOf } from './Models'
 
 /* MODELS (V6) — CIAO-style maquette showcase, rendered into the Models section's sticky frame.
@@ -28,6 +28,7 @@ const TAU = Math.PI * 2, HP = Math.PI / 2
 const R = 1.3          // slot radius on the plinth
 const PR = 2.15        // plinth radius
 const MH = 1.6         // nominal maquette size (base at y=0)
+const HH = MAQUETTE_META.map(m => m.size[1] / 2)   // per-model half height → rotate about the visual centre
 const damp = THREE.MathUtils.damp, lerp = THREE.MathUtils.lerp
 const cl = v => Math.min(1, Math.max(0, v))
 const sm = x => { x = cl(x); return x * x * (3 - 2 * x) }
@@ -180,10 +181,10 @@ function Plinth({ refG, ringMat }) {
 }
 
 /* ───────────── maquette slot ───────────── */
-function Slot({ M, refG }) {
+function Slot({ M, refG, hh }) {
   return (
     <group ref={refG}>
-      <group position-y={-MH / 2}>
+      <group position-y={-hh}>
         <M />
       </group>
     </group>
@@ -197,6 +198,7 @@ export default function SceneModels({ track }) {
   const { gl, get } = useThree()
   const scene = useMemo(() => { const s = new THREE.Scene(); s.environmentIntensity = .9; return s }, [])
   const cam = useMemo(() => new THREE.PerspectiveCamera(30, 1.6, .1, 60), [])
+  useMemo(() => { try { preloadMaquettes() } catch (e) {} }, [])   // build geometry up front, not on first view
   const env = useEnvironment({ files: HDR })
   useEffect(() => { scene.environment = env; return () => { scene.environment = null } }, [env, scene])
   const shadowTex = useShadowTex()
@@ -308,7 +310,7 @@ export default function SceneModels({ track }) {
       tmp.slot.set(Math.sin(a) * R * gs, py, Math.cos(a) * R * gs)
       // resting pose (center of the model)
       const plinthYaw = a - sk + TAU * turn
-      tmp.w.copy(tmp.slot); tmp.w.y += MH / 2 * s0
+      tmp.w.copy(tmp.slot); tmp.w.y += HH[i] * s0
       // focus pose
       const bob = Math.sin(s.t * 1.15 + i) * .03
       tmp.v.copy(tmp.foc); tmp.v.y += bob
@@ -335,7 +337,7 @@ export default function SceneModels({ track }) {
         // name tags under each model
         const tg = stage.models?.tags?.[i]
         if (tg) {
-          tmp.v.copy(tmp.w); tmp.v.y -= MH / 2 * sc + .04
+          tmp.v.copy(tmp.w); tmp.v.y -= HH[i] * sc + .04
           tmp.v.project(cam)
           const X = (tmp.v.x + 1) / 2 * W, Y = (1 - tmp.v.y) / 2 * h
           tg.style.transform = `translate3d(${X.toFixed(1)}px,${Y.toFixed(1)}px,0) translateX(-50%)`
@@ -447,7 +449,7 @@ export default function SceneModels({ track }) {
           <meshBasicMaterial map={shadowTex} transparent depthWrite={false} opacity={.85} toneMapped={false} />
         </mesh>
       ))}
-      {MAQUETTES.map((M, i) => <Slot key={i} M={M} refG={slots[i]} />)}
+      {MAQUETTES.map((M, i) => <Slot key={i} M={M} refG={slots[i]} hh={HH[i]} />)}
       <mesh ref={flood} frustumCulled={false}>
         <planeGeometry args={[1, 1]} />
         <shaderMaterial uniforms={floodU} vertexShader={floodVert} fragmentShader={floodFrag} transparent depthWrite={false} />
