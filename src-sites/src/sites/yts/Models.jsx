@@ -83,16 +83,16 @@ function Intro({ c }) {
   const o = useTransform(c, [-1, -.35, -.05], [1, 1, 0])
   const y = useTransform(c, [-1, -.05], [0, -70])
   return (
-    <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-0 top-[84px] z-20 md:top-[112px]">
+    <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-0 top-[100px] z-20 md:top-[112px]">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: .9, ease: E }} className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.26em] text-[#efe8dc]/70`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.eyebrow)}</motion.p>
-        <h2 className={`${T.serif} mt-3 text-[clamp(40px,11.5vw,50px)] leading-[.92] tracking-[-.015em] text-[#efe8dc] md:mt-5 md:text-[clamp(64px,6.6vw,112px)]`}>
+        <motion.h2 initial="h" whileInView="s" viewport={{ once: true }} className={`${T.serif} mt-3 text-[clamp(40px,11.5vw,50px)] leading-[.92] tracking-[-.015em] text-[#efe8dc] md:mt-5 md:text-[clamp(64px,6.6vw,112px)]`}>
           {[S.h1, S.h2].map((l, i) => (
             <span key={i} className="block overflow-hidden pb-[.07em]">
-              <motion.span initial={{ x: '-104%' }} whileInView={{ x: 0 }} viewport={{ once: true }} transition={{ duration: 1.25, ease: E, delay: .08 + i * .12 }} className={`block ${i ? 'italic text-[#d9bd84]' : ''}`}>{t(l)}</motion.span>
+              <motion.span variants={{ h: { x: '-104%' }, s: { x: 0, transition: { duration: 1.25, ease: E, delay: .08 + i * .12 } } }} className={`block ${i ? 'italic text-[#d9bd84]' : ''}`}>{t(l)}</motion.span>
             </span>
           ))}
-        </h2>
+        </motion.h2>
         <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 1, delay: .5 }} className={`${T.sans} mt-4 max-w-[34ch] text-[15px] leading-[1.5] text-[#efe8dc]/62 md:mt-6 md:text-[16px]`}>{t(S.lead)}</motion.p>
       </div>
     </motion.div>
@@ -136,7 +136,7 @@ function Chapter({ c, i, pr }) {
         </div>
       </motion.div>
       {/* the honest link: a small real render / photo of that project */}
-      <motion.figure style={{ opacity: co, y: cy }} className="pointer-events-none absolute right-4 top-[92px] z-20 w-[104px] md:right-10 md:top-auto md:bottom-[18%] md:w-[clamp(180px,16vw,250px)]">
+      <motion.figure style={{ opacity: co, y: cy }} className="pointer-events-none absolute right-4 top-[96px] z-20 w-[84px] md:right-10 md:top-auto md:bottom-[18%] md:w-[clamp(180px,16vw,250px)]">
         <motion.div style={{ scale: cs }} className="overflow-hidden rounded-[6px] p-[3px] ring-1 ring-[#efe8dc]/30 [background:rgba(11,10,8,.25)] md:p-[5px]">
           <img src={img(pr.img, true)} alt={t(pr.cap)} loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-[3px] object-cover yts-grade" />
         </motion.div>
