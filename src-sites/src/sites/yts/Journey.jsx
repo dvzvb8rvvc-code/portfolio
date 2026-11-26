@@ -130,7 +130,7 @@ export default function Journey() {
 
         {/* title */}
         <div className="relative z-10 px-5 pt-[88px] text-center md:pt-[104px]">
-          <h2 key={lang} className={`${DISPLAY} font-[600] uppercase leading-[.86] text-[#f2e6d4] text-[clamp(44px,12.4vw,64px)] md:text-[clamp(64px,6.6vw,118px)]`}>
+          <h2 key={lang} className={`${DISPLAY} font-[600] uppercase leading-[.86] text-[#f2e6d4] text-[clamp(40px,11.2vw,64px)] md:text-[clamp(64px,6.6vw,118px)]`}>
             <MaskLine>{t(S.a)}</MaskLine>
             <MaskLine i={1}><span className={`${T.serif} mr-[.14em] align-[.1em] text-[.46em] font-normal normal-case italic tracking-normal text-[#d9bf86]`}>{t(S.to)}</span>{t(S.b)}</MaskLine>
           </h2>
@@ -149,7 +149,7 @@ export default function Journey() {
         </motion.div>
 
         {/* gold route through the five stages */}
-        <motion.div ref={boxRef} style={{ opacity: routeO }} className={`absolute z-10 ${mob ? 'left-1/2 top-[29%] h-[48%] w-[300px] -translate-x-1/2' : 'inset-x-[4%] top-[38%] h-[34%]'}`}>
+        <motion.div ref={boxRef} style={{ opacity: routeO }} className={`absolute z-10 ${mob ? 'left-1/2 top-[37%] h-[40%] w-[300px] -translate-x-1/2' : 'inset-x-[4%] top-[38%] h-[34%]'}`}>
           <svg viewBox={`0 0 ${bw} ${bh}`} className="absolute inset-0 h-full w-full overflow-visible" fill="none">
             <path d={rd} stroke="#efe0cc" strokeOpacity=".16" strokeWidth="1" strokeDasharray="3 6" />
             <motion.path d={rd} stroke="#c3a15e" strokeWidth="1.4" strokeLinecap="round" style={{ pathLength: routeK }} />
