@@ -10,7 +10,7 @@ import { stage } from './engine'
    - wheel / keys / touch swipes inside (or just before) a film → animate to the next stop.
    - input during a beat (incl. trackpad inertia) is swallowed; after the last stop normal scroll resumes.
 ============================================================== */
-export const STEPS = { hero: 3, sketch: 4, models: 6, como: 4, palazzo: 6 }
+export const STEPS = { models: 6 }
 const DUR = 1.7          // seconds per beat
 const ENTRY = 0.55       // fraction of viewport above a film where a downward gesture snaps into it
 const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)

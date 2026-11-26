@@ -4,6 +4,7 @@ import { PORTFOLIO } from '../../lib/kit'
 import { useLang } from './i18n'
 import { T, COMPANIES, img } from './data'
 import { ChapterFlood, MaskLine, Stagger, useEnter } from './motion'
+import { D, S, CineStyle } from './cine'
 
 const EASE = [0.16, 1, 0.3, 1]
 const INTERESTS = [
@@ -58,9 +59,9 @@ function Thanks({ name, interest, reset }) {
         {['M10 200 V80 A70 70 0 0 1 150 80 V200', 'M10 132 H150', 'M30 146 Q60 140 80 146 T130 146', 'M44 160 Q70 155 90 160 T120 160'].map((d, i) => <motion.path key={i} d={d} {...draw(d, i)} />)}
         <motion.circle cx="104" cy="104" r="14" stroke="#c3a15e" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.4, delay: 1, ease: EASE }} />
       </svg>
-      <h3 className={`${T.serif} mt-6 text-[56px] leading-[.92] md:text-[76px]`}>
+      <h3 className={`${D} yts-d mt-6 text-[64px] md:text-[88px]`}>
         <span className="block overflow-hidden"><motion.span className="inline-block" initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, ease: EASE, delay: 0.3 }}>{t({ en: 'Thank you', it: 'Grazie' })}{first ? ',' : '.'}</motion.span></span>
-        {first && <span className="block overflow-hidden"><motion.span className="inline-block italic text-[#d9bf86]" initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, ease: EASE, delay: 0.42 }}>{first}.</motion.span></span>}
+        {first && <span className="block overflow-hidden"><motion.span className={`${S} inline-block normal-case italic font-normal text-[#d9bf86]`} initial={{ y: '100%' }} animate={{ y: 0 }} transition={{ duration: 1, ease: EASE, delay: 0.42 }}>{first}.</motion.span></span>}
       </h3>
       <p className="mt-6 max-w-[40ch] text-[16px] leading-relaxed text-[#efe8dc]/75">
         {t({ en: 'Your note would now be on its way to the studio in Ramat Gan', it: 'La tua richiesta sarebbe ora in viaggio verso lo studio di Ramat Gan' })}{interest ? t({ en: ' — tagged “', it: ' — con oggetto “' }) + t(INTERESTS.find(x => x.k === interest).t) + '”' : ''}.
@@ -122,7 +123,7 @@ function Footer() {
     <footer className="relative border-t border-[rgba(239,232,220,.08)] bg-[#080706] text-[#efe8dc]">
       <div className="mx-auto max-w-[1440px] px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-14 md:px-10 md:pb-8">
         <div className="grid items-end gap-8 md:grid-cols-12">
-          <div className="text-[28vw] font-black leading-[.74] tracking-[-.06em] md:col-span-5 md:text-[11vw] 2xl:text-[160px]">YTS<span className="text-[#c3a15e]">.</span></div>
+          <div className={`${D} yts-d text-[34vw] leading-[.8] md:col-span-5 md:text-[13vw] 2xl:text-[190px]`}>YTS<span className="text-[#c3a15e]">.</span></div>
           <div className="md:col-span-7">
             <div className="mb-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#c3a15e]">YTS Group</div>
             <ul className="flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-[#efe8dc]/60">
@@ -165,6 +166,7 @@ export default function Contact() {
   const p = useEnter(col, { start: 'start 0.95', end: 'start 0.45' })
   return (
     <section id="contact" className={`relative isolate bg-[#0b0a08] text-[#efe8dc] ${T.sans}`}>
+      <CineStyle />
       <div className="relative overflow-clip">
         <Backdrop />
         <ChapterFlood tint="16,40,54" glow="217,191,134" at="70% 55%" strength={0.7} layer="" className="mix-blend-screen" />
@@ -172,10 +174,10 @@ export default function Contact() {
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#0b0a08] to-[#0b0a08]/0 md:h-64" />
         <div className="relative mx-auto grid max-w-[1440px] gap-10 px-5 py-20 md:px-10 md:py-24 lg:grid-cols-12 lg:gap-10">
           <div ref={col} className="flex flex-col lg:col-span-5">
-            <Stagger p={p} dx={-16} dy={0}><div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/60"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: '06 — Private inquiry', it: '06 — Richiesta privata' })}</div></Stagger>
-            <h2 className={`${T.serif} mt-5 text-[12.5vw] leading-[.86] tracking-[-.02em] lg:text-[6vw] 2xl:text-[88px]`}>
+            <Stagger p={p} dx={-16} dy={0}><div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/60"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: 'Private inquiry', it: 'Richiesta privata' })}</div></Stagger>
+            <h2 className={`${D} yts-d mt-5 text-[17vw] lg:text-[7.4vw] 2xl:text-[112px]`}>
               {head.map((w, i) => (
-                <MaskLine key={i} p={p} i={i + .6} step={.14} from="left" className="pb-[.06em]" inner={i ? 'italic text-[#d9bf86]' : ''}>{w}</MaskLine>
+                <MaskLine key={i} p={p} i={i + .6} step={.14} from="left" className="pb-[.06em]" inner={i ? `${S} normal-case italic font-normal tracking-[-.01em] text-[#d9bf86]` : ''}>{w}</MaskLine>
               ))}
             </h2>
             <Stagger p={p} start={.45} step={.08}>

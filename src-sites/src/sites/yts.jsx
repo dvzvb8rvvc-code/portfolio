@@ -6,7 +6,11 @@ import { useSmooth, PORTFOLIO } from '../lib/kit'
 import { LangProvider, useLang } from './yts/i18n'
 import { T } from './yts/data'
 import Hero from './yts/Hero'
+import Story from './yts/Story'
+import Journey from './yts/Journey'
 import Studio from './yts/Studio'
+import Projects from './yts/Projects'
+import Details from './yts/Details'
 import Como from './yts/Como'
 import Models from './yts/Models'
 import Palazzo from './yts/Palazzo'
@@ -33,6 +37,10 @@ html,body{background:${P.bg}}
 #top{--gold:${P.gold}}
 .yts-grain{position:fixed;inset:0;z-index:58;pointer-events:none;opacity:.07;mix-blend-mode:overlay;background-image:url("${NOISE}");background-size:180px 180px}
 .yts-grade{filter:saturate(.86) sepia(.07) brightness(.95) contrast(1.02)}
+@keyframes ytsPush{from{transform:scale(1.03) translate3d(0,0,0)}to{transform:scale(1.14) translate3d(-1.2%,-.8%,0)}}
+.yts-push{animation:ytsPush 22s cubic-bezier(.45,0,.55,1) infinite alternate;will-change:transform}
+@media (prefers-reduced-motion:reduce){.yts-push{animation:none;transform:scale(1.04)}}
+.yts-glass{background:rgba(18,12,9,.52);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid rgba(239,224,204,.10)}
 .yts-cap{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.28em;line-height:1.4}
 #top :focus-visible{outline:1px solid ${P.gold};outline-offset:3px}
 #top input:-webkit-autofill{-webkit-text-fill-color:${P.ink};transition:background-color 9999s}
@@ -41,7 +49,7 @@ html,body{background:${P.bg}}
 function LangSwitch({ big }) {
   const { lang, setLang } = useLang()
   return (
-    <div className={`relative flex items-center rounded-full border border-[rgba(239,232,220,.16)] p-[3px] text-[11px] font-semibold tracking-[.16em] text-[#efe8dc] ${big ? 'h-12' : 'h-11 md:h-10'}`}>
+    <div className={`relative flex items-center rounded-full border p-[3px] text-[11px] font-semibold tracking-[.16em] text-[#efe8dc] ${big ? 'h-12 border-[rgba(239,232,220,.16)]' : 'h-12 border-transparent p-[5px]'}`}>
       {['en', 'it'].map(l => (
         <button key={l} onClick={() => setLang(l)} aria-pressed={lang === l} aria-label={l === 'en' ? 'English' : 'Italiano'}
           className={`relative z-10 h-full rounded-full uppercase ${big ? 'w-14' : 'w-11 md:w-10'}`}>
@@ -56,7 +64,7 @@ function LangSwitch({ big }) {
 function Burger({ open, onClick }) {
   return (
     <button onClick={onClick} aria-expanded={open} aria-label={open ? 'Close menu' : 'Menu'}
-      className="relative grid h-11 w-11 place-items-center rounded-full border border-[rgba(239,232,220,.16)] lg:hidden">
+      className="relative grid h-12 w-12 place-items-center rounded-full lg:hidden">
       <motion.span className="absolute h-px w-[18px] bg-[#efe8dc]" animate={open ? { rotate: 45, y: 0 } : { rotate: 0, y: -3.5 }} transition={{ duration: .5, ease: EASE }} />
       <motion.span className="absolute h-px w-[18px] bg-[#efe8dc]" animate={open ? { rotate: -45, y: 0 } : { rotate: 0, y: 3.5 }} transition={{ duration: .5, ease: EASE }} />
     </button>
@@ -103,28 +111,27 @@ function Nav() {
   const [solid, setSolid] = useState(false)
   useMotionValueEvent(scrollY, 'change', v => setSolid(v > 40))
   const [open, setOpen] = useState(false)
-  const glass = solid && !open
+  const home = () => { if (open) { window.__lenis?.start(); document.body.style.overflow = '' } setOpen(false) }
   return (
     <>
-      <header className={`fixed inset-x-0 top-0 z-[60] transition-[background-color,border-color,backdrop-filter] duration-700 ${glass ? 'border-b border-[rgba(239,232,220,.08)] bg-[#0b0a08]/[.78] backdrop-blur-xl backdrop-saturate-150' : 'border-b border-transparent'}`}>
+      <header className="fixed inset-x-0 top-0 z-[60]">
         <div className={`overflow-hidden transition-[max-height] duration-500 ${solid || open ? 'max-h-0' : 'max-h-16'}`}><Ribbon /></div>
-        <div className={`mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 md:h-[72px] md:px-10 ${T.sans}`}>
-          <a href="#top" onClick={() => { if (open) { window.__lenis?.start(); document.body.style.overflow = '' } setOpen(false) }} className="flex min-h-[44px] items-center gap-3 text-[#efe8dc]">
-            <span className="text-[18px] font-black tracking-[.04em]">YTS</span>
+        {/* Delta-like floating dark-glass bar: logo badge · centred link pill · language + inquiry */}
+        <div className={`mx-auto flex max-w-[1480px] items-center justify-between gap-3 px-3 pt-3 md:px-5 md:pt-4 ${T.sans}`}>
+          <a href="#top" onClick={home} className={`flex h-12 items-center gap-3 rounded-full px-5 text-[#efe8dc] ${open ? '' : 'yts-glass'}`}>
+            <span className="text-[17px] font-black tracking-[.06em]">YTS</span>
             <span className="h-4 w-px bg-[#c3a15e]/70" />
-            <span className={`${T.serif} text-[18px] italic text-[#efe8dc]/70`}>Yehiel Tsubery</span>
+            <span className={`${T.serif} text-[17px] italic text-[#efe8dc]/75`}>Yehiel Tsubery</span>
           </a>
-          <nav className="hidden items-center gap-9 lg:flex">
+          <nav className="yts-glass hidden h-12 items-center gap-1 rounded-full px-2 lg:flex">
             {NAV.map(([h, k]) => (
-              <a key={h} href={h} className="group relative py-2 text-[11px] font-semibold uppercase tracking-[.26em] text-[#efe8dc]/70 transition-colors duration-300 hover:text-[#efe8dc]">
-                {t(k)}<span className="absolute inset-x-0 bottom-1 h-px origin-left scale-x-0 bg-[#c3a15e] transition-transform duration-500 group-hover:scale-x-100" />
-              </a>
+              <a key={h} href={h} className="group relative flex h-9 items-center rounded-full px-5 text-[11.5px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/80 transition-colors duration-300 hover:bg-[#efe8dc]/10 hover:text-[#efe8dc]">{t(k)}</a>
             ))}
           </nav>
-          <div className="flex items-center gap-2.5 md:gap-3">
-            <div className="hidden sm:block"><LangSwitch /></div>
-            <a href="#contact" className="hidden h-10 items-center rounded-full border border-[#c3a15e]/60 px-5 text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc] transition-colors duration-500 hover:bg-[#c3a15e] hover:text-[#0b0a08] lg:inline-flex">{t('cta.inquire')}</a>
-            <Burger open={open} onClick={() => setOpen(!open)} />
+          <div className="flex items-center gap-2">
+            <div className={`hidden rounded-full sm:block ${open ? '' : 'yts-glass'}`}><LangSwitch /></div>
+            <a href="#contact" className="hidden h-12 items-center rounded-full bg-[#efe0cc] px-6 text-[11.5px] font-semibold uppercase tracking-[.18em] text-[#1e130d] transition-colors duration-500 hover:bg-white lg:inline-flex">{t('cta.inquire')}</a>
+            <div className={`rounded-full lg:hidden ${open ? '' : 'yts-glass'}`}><Burger open={open} onClick={() => setOpen(!open)} /></div>
           </div>
         </div>
       </header>
@@ -155,12 +162,14 @@ function App() {
         <Nav />
         <main className="relative z-10">
           <Hero />
+          <Story />
+          <Journey />
           <Studio />
+          <Projects />
           <Models />
-          <div id="residences">
-            <Como />
-            <Palazzo />
-          </div>
+          <Como />
+          <Details />
+          <Palazzo />
           <Works />
           <Founder />
           <Contact />

@@ -5,6 +5,7 @@ import { useIsMobile } from '../../lib/kit'
 import { useLang } from './i18n'
 import { T, WORKS, img } from './data'
 import { ChapterFlood, CountUp, MaskLine, Stagger, useEnter } from './motion'
+import { D, CineStyle } from './cine'
 
 /* v3 Works — pure DOM: filter tabs, a two-row draggable contact-sheet strip, lightbox, Israel row. No canvas. */
 const EASE = [0.16, 1, 0.3, 1]
@@ -220,17 +221,18 @@ function Lightbox({ list, index, setIndex }) {
   )
 }
 
-/* kinetic headline: the word for the active filter lights up ochre, the others recede */
+/* kinetic headline (V8 condensed caps + italic serif middle word): the active filter's word lights up gold */
 function Headline({ filter, p }) {
   const { t } = useLang()
   const words = ['sketch', 'render', 'build']
   return (
-    <h2 className={`${T.serif} text-[13.5vw] leading-[.9] tracking-[-.02em] md:text-[7.4vw] 2xl:text-[108px]`}>
+    <h2 className={`${D} yts-d text-[15.5vw] md:text-[8.6vw] 2xl:text-[132px]`}>
       {words.map((k, i) => {
         const on = filter === 'all' || filter === k
+        const serif = i === 1
         return (
-          <MaskLine key={k} p={p} i={i} step={.14} span={.62} from="left" inline className="mr-[.22em]">
-            <motion.span className={`inline-block ${i === 2 ? 'italic' : ''}`} animate={{ opacity: on ? 1 : 0.22, color: filter === k ? '#d9bf86' : '#efe8dc' }} transition={{ duration: 0.6, ease: EASE }}>{t(KIND[k].word)}</motion.span>
+          <MaskLine key={k} p={p} i={i} step={.14} span={.62} from="left" inline className="mr-[.18em]">
+            <motion.span className={`inline-block ${serif ? `${T.serif} normal-case italic font-normal tracking-[-.01em]` : ''}`} animate={{ opacity: on ? 1 : 0.2, color: filter === k ? '#d9bf86' : '#efe8dc' }} transition={{ duration: 0.6, ease: EASE }}>{t(KIND[k].word)}</motion.span>
           </MaskLine>
         )
       })}
@@ -247,7 +249,7 @@ function IsraelRow() {
         {WORKS.israel.map((p, i) => (
           <React.Fragment key={i}>
             <span className="text-[11px] font-semibold tabular-nums text-[#c3a15e] md:mr-2">{pad(i + 1)}</span>
-            <span className={`${T.serif} text-[22px] leading-[1.1] md:text-[24px]`}>{t(p.t)}</span>
+            <span className={`${D} yts-d text-[26px] md:text-[30px]`}>{t(p.t)}</span>
             <span className="ml-auto text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/50 md:ml-0 md:mt-1 md:block">{t(p.p)}</span>
           </React.Fragment>
         ))}
@@ -267,12 +269,11 @@ export default function Works() {
   const hp = useEnter(head, { start: 'start 0.95', end: 'start 0.45' })
   return (
     <section id="works" className={`relative isolate overflow-x-clip bg-[#0b0a08] py-20 text-[#efe8dc] md:py-28 ${T.sans}`}>
-      {/* soft hand-off from the Palazzo chapter above: no edge, the page just deepens */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-40 h-40 bg-gradient-to-b from-[#0b0a08]/0 to-[#0b0a08]" />
-      <ChapterFlood tint="26,40,52" glow="150,170,185" at="78% 38%" strength={0.9} />
+      <CineStyle />
+            <ChapterFlood tint="26,40,52" glow="150,170,185" at="78% 38%" strength={0.9} />
       <div ref={head} className="mx-auto max-w-[1440px] px-5 md:px-10">
         <Stagger p={hp} dx={-16} dy={0} step={.08} className="flex items-center justify-between gap-4 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/60">
-          <span className="flex items-center gap-3"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: '04 — Works', it: '04 — Progetti' })}</span>
+          <span className="flex items-center gap-3"><span className="h-px w-8 bg-[#c3a15e]" />{t({ en: 'Works', it: 'Progetti' })}</span>
           <span className="text-[#efe8dc]/45"><CountUp p={hp} a={.15} to={ITEMS.length} pad={3} className="text-[#c3a15e]" /> {t({ en: 'frames', it: 'immagini' })}</span>
         </Stagger>
         <div className="mt-5 grid items-end gap-6 lg:grid-cols-12">

@@ -4,6 +4,7 @@ import { useLite } from '../../lib/kit'
 import { useLang } from './i18n'
 import { useStage, stage } from './engine'
 import { T, COMO, PALAZZO, img } from './data'
+import { D, CineStyle } from './cine'
 
 /* MODELS (V6) — "Four projects, in the round". DOM only; the maquettes live in sceneModels.jsx.
    CIAO-style product film: lit plinth carousel → a maquette flies forward, turns 3/4 → the stage floods
@@ -86,10 +87,10 @@ function Intro({ c }) {
     <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-0 top-[100px] z-20 md:top-[112px]">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: .9, ease: E }} className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.26em] text-[#efe8dc]/70`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.eyebrow)}</motion.p>
-        <motion.h2 initial="h" whileInView="s" viewport={{ once: true }} className={`${T.serif} mt-3 text-[clamp(40px,11.5vw,50px)] leading-[.92] tracking-[-.015em] text-[#efe8dc] md:mt-5 md:text-[clamp(64px,6.6vw,112px)]`}>
+        <motion.h2 initial="h" whileInView="s" viewport={{ once: true }} className={`${D} yts-d mt-3 text-[clamp(48px,14vw,62px)] text-[#efe8dc] md:mt-5 md:text-[clamp(72px,7.6vw,128px)]`}>
           {[S.h1, S.h2].map((l, i) => (
             <span key={i} className="block overflow-hidden pb-[.07em]">
-              <motion.span variants={{ h: { x: '-104%' }, s: { x: 0, transition: { duration: 1.25, ease: E, delay: .08 + i * .12 } } }} className={`block ${i ? 'italic text-[#d9bd84]' : ''}`}>{t(l)}</motion.span>
+              <motion.span variants={{ h: { x: '-104%' }, s: { x: 0, transition: { duration: 1.25, ease: E, delay: .08 + i * .12 } } }} className={`block ${i ? `${T.serif} normal-case italic font-normal tracking-[-.01em] text-[#d9bd84]` : ''}`}>{t(l)}</motion.span>
             </span>
           ))}
         </motion.h2>
@@ -119,15 +120,15 @@ function Chapter({ c, i, pr }) {
             <motion.p style={{ x }} className={`${T.sans} inline-flex items-center gap-2.5 rounded-[3px] border border-[#efe8dc]/25 bg-[#0b0a08]/20 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc] backdrop-blur-sm`}>
               <span className="tabular-nums text-[#f0d79e]">0{i + 1} / 04</span><span className="h-3 w-px bg-[#efe8dc]/30" />{t(pr.tag)}
             </motion.p>
-            <h3 className={`${T.serif} mt-3 text-[clamp(38px,10.5vw,46px)] leading-[.9] tracking-[-.015em] text-[#efe8dc] [text-shadow:0_2px_30px_rgba(0,0,0,.25)] md:mt-5 md:text-[clamp(56px,5.6vw,96px)]`}>
+            <h3 className={`${D} yts-d mt-3 text-[clamp(44px,12.5vw,56px)] text-[#efe8dc] [text-shadow:0_2px_30px_rgba(0,0,0,.25)] md:mt-5 md:text-[clamp(64px,6.2vw,108px)]`}>
               <span className="block overflow-hidden pb-[.06em]"><motion.span style={{ x }} className="block">{title[0]}</motion.span></span>
-              <span className="block overflow-hidden pb-[.06em]"><motion.span style={{ x: x2 }} className="block italic text-[#f3dfb4]">{title[1]}</motion.span></span>
+              <span className="block overflow-hidden pb-[.06em]"><motion.span style={{ x: x2 }} className={`${T.serif} block normal-case italic font-normal tracking-[-.01em] text-[#f3dfb4]`}>{title[1]}</motion.span></span>
             </h3>
             <motion.p style={{ x: x2 }} className={`${T.sans} mt-2 text-[11px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/80 md:mt-4 md:text-[12px]`}>{t(pr.place)}</motion.p>
             <motion.dl style={{ opacity: fo, y: fy }} className={`mt-4 grid gap-x-5 border-t border-[#efe8dc]/20 md:mt-7 ${pr.facts.length > 2 ? 'grid-cols-3' : 'grid-cols-2'} md:grid-cols-1`}>
               {pr.facts.map((f, k) => (
                 <div key={k} className="flex flex-col gap-1 border-b border-[#efe8dc]/15 py-2.5 md:flex-row md:items-baseline md:gap-5 md:py-3.5">
-                  <dd className={`${T.serif} whitespace-nowrap text-[26px] leading-none tabular-nums text-[#efe8dc] md:w-[150px] md:shrink-0 md:text-[40px]`}>{t(f.v)}{f.u && <span className={`${T.sans} ml-1 text-[11px] font-semibold text-[#f0d79e] md:text-[13px]`}>{t(f.u)}</span>}</dd>
+                  <dd className={`${D} yts-d whitespace-nowrap text-[28px] tabular-nums text-[#efe8dc] md:w-[150px] md:shrink-0 md:text-[44px]`}>{t(f.v)}{f.u && <span className={`${T.sans} ml-1 text-[11px] font-semibold text-[#f0d79e] md:text-[13px]`}>{t(f.u)}</span>}</dd>
                   <dt className={`${T.sans} text-[12px] leading-snug text-[#efe8dc]/72 md:text-[14px]`}>{t(f.l)}</dt>
                 </div>
               ))}
@@ -174,7 +175,7 @@ function Finale({ fin }) {
   const y = useTransform(fin, [.35, 1], [40, 0])
   return (
     <motion.div style={{ opacity: o, y }} className="pointer-events-none absolute inset-x-0 top-[84px] z-20 px-5 text-center md:top-[104px]">
-      <p className={`${T.serif} text-[clamp(32px,9vw,44px)] leading-[.95] text-[#efe8dc] md:text-[clamp(52px,5vw,84px)]`}>{t(S.fin1)} <span className="italic text-[#d9bd84]">{t(S.fin2)}</span></p>
+      <p className={`${D} yts-d text-[clamp(38px,11vw,52px)] text-[#efe8dc] md:text-[clamp(60px,5.8vw,96px)]`}>{t(S.fin1)} <span className={`${T.serif} normal-case italic font-normal tracking-[-.01em] text-[#d9bd84]`}>{t(S.fin2)}</span></p>
       <p className={`${T.sans} mt-3 text-[11px] font-semibold uppercase tracking-[.22em] text-[#efe8dc]/60 md:mt-4 md:text-[12px]`}>{t(S.finNote)} ↓</p>
     </motion.div>
   )
@@ -187,7 +188,7 @@ function Tag({ i, pr, reg }) {
     <div ref={el => (reg.current[i] = el)} style={{ opacity: 0 }} className="pointer-events-none absolute left-0 top-0 z-20 flex -translate-x-1/2 flex-col items-center whitespace-nowrap will-change-transform">
       <span className="mb-2 block h-5 w-px bg-gradient-to-b from-[#efe8dc]/0 to-[#efe8dc]/70" />
       <span className={`${T.sans} text-[10.5px] font-semibold tabular-nums tracking-[.2em] text-[#c3a15e]`}>0{i + 1}</span>
-      <span className={`${T.serif} mt-1 text-[19px] italic leading-none text-[#efe8dc] md:text-[22px]`}>{t(pr.short)}</span>
+      <span className={`${D} yts-d mt-1 text-[20px] text-[#efe8dc] md:text-[24px]`}>{t(pr.short)}</span>
     </div>
   )
 }
@@ -213,14 +214,14 @@ function Still() {
   return (
     <div className="mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-24">
       <p className={`${T.sans} flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[.26em] text-[#efe8dc]/70`}><span className="h-px w-8 bg-[#c3a15e]" />{t(S.eyebrow)}</p>
-      <h2 className={`${T.serif} mt-3 text-[44px] leading-[.95] text-[#efe8dc] md:text-[84px]`}>{t(S.h1)} <span className="italic text-[#d9bd84]">{t(S.h2)}</span></h2>
+      <h2 className={`${D} yts-d mt-3 text-[52px] text-[#efe8dc] md:text-[96px]`}>{t(S.h1)} <span className={`${T.serif} normal-case italic font-normal text-[#d9bd84]`}>{t(S.h2)}</span></h2>
       <div className="mt-8 grid grid-cols-2 gap-3 md:mt-12 md:grid-cols-4 md:gap-5">
         {PROJECTS.map((pr, i) => (
           <figure key={pr.key}>
             <div className="aspect-[4/5] overflow-hidden rounded-[10px] bg-[#14120f]"><img src={img(pr.img, true)} alt={t(pr.cap)} loading="lazy" decoding="async" className="h-full w-full object-cover yts-grade" /></div>
             <figcaption className="mt-3">
               <span className={`${T.sans} text-[11px] font-semibold tabular-nums tracking-[.2em] text-[#c3a15e]`}>0{i + 1}</span>
-              <p className={`${T.serif} text-[24px] leading-tight text-[#efe8dc]`}>{pr.title.map(l => t(l)).join(' ')}</p>
+              <p className={`${D} yts-d mt-1 text-[26px] text-[#efe8dc]`}>{pr.title.map(l => t(l)).join(' ')}</p>
               <p className={`${T.sans} text-[12px] text-[#efe8dc]/60`}>{t(pr.place)}</p>
             </figcaption>
           </figure>
@@ -245,6 +246,7 @@ export default function Models() {
   if (lite) return <section id="models" className="relative"><div ref={ref}><Still /></div></section>
   return (
     <section id="models" className="relative" aria-label={`${t(S.h1)} ${t(S.h2)}`}>
+      <CineStyle />
       <div ref={ref} className="relative h-[200vh] md:h-[260vh]">
         <div ref={frame} className="sticky top-0 h-[100svh] overflow-hidden">
           <Intro c={c} />

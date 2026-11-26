@@ -3,6 +3,7 @@ import { motion, useMotionValue, useScroll, useSpring, useTransform, useReducedM
 import { useLang } from './i18n'
 import { T, PERSON, COMPANIES, CLUB, img } from './data'
 import { ChapterFlood, CountUp, MaskLine, Stagger, useEnter, SOFT } from './motion'
+import { D, Display, CineStyle } from './cine'
 
 /* v3 Founder — pure DOM: portrait with CSS reveal + pointer tilt, timeline, ochre motto band, YTS Group, club line. */
 const EASE = [0.16, 1, 0.3, 1]
@@ -85,7 +86,7 @@ function Timeline() {
       {TIMELINE.map((r, i) => (
         <TimelineItem key={r.y} p={p} i={i}>
           <span aria-hidden className="absolute -top-[31px] left-0 h-[7px] w-[7px] rounded-full bg-[#c3a15e]" />
-          <div className={`${T.serif} text-[34px] tabular-nums leading-none text-[#d9bf86] md:text-[46px]`}><MaskLine p={p} i={1 + i} step={.1} span={.4}>{r.y}</MaskLine></div>
+          <div className={`${D} yts-d text-[38px] tabular-nums text-[#d9bf86] md:text-[56px]`}><MaskLine p={p} i={1 + i} step={.1} span={.4}>{r.y}</MaskLine></div>
           <div className={`${T.serif} mt-2 text-[18px] leading-[1.1] md:text-[22px]`}>{r.a}</div>
           <div className="mt-1 text-[13px] leading-snug text-[#efe8dc]/55">{t(r.b)}</div>
         </TimelineItem>
@@ -110,7 +111,7 @@ function MottoBand() {
       <span aria-hidden className="pointer-events-none absolute inset-x-[12%] top-[18%] h-px bg-gradient-to-r from-transparent via-[#c3a15e]/30 to-transparent" />
       <span aria-hidden className="pointer-events-none absolute inset-x-[12%] bottom-[18%] h-px bg-gradient-to-r from-transparent via-[#c3a15e]/30 to-transparent" />
       <div className="relative flex flex-col items-center justify-center whitespace-nowrap text-[clamp(34px,10.5vw,64px)] leading-[.92] md:flex-row md:gap-[.4em] md:text-[7.2vw] 2xl:text-[112px]">
-        <motion.span style={{ x: a }} className="font-black uppercase tracking-[-.04em] text-[#efe8dc]/90">{w1}</motion.span>
+        <motion.span style={{ x: a }} className={`${D} yts-d text-[1.12em] text-[#efe8dc]/90`}>{w1}</motion.span>
         <motion.span style={{ x: b }} className={`${T.serif} italic text-[#d9bf86]`}>{rest.join(' ')}.</motion.span>
       </div>
       <div className="relative mx-auto mt-3 flex max-w-[1440px] justify-between px-5 text-[11px] font-semibold uppercase tracking-[.28em] text-[#efe8dc]/55 md:px-10">
@@ -127,10 +128,7 @@ function Group() {
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <Eyebrow className="text-[#c3a15e]">YTS Group</Eyebrow>
-          <h3 className={`${T.serif} mt-4 text-[40px] leading-[.95] md:text-[54px]`}>
-            <Reveal>{t({ en: 'One studio,', it: 'Uno studio,' })}</Reveal>
-            <Reveal delay={0.1}><em className="text-[#d9bf86]">{t({ en: 'eight companies.', it: 'otto società.' })}</em></Reveal>
-          </h3>
+          <Display as="h3" className="mt-4 text-[48px] md:text-[64px]" lines={t({ en: [['ONE STUDIO,'], [{ c: 'and' }, 'EIGHT COMPANIES']], it: [['UNO STUDIO,'], [{ c: 'e' }, 'OTTO SOCIETÀ']] })} />
           <p className="mt-4 max-w-[34ch] text-[14px] leading-relaxed text-[#efe8dc]/60">{t({ en: 'Design in Israel, development in Italy — carried by the companies of YTS Group.', it: 'Progettazione in Israele, sviluppo in Italia — attraverso le società di YTS Group.' })}</p>
         </div>
         <div className="grid gap-px overflow-hidden rounded-[6px] bg-[rgba(239,232,220,.12)] sm:grid-cols-3 lg:col-span-8">
@@ -178,7 +176,7 @@ function Club() {
             <motion.li key={i} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: EASE, delay: i * 0.08 }}
               className="group border-l border-[rgba(239,232,220,.12)] pl-4 transition-colors hover:border-[#c3a15e]">
               <div className="text-[11px] tabular-nums text-[#efe8dc]/40">{pad(i + 1)}</div>
-              <div className={`${T.serif} mt-1 text-[22px] leading-[1.05] transition-transform duration-500 group-hover:translate-x-1 md:text-[26px]`}>{t(it.t)}</div>
+              <div className={`${D} yts-d mt-1.5 text-[26px] transition-transform duration-500 group-hover:translate-x-1 md:text-[32px]`}>{t(it.t)}</div>
               <div className="mt-1 text-[11px] font-semibold uppercase tracking-[.18em] text-[#c3a15e]">{t(it.p)}</div>
             </motion.li>
           ))}
@@ -194,15 +192,13 @@ export default function Founder() {
   const ip = useEnter(intro, { start: 'start 0.95', end: 'start 0.42' })
   return (
     <section id="founder" className={`relative isolate overflow-x-clip bg-[#0b0a08] pb-20 text-[#efe8dc] md:pb-28 ${T.sans}`}>
+      <CineStyle />
       <ChapterFlood tint="62,38,20" at="30% 40%" strength={0.85} />
       <div className="mx-auto grid max-w-[1440px] items-center gap-14 px-5 py-20 md:px-10 md:py-28 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-5"><Portrait /></div>
         <div ref={intro} className="lg:col-span-6 lg:col-start-7">
-          <Stagger p={ip} dx={-16} dy={0}><Eyebrow className="text-[#c3a15e]">{t({ en: '05 — Founder', it: '05 — Fondatore' })}</Eyebrow></Stagger>
-          <h2 className={`${T.serif} mt-5 text-[17vw] leading-[.86] tracking-[-.02em] md:text-[8vw] 2xl:text-[116px]`}>
-            <Reveal p={ip}>Yehiel</Reveal>
-            <Reveal p={ip} delay={0.14}><em className="text-[#d9bf86]">Tsubery</em></Reveal>
-          </h2>
+          <Stagger p={ip} dx={-16} dy={0}><Eyebrow className="text-[#c3a15e]">{t({ en: 'Founder', it: 'Fondatore' })}</Eyebrow></Stagger>
+          <Display className="mt-5 text-[21vw] md:text-[9.4vw] 2xl:text-[140px]" lines={[['YEHIEL'], [{ i: 'Tsubery' }]]} />
           <Stagger p={ip} start={.42} step={.08}>
           <div className="mt-4 text-[12px] font-semibold uppercase tracking-[.22em] text-[#efe8dc]/60">{t(PERSON.role)}</div>
           <p className="mt-6 max-w-[46ch] text-[16px] leading-relaxed text-[#efe8dc]/75">{t({ en: 'Trained in Milan and at the Technion, he has led his own studio in Ramat Gan since 2012 — commercial, public and residential work — and, through YTS Group, develops residences in Italy.', it: 'Formato a Milano e al Technion, dal 2012 guida il proprio studio a Ramat Gan — progetti commerciali, pubblici e residenziali — e, con YTS Group, sviluppa residenze in Italia.' })}</p>
