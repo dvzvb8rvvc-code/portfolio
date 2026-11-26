@@ -60,7 +60,7 @@ function Rooms() {
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/10" />
         <div className="absolute inset-x-5 bottom-5 flex flex-col gap-3 md:inset-x-9 md:bottom-8 md:flex-row md:items-end md:justify-between">
           <p className={`${D} yts-d text-[40px] md:text-[72px]`}>{t({ en: 'THE ROOMS', it: 'LE SALE' })} <span className={`${S} block text-[.5em] normal-case italic text-[#f0d79e] md:inline md:text-[.42em]`}>{t({ en: 'as they were painted', it: 'come furono dipinte' })}</span></p>
-          <span className="text-[10.5px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/70">{t({ en: 'Photo · piano nobile', it: 'Foto · piano nobile' })}</span>
+          <span className="text-[10.5px] font-semibold uppercase tracking-[.2em] text-[#efe8dc]/70">{t({ en: 'Photo · Palazzo Campani', it: 'Foto · Palazzo Campani' })}</span>
         </div>
       </motion.div>
     </div>
